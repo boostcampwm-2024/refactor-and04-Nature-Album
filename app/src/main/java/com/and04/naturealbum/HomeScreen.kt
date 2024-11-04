@@ -2,24 +2,29 @@ package com.and04.naturealbum
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,10 +33,6 @@ fun HomeScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
                 title = {
                     Text(stringResource(R.string.app_name))
                 },
@@ -46,33 +47,67 @@ fun HomeScreen() {
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            InfoContent()
-            NavigateContent()
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            InfoContent(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+            )
+            NavigateContent(
+                modifier = Modifier
+                    .weight(2f)
+                    .fillMaxSize()
+            )
         }
     }
 }
 
 @Composable
-fun InfoContent() {
-
+fun InfoContent(modifier: Modifier) {
+    RoundedShapeButton("TODO", modifier, { /* TODO */ })
 }
 
 @Composable
-fun NavigateContent() {
-    Button(onClick = {/* TODO */ }) {
-        Text("지도")
-    }
-    Row {
-        Button(onClick = {/* TODO */ }) {
-            Text("도감")
+fun NavigateContent(modifier: Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        RoundedShapeButton("TODO", modifier, { /* TODO */ })
+
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            RoundedShapeButton("TODO", modifier, { /* TODO */ })
+            RoundedShapeButton("TODO", modifier, { /* TODO */ })
         }
-        Button(onClick = {/* TODO */ }) {
-            Text("카메라")
-        }
     }
+
+    Spacer(modifier = Modifier.padding(bottom = 72.dp))
 }
 
+@Composable
+fun RoundedShapeButton(text: String, modifier: Modifier, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(10)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .padding(top = 24.dp)
+                .align(Alignment.Top)
+        )
+    }
+}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
