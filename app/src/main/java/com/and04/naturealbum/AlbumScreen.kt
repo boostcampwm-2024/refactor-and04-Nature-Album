@@ -29,11 +29,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import com.and04.naturealbum.ui.theme.AppTypography
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 data class Album(
@@ -87,7 +87,7 @@ fun CustomLabel(
         Text(
             text = text,
             color = calculatedTextColor,
-            fontSize = 14.sp,
+            style = AppTypography.labelMedium,
             fontWeight = FontWeight.SemiBold
         )
     }
