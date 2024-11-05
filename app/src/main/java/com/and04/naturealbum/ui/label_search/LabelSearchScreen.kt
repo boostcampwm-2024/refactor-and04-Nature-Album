@@ -66,6 +66,7 @@ fun LabelSearchScreen() {
 @Composable
 fun SearchContent(innerPadding: PaddingValues) {
     var query by rememberSaveable { mutableStateOf("") }
+    var randomColor by rememberSaveable { mutableStateOf("") }
     //TODO DB에서 라벨 목록 가져오기
     val data = listOf("고양이", "강아지", "장수말벌")
 
@@ -105,15 +106,19 @@ fun SearchContent(innerPadding: PaddingValues) {
             modifier = Modifier.padding(start = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val randomColor = getRandomColor()
             Text(stringResource(R.string.label_search_create))
             Spacer(Modifier.size(4.dp))
             AssistChip(
-                onClick = { },
+                onClick = { }, //TODO 클릭 시 해당 라벨 선택 후 종료
                 label = { Text(query) },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = Color(
-                        android.graphics.Color.parseColor(randomColor)
+                        android.graphics.Color.parseColor(
+                            randomColor.ifBlank {
+                                randomColor = getRandomColor()
+                                randomColor
+                            }
+                        )
                     ),
                     labelColor = getLabelTextColor(randomColor)
                 )
