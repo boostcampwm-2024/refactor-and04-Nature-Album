@@ -72,7 +72,7 @@ fun HomeScreen(
                     .fillMaxSize()
             ) { onClickCamera() }
 
-            if (dialogData != DialogData())  MyDialog(dialogData = dialogData)
+            if (dialogData != DialogData() && dialogData.dialogText != null)  MyDialog(dialogData = dialogData)
         }
     }
 }
