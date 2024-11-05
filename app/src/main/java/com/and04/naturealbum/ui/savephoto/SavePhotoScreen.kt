@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -64,42 +65,42 @@ fun SavePhotoScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Column(modifier = modifier.weight(1f)) {
-            AsyncImage(
-                model = model,
-                contentDescription = null,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .clip(RoundedCornerShape(10.dp))
-            )
-            Spacer(modifier = modifier.size(36.dp))
-            LabelSelection(label, modifier = modifier)
-            Spacer(modifier = modifier.size(36.dp))
-            Description(description, modifier = modifier)
+        AsyncImage(
+            model = model,
+            contentDescription = null,
+            modifier = modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+        )
+
+        Spacer(modifier = modifier.size(36.dp))
+        LabelSelection(label, modifier = modifier)
+
+        Spacer(modifier = modifier.size(36.dp))
+        Description(description, modifier = modifier)
+
+        ToggleButton(selected = false, modifier = modifier)
+
+        Spacer(modifier = modifier.size(36.dp))
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(30.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconTextButton(
+                modifier = modifier.weight(1f),
+                imageVector = Icons.Default.Close,
+                text = stringResource(R.string.save_photo_screen_cancel),
+                onClick = {})
+            IconTextButton(
+                modifier = modifier.weight(1f),
+                imageVector = Icons.Outlined.Create,
+                text = stringResource(R.string.save_photo_screen_save),
+                onClick = {})
         }
-        Column(modifier = modifier.wrapContentHeight()) {
-            ToggleButton(selected = false, modifier = modifier)
-            Spacer(modifier = modifier.size(36.dp))
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(30.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconTextButton(
-                    modifier = modifier.weight(1f),
-                    imageVector = Icons.Default.Close,
-                    text = "취소",
-                    onClick = {})
-                IconTextButton(
-                    modifier = modifier.weight(1f),
-                    imageVector = Icons.Outlined.Create,
-                    text = "저장",
-                    onClick = {})
-            }
-        }
+
     }
 }
 
@@ -151,7 +152,7 @@ private fun ToggleButton(
             modifier = modifier
                 .size(24.dp)
         )
-        Text("대표 이미지로 설정하기")
+        Text(stringResource(R.string.save_photo_screen_set_represent))
     }
 }
 
@@ -163,7 +164,7 @@ private fun LabelSelection(
 
     Column(modifier = modifier) {
         Text(
-            "라벨",
+            stringResource(R.string.save_photo_screen_label),
             modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
@@ -209,7 +210,7 @@ private fun LabelSelection(
                             )
                         )
                     }
-                        ?: Text(text = "라벨을 선택해주세요.")
+                        ?: Text(text = stringResource(R.string.save_photo_screen_select_label))
                 }
             }
             Icon(
@@ -237,7 +238,7 @@ private fun Description(
 ) {
     Column(modifier = modifier) {
         Text(
-            "설명",
+            stringResource(R.string.save_photo_screen_description),
             modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
@@ -246,8 +247,10 @@ private fun Description(
         TextField(
             value = description,
             onValueChange = {},
-            placeholder = { Text("설명을 쓰세요") },
-            modifier = modifier.fillMaxSize()
+            placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
+            modifier = modifier
+                .fillMaxWidth()
+                .height(120.dp),
         )
     }
 }
