@@ -14,19 +14,22 @@ import androidx.compose.ui.res.stringResource
 
 @Composable
 fun MyDialog(
-    dialogData: DialogData
+    dialogData: DialogData,
 ) {
     AlertDialog(
         icon = {
-            if (dialogData.icon != null && dialogData.iconDescription != null){
-                Icon(painter = painterResource(dialogData.icon) , contentDescription = stringResource(dialogData.iconDescription))
+            if (dialogData.icon != null && dialogData.iconDescription != null) {
+                Icon(
+                    painter = painterResource(dialogData.icon),
+                    contentDescription = stringResource(dialogData.iconDescription)
+                )
             }
         },
         title = {
-            dialogData.dialogTitle?.let { Text(text = stringResource(it)) }
+            dialogData.dialogTitle?.let { title -> Text(text = stringResource(title)) }
         },
         text = {
-            dialogData.dialogText?.let { Text(text = stringResource(it)) }
+            dialogData.dialogText?.let { text -> Text(text = stringResource(text)) }
         },
         onDismissRequest = {
             dialogData.onDismissRequest()

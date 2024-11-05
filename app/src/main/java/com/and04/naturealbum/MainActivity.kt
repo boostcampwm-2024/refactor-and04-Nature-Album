@@ -24,12 +24,12 @@ class MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions: Map<String, Boolean> ->
-            val deniedPermissions = permissions.filter { !it.value }.keys
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
             if (deniedPermissions.isEmpty()) {
                 dispatchTakePictureIntent()
             } else {
-                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission: String ->
+                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
                     ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
                 }
                 if (hasPreviouslyDeniedPermission) {
@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
         if (deniedPermissions.isEmpty()) {
             dispatchTakePictureIntent()
         } else {
-            val hasPreviouslyDeniedPermission = deniedPermissions.any { permission: String ->
+            val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
                 ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
             }
             if (hasPreviouslyDeniedPermission) {
@@ -105,6 +105,7 @@ class MainActivity : ComponentActivity() {
         homeViewModel.showDialog(
             DialogData(
                 onConfirmation = {
+                    homeViewModel.dismissDialog()
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", packageName, null)
                     }
