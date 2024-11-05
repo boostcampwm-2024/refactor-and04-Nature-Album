@@ -20,7 +20,7 @@ fun onClickCamera(
     context: Context,
     requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
     takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    dialogState: MutableState<DialogData>,
+    dialogPermissionExplainState: MutableState<Boolean>,
 ) {
     val activity = context as? Activity ?: return
     if (!hasCameraHardware(context)) return
@@ -37,7 +37,7 @@ fun onClickCamera(
             ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         }
         if (hasPreviouslyDeniedPermission) {
-            showPermissionExplainDialog(context, requestPermissionLauncher, takePictureLauncher, dialogState)
+            showPermissionExplainDialog(dialogPermissionExplainState)
         } else {
             requestPermissions(context, requestPermissionLauncher, takePictureLauncher)
         }
@@ -60,7 +60,7 @@ fun dispatchTakePictureIntent(context: Context, takePictureLauncher: ManagedActi
     }
 }
 
-private fun requestPermissions(
+ fun requestPermissions(
     context: Context,
     requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
     takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
@@ -75,19 +75,8 @@ private fun requestPermissions(
     }
 }
 
-private fun showPermissionExplainDialog(
-    context: Context,
-    requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
-    takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    dialogState: MutableState<DialogData>,
-    ) {
-    dialogState.value =
-        DialogData(
-            onConfirmation = { requestPermissions(context, requestPermissionLauncher, takePictureLauncher) },
-            onDismissRequest = { dialogState.value = DialogData() },
-            dialogText = R.string.main_activity_permission_explain,
-        )
-
+private fun showPermissionExplainDialog(dialogState: MutableState<Boolean>, ) {
+    dialogState.value = true
 }
 
 private val REQUESTED_PERMISSIONS by lazy {

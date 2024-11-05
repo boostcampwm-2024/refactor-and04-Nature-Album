@@ -37,8 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -49,7 +47,8 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
-    val dialogState = remember { mutableStateOf(DialogData()) }
+    val dialogPermissionGoToSettingsState = remember { mutableStateOf(false) }
+    val dialogPermissionExplainState = remember { mutableStateOf(false) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -70,24 +69,9 @@ fun HomeScreen(
                     ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
                 }
                 if (hasPreviouslyDeniedPermission) {
-                    // TODO:
-//                    dialogState.value = DialogData(
-//                        onConfirmation = { requestPermissions(context, requestPermissionLauncher, ) },
-//                        onDismissRequest = {  },
-//                        dialogText = R.string.main_activity_permission_explain,
-//                    )
+                    dialogPermissionExplainState.value = true
                 } else {
-                    dialogState.value = DialogData(
-                        onConfirmation = {
-                            homeViewModel.dismissDialog()
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            }
-                            context.startActivity(intent)
-                        },
-                        onDismissRequest = { homeViewModel.dismissDialog() },
-                        dialogText = R.string.main_activity_permission_go_to_settings,
-                    )
+                    dialogPermissionGoToSettingsState.value = true
                 }
             }
         }
@@ -125,14 +109,39 @@ fun HomeScreen(
                 context = context,
                 requestPermissionLauncher = requestPermissionLauncher,
                 takePictureLauncher = takePictureLauncher,
-                dialogState = dialogState,
+                dialogPermissionExplainState = dialogPermissionExplainState,
                 modifier = Modifier
                     .weight(2f)
                     .fillMaxSize(),
             )
-            if (dialogState.value.dialogText != null)  MyDialog(dialogData = dialogState.value)
         }
     }
+
+    if (dialogPermissionExplainState.value) {
+        MyDialog(
+            DialogData(
+                onConfirmation = { requestPermissions(context, requestPermissionLauncher, takePictureLauncher) },
+                onDismissRequest = { dialogPermissionExplainState.value = false },
+                dialogText = R.string.main_activity_permission_explain,
+            )
+        )
+    }
+
+    if (dialogPermissionGoToSettingsState.value){
+        DialogData(
+            onConfirmation = {
+                homeViewModel.dismissDialog()
+                val intent =
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                context.startActivity(intent)
+            },
+            onDismissRequest = { homeViewModel.dismissDialog() },
+            dialogText = R.string.main_activity_permission_go_to_settings,
+        )
+    }
+
 }
 
 @Composable
@@ -145,7 +154,7 @@ fun NavigateContent(
     context: Context,
     requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
     takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    dialogState: MutableState<DialogData>,
+    dialogPermissionExplainState: MutableState<Boolean>,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -159,7 +168,14 @@ fun NavigateContent(
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             RoundedShapeButton("TODO", modifier) { /* TODO */ }
-            RoundedShapeButton("TODO", modifier) { onClickCamera(context, requestPermissionLauncher, takePictureLauncher, dialogState) }
+            RoundedShapeButton("TODO", modifier) {
+                onClickCamera(
+                    context = context,
+                    requestPermissionLauncher = requestPermissionLauncher,
+                    takePictureLauncher =  takePictureLauncher,
+                    dialogPermissionExplainState =  dialogPermissionExplainState,
+                )
+            }
         }
     }
 

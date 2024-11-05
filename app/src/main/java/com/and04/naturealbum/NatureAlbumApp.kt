@@ -9,26 +9,24 @@ import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
-fun NatureAlbumApp (viewModel: HomeViewModel, onClickCamera: () -> Unit,) {
+fun NatureAlbumApp () {
     val navController = rememberNavController()
 
     NatureAlbumTheme {
-        NatureAlbumNavHost(navController, onClickCamera, viewModel)
+        NatureAlbumNavHost(navController)
     }
 }
 
 @Composable
 fun NatureAlbumNavHost(
     navController: NavHostController,
-    onClickCamera: () -> Unit,
-    viewModel: HomeViewModel,
 ) {
     NavHost(
         navController = navController,
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(homeViewModel = viewModel)
+            HomeScreen()
         }
     }
 }
