@@ -8,6 +8,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -81,6 +82,7 @@ fun HomeScreen(
                 if (hasPreviouslyDeniedPermission) {
                     dialogPermissionExplainState.value = true
                 } else {
+                    Log.d("FFFF","설정 이동")
                     dialogPermissionGoToSettingsState.value = true
                 }
             }
@@ -131,6 +133,7 @@ fun HomeScreen(
         MyDialog(
             DialogData(
                 onConfirmation = {
+                    dialogPermissionExplainState.value = false
                     requestPermissions(
                         context,
                         requestPermissionLauncher,
@@ -143,20 +146,21 @@ fun HomeScreen(
     }
 
     if (dialogPermissionGoToSettingsState.value) {
-        DialogData(
-            onConfirmation = {
-                homeViewModel.dismissDialog()
-                val intent =
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    }
-                context.startActivity(intent)
-            },
-            onDismissRequest = { homeViewModel.dismissDialog() },
-            dialogText = R.string.main_activity_permission_go_to_settings,
+        MyDialog(
+            DialogData(
+                onConfirmation = {
+                    dialogPermissionGoToSettingsState.value = false
+                    val intent =
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                    context.startActivity(intent)
+                },
+                onDismissRequest = { dialogPermissionGoToSettingsState.value = false },
+                dialogText = R.string.main_activity_permission_go_to_settings,
+            )
         )
     }
-
 }
 
 @Composable

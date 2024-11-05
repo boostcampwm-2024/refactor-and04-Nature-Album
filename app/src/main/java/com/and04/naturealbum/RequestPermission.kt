@@ -38,7 +38,7 @@ fun onClickCamera(
             ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         }
         if (hasPreviouslyDeniedPermission) {
-            showPermissionExplainDialog(dialogPermissionExplainState)
+            dialogPermissionExplainState.value = true
         } else {
             requestPermissions(context, requestPermissionLauncher)
         }
@@ -71,11 +71,6 @@ fun requestPermissions(
         ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
     }
     requestPermissionLauncher.launch(deniedPermissions.toTypedArray())
-
-}
-
-private fun showPermissionExplainDialog(dialogState: MutableState<Boolean>) {
-    dialogState.value = true
 }
 
 private val REQUESTED_PERMISSIONS by lazy {
