@@ -20,8 +20,8 @@ import java.io.File
 fun onClickCamera(
     context: Context,
     requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
-    takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    dialogState: MutableState<DialogData>,
+    takePicture: () -> Unit,
+    dialogPermissionExplainState: MutableState<Boolean>,
 ) {
     val activity = context as? Activity ?: return
     if (!hasCameraHardware(context)) return
@@ -31,29 +31,29 @@ fun onClickCamera(
             permissions
         ) != PackageManager.PERMISSION_GRANTED
     }
-//    if (deniedPermissions.isEmpty()) {
-//        dispatchTakePictureIntent(context, takePictureLauncher)
-//    } else {
+    if (deniedPermissions.isEmpty()) {
+        takePicture()
+    } else {
         val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
             ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         }
         if (hasPreviouslyDeniedPermission) {
-            showPermissionExplainDialog(context, requestPermissionLauncher, takePictureLauncher, dialogState)
+            showPermissionExplainDialog(dialogPermissionExplainState)
         } else {
-            requestPermissions(context, requestPermissionLauncher, takePictureLauncher)
+            requestPermissions(context, requestPermissionLauncher)
         }
-//    }
+    }
 }
 
 private fun hasCameraHardware(context: Context): Boolean {
     return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 }
 
-fun dispatchTakePictureIntent(context: Context, fileName: String, takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
+fun dispatchTakePictureIntent(
+    imageUri: Uri,
+    takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
+) {
     val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
-    val imageFile = File(context.filesDir, fileName)
-    val imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
 
     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
     try {
@@ -63,34 +63,19 @@ fun dispatchTakePictureIntent(context: Context, fileName: String, takePictureLau
     }
 }
 
-private fun requestPermissions(
+fun requestPermissions(
     context: Context,
     requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
-    takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    ) {
+) {
     val deniedPermissions = REQUESTED_PERMISSIONS.filter { permission ->
         ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
     }
-//    if (deniedPermissions.isEmpty()) {
-//        dispatchTakePictureIntent(context, takePictureLauncher)
-//    } else {
-        requestPermissionLauncher.launch(deniedPermissions.toTypedArray())
-//    }
+    requestPermissionLauncher.launch(deniedPermissions.toTypedArray())
+
 }
 
-private fun showPermissionExplainDialog(
-    context: Context,
-    requestPermissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>,
-    takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    dialogState: MutableState<DialogData>,
-    ) {
-    dialogState.value =
-        DialogData(
-            onConfirmation = { requestPermissions(context, requestPermissionLauncher, takePictureLauncher) },
-            onDismissRequest = { dialogState.value = DialogData() },
-            dialogText = R.string.main_activity_permission_explain,
-        )
-
+private fun showPermissionExplainDialog(dialogState: MutableState<Boolean>) {
+    dialogState.value = true
 }
 
 private val REQUESTED_PERMISSIONS by lazy {
