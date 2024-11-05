@@ -60,7 +60,7 @@ fun LabelSearchScreen() {
 }
 
 @Composable
-fun SearchContent(innerPadding: PaddingValues) {
+private fun SearchContent(innerPadding: PaddingValues) {
     var query by rememberSaveable { mutableStateOf("") }
     var randomColor by rememberSaveable { mutableStateOf("") }
     //TODO DB에서 라벨 목록 가져오기
@@ -97,7 +97,7 @@ fun SearchContent(innerPadding: PaddingValues) {
             val queryLabelList = data.filter { it.contains(query) }
             items(queryLabelList) { label ->
                 //TODO 라벨 색상 지정
-                AssistChipList(title = label, color = "")
+                UnderLineAssistChip(title = label, color = "")
             }
         }
 
@@ -127,7 +127,7 @@ fun SearchContent(innerPadding: PaddingValues) {
 }
 
 @Composable
-fun AssistChipList(
+fun UnderLineAssistChip(
     title: String,
     color: String
 ) {
