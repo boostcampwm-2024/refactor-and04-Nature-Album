@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.label_search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +66,7 @@ fun LabelSearchScreen() {
 @Composable
 fun SearchContent(innerPadding: PaddingValues) {
     var query by rememberSaveable { mutableStateOf("") }
+    //TODO DB에서 라벨 목록 가져오기
     val data = listOf("고양이", "강아지", "장수말벌")
 
     Column(
@@ -94,6 +96,7 @@ fun SearchContent(innerPadding: PaddingValues) {
         LazyColumn {
             val queryLabelList = data.filter { it.contains(query) }
             items(queryLabelList) { label ->
+                //TODO 라벨 색상 지정
                 AssistChipList(title = label, color = "")
             }
         }
@@ -102,11 +105,18 @@ fun SearchContent(innerPadding: PaddingValues) {
             modifier = Modifier.padding(start = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val randomColor = getRandomColor()
             Text(stringResource(R.string.label_search_create))
             Spacer(Modifier.size(4.dp))
             AssistChip(
                 onClick = { },
                 label = { Text(query) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = Color(
+                        android.graphics.Color.parseColor(randomColor)
+                    ),
+                    labelColor = getLabelTextColor(randomColor)
+                )
             )
         }
     }
@@ -120,7 +130,7 @@ fun AssistChipList(
     AssistChip(
         modifier = Modifier
             .padding(start = 12.dp),
-        onClick = { },
+        onClick = { }, //TODO 클릭 시 해당 라벨 선택 후 종료
         label = { Text(title) },
     )
 
