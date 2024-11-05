@@ -1,22 +1,23 @@
 package com.and04.naturealbum
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
@@ -39,6 +40,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                Log.d("FFFF", "사진 촬영 성공")
+            }
+        }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -57,6 +66,7 @@ class MainActivity : ComponentActivity() {
         if (permissionsToRequest.isEmpty()) {
             // 모든 권한이 허용된 경우
             Log.d("FFFF", "이미 권한 다 있음")
+            dispatchTakePictureIntent()
         } else {
             Log.d("FFFF", "우리 앱의 권한 설명")
             homeViewModel.showDialog(
@@ -69,6 +79,18 @@ class MainActivity : ComponentActivity() {
                     onNegative = { homeViewModel.closeDialog() },
                 )
             )
+        }
+    }
+
+    private fun dispatchTakePictureIntent() {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val imageFile = File(filesDir, "${System.currentTimeMillis()}.jpg")
+        val imageUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", imageFile)
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        try {
+            takePictureLauncher.launch(takePictureIntent)
+        } catch (e: ActivityNotFoundException) {
+            // display error state to the user
         }
     }
 
