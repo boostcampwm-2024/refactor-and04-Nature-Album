@@ -28,7 +28,7 @@ fun NatureAlbumNavHost(
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(onClickCamera = onClickCamera, homeViewModel = viewModel)
+            HomeScreen(homeViewModel = viewModel)
         }
     }
 }
