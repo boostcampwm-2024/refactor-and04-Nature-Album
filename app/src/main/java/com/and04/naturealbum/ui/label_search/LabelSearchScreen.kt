@@ -43,10 +43,6 @@ fun LabelSearchScreen() {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-//                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    titleContentColor = MaterialTheme.colorScheme.primary,
-//                ),
                 title = {
                     Text(
                         stringResource(R.string.label_search_title_topbar),
@@ -78,7 +74,10 @@ fun SearchContent(innerPadding: PaddingValues) {
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = query,
-            onValueChange = { query = it },
+            onValueChange = {
+                if(it.length > 100) return@TextField
+                else query = it
+            },
             placeholder = { Text(stringResource(R.string.label_search_label_search)) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
