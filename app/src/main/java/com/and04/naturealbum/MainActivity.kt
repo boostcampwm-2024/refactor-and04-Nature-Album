@@ -23,20 +23,41 @@ class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions: Map<String, Boolean> ->
-            val allGranted = permissions.all { it.value }
-            if (allGranted) {
+            val deniedPermissions = permissions.filter { !it.value }.keys
+            if (deniedPermissions.isEmpty()) {
                 // 권한이 허용됐을 때 작업 시작
                 //onPermissionGranted()
                 Log.d("FFFF", "권한 부여 성공 -> 실행")
+
             } else {
-                //설정에서 직접 하기
-                Log.d("FFFF", "설정에서 직접하기")
-                homeViewModel.showDialog(
-                    DialogData(
-                        text = "설정으로 이동해서 직접 권한을 부여하세요",
-                        onNegative = { homeViewModel.closeDialog() },
+                // 사용자가 권한을 거절했을 때
+                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission: String ->
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
+                }
+                if (hasPreviouslyDeniedPermission) {
+                    // 사용자가 단순히 권한을 거절했을 때  -> 교육용 팝업
+                    Log.d("FFFF","사용자가 단순히 권한을 거절했을 때  -> 교육용 팝업")
+                    homeViewModel.showDialog(
+                        DialogData(
+                            text = "우리 앱의 권한에 대해 설명",
+                            onPositive = {
+                                homeViewModel.closeDialog()
+                                requestPermissions()
+                            },
+                            onNegative = { homeViewModel.closeDialog() },
+                        )
                     )
-                )
+
+                } else {
+                    // 사용자가 '다시 묻지 않기' 를 선택 했을 때 -> 설정으로 안내
+                    Log.d("FFFF", "설정에서 직접하기")
+                    homeViewModel.showDialog(
+                        DialogData(
+                            text = "설정으로 이동해서 직접 권한을 부여하세요",
+                            onNegative = { homeViewModel.closeDialog() },
+                        )
+                    )
+                }
             }
         }
 
@@ -68,17 +89,26 @@ class MainActivity : ComponentActivity() {
             Log.d("FFFF", "이미 권한 다 있음")
             dispatchTakePictureIntent()
         } else {
-            Log.d("FFFF", "우리 앱의 권한 설명")
-            homeViewModel.showDialog(
-                DialogData(
-                    text = "우리 앱의 권한에 대해 설명",
-                    onPositive = {
-                        homeViewModel.closeDialog()
-                        requestPermissions()
-                    },
-                    onNegative = { homeViewModel.closeDialog() },
+            val hasPreviouslyDeniedPermission = permissionsToRequest.any { permission: String ->
+                ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
+            }
+            if (hasPreviouslyDeniedPermission) {
+                // 이전에 권한을 거절한 경험이 있음 -> 권한이 필요한 이유 설명 -> 다시 권한 요청
+                Log.d("FFFF","이전에 권한을 거절한 경험이 있음 -> 권한이 필요한 이유 설명 -> 다시 권한 요청")
+                homeViewModel.showDialog(
+                    DialogData(
+                        text = "우리 앱의 권한에 대해 설명",
+                        onPositive = {
+                            homeViewModel.closeDialog()
+                            requestPermissions()
+                        },
+                        onNegative = { homeViewModel.closeDialog() },
+                    )
                 )
-            )
+            } else {
+                // 사용자가 이전에 권한을 거절한 경험이 없거나 '다시 묻지 않음` 을 선택했을 경우
+                requestPermissions()
+            }
         }
     }
 
@@ -102,29 +132,13 @@ class MainActivity : ComponentActivity() {
         val permissionsToRequest = REQUESTED_PERMISSIONS.filter { permission ->
             ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
         }
-
-        val isAlreadyRequest = permissionsToRequest.any { permission ->
-            ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
-        }
-
         when {
             permissionsToRequest.isEmpty() -> {
                 // 이미 모든 권한 허용
             }
 
             else -> {
-                if (isAlreadyRequest) {
-                    Log.d("FFFF", "이미 물어봄. 이제 알아서 설정으로")
-                    homeViewModel.showDialog(
-                        DialogData(
-                            text = "설정으로 이동해서 직접 권한을 부여하세요",
-                            onNegative = { homeViewModel.closeDialog() },
-                        )
-                    )
-                } else {
-                    Log.d("FFFF", "처음이니 물어보기^^")
-                    requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
-                }
+                requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
             }
         }
     }
