@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,17 +61,14 @@ fun SavePhotoScreen(
                     .wrapContentHeight()
                     .clip(RoundedCornerShape(10.dp))
             )
+            Spacer(modifier = modifier.size(36.dp))
             LabelSelection(label, modifier = modifier)
+            Spacer(modifier = modifier.size(36.dp))
             Description(description, modifier = modifier)
         }
         Column(modifier = modifier.wrapContentHeight()) {
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(false, {})
-                Text("대표 이미지로 설정하기")
-            }
+            ToggleButton(selected = false, modifier = modifier)
+            Spacer(modifier = modifier.size(36.dp))
             Row(
                 modifier = modifier
                     .fillMaxWidth()
@@ -76,56 +76,64 @@ fun SavePhotoScreen(
                 horizontalArrangement = Arrangement.spacedBy(30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Button(
-                    onClick = {},
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
-                ) {
-                    Row(
-                        modifier = modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = modifier.size(24.dp),
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null
-                        )
-                        Text(
-                            text = "취소",
-                            textAlign = TextAlign.Center,
-                            modifier = modifier.weight(1f)
-                        )
-                    }
-                }
-                Button(
-                    onClick = {},
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
-                ) {
-                    Row(
-                        modifier = modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = modifier.size(24.dp),
-                            imageVector = Icons.Outlined.Create,
-                            contentDescription = null
-                        )
-                        Text(
-                            text = "저장",
-                            textAlign = TextAlign.Center,
-                            modifier = modifier.weight(1f)
-                        )
-                    }
-                }
+                IconTextButton(modifier = modifier.weight(1f),imageVector = Icons.Default.Close, text = "취소", onClick = {})
+                IconTextButton(modifier = modifier.weight(1f),imageVector = Icons.Outlined.Create, text = "저장", onClick = {})
             }
         }
     }
 }
 
+@Composable
+private fun IconTextButton(
+    imageVector: ImageVector,
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                imageVector = imageVector,
+                contentDescription = null
+            )
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
+private fun ToggleButton(
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+){
+    Spacer(modifier = modifier.size(24.dp))
+    Row(
+        modifier = modifier.padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        RadioButton(
+            selected =selected,
+            {},
+            modifier = modifier
+                .size(24.dp)
+        )
+        Text("대표 이미지로 설정하기")
+    }
+}
 
 @Composable
 private fun LabelSelection(
@@ -138,6 +146,7 @@ private fun LabelSelection(
             "라벨",
             modifier = modifier,
         )
+        Spacer(modifier = modifier.size(8.dp))
         Button(
             onClick = {},
             modifier = modifier
@@ -150,8 +159,18 @@ private fun LabelSelection(
                     .weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(modifier = modifier.padding(12.dp).size(24.dp),imageVector = Icons.Default.Menu, contentDescription = null)
-                Box(modifier = modifier.weight(1f).padding(horizontal = 4.dp)) {
+                Icon(
+                    modifier = modifier
+                        .padding(12.dp)
+                        .size(24.dp),
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = null
+                )
+                Box(
+                    modifier = modifier
+                        .weight(1f)
+                        .padding(horizontal = 4.dp)
+                ) {
                     label?.let {
                         SuggestionChip(
                             onClick = {},
@@ -167,7 +186,13 @@ private fun LabelSelection(
                         ?: Text(text = "라벨을 선택해주세요.")
                 }
             }
-            Icon(modifier = modifier.padding(12.dp).size(24.dp),imageVector = Icons.Default.Search, contentDescription = null)
+            Icon(
+                modifier = modifier
+                    .padding(12.dp)
+                    .size(24.dp),
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
         }
     }
 }
@@ -189,6 +214,7 @@ private fun Description(
             "설명",
             modifier = modifier.wrapContentHeight(),
         )
+        Spacer(modifier = modifier.size(8.dp))
         TextField(
             value = description,
             onValueChange = {},
