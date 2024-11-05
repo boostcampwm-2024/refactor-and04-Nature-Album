@@ -92,7 +92,8 @@ fun SearchContent(innerPadding: PaddingValues) {
         )
 
         LazyColumn {
-            items(data) { label ->
+            val queryLabelList = data.filter { it.contains(query) }
+            items(queryLabelList) { label ->
                 AssistChipList(title = label, color = "")
             }
         }
