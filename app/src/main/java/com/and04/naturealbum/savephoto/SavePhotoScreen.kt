@@ -3,6 +3,7 @@ package com.and04.naturealbum.savephoto
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -140,8 +141,8 @@ private fun LabelSelection(
         Button(
             onClick = {},
             modifier = modifier
-                .fillMaxWidth()
-                .padding(4.dp),
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(all = 4.dp),
         ) {
             Row(
                 modifier = modifier
@@ -149,22 +150,24 @@ private fun LabelSelection(
                     .weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(imageVector = Icons.Default.Menu, contentDescription = null)
-                label?.let {
-                    SuggestionChip(
-                        onClick = {},
-                        label = {
-                            Text(text = it.name)
-                        },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = Color(it.backgroundColor),
-                            labelColor = getLabelTextColor(it.backgroundColor)
+                Icon(modifier = modifier.padding(12.dp).size(24.dp),imageVector = Icons.Default.Menu, contentDescription = null)
+                Box(modifier = modifier.weight(1f).padding(horizontal = 4.dp)) {
+                    label?.let {
+                        SuggestionChip(
+                            onClick = {},
+                            label = {
+                                Text(text = it.name)
+                            },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = Color(it.backgroundColor),
+                                labelColor = getLabelTextColor(it.backgroundColor)
+                            )
                         )
-                    )
+                    }
+                        ?: Text(text = "라벨을 선택해주세요.")
                 }
-                    ?: Text(text = "라벨을 선택해주세요.")
             }
-            Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            Icon(modifier = modifier.padding(12.dp).size(24.dp),imageVector = Icons.Default.Search, contentDescription = null)
         }
     }
 }
