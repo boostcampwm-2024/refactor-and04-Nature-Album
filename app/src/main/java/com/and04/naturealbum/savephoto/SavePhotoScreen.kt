@@ -34,8 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
@@ -163,6 +167,8 @@ private fun LabelSelection(
         Text(
             "라벨",
             modifier = modifier,
+            style = MaterialTheme.typography.headlineLarge,
+            fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         Spacer(modifier = modifier.size(8.dp))
         Button(
@@ -234,7 +240,9 @@ private fun Description(
     Column(modifier = modifier) {
         Text(
             "설명",
-            modifier = modifier.wrapContentHeight(),
+            modifier = modifier,
+            style = MaterialTheme.typography.headlineLarge,
+            fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         Spacer(modifier = modifier.size(8.dp))
         TextField(
