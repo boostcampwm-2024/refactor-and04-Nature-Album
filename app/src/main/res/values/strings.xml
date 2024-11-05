@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Nature Album</string>
+    
+    <string name="label_search_title_topbar">Label</string>
+    <string name="label_search_check_icon_description">라벨 추가</string>
+    <string name="label_search_select_create">라벨 선택 또는 생성</string>
+    <string name="label_search_create">생성</string>
+    <string name="label_search_label_search">라벨 검색</string>
 </resources>
