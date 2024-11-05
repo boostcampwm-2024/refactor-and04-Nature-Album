@@ -1,26 +1,31 @@
 package com.and04.naturealbum
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.and04.naturealbum.savephoto.Label
+import com.and04.naturealbum.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import java.io.File
 
 @Composable
-fun NatureAlbumApp (viewModel: HomeViewModel, onClickCamera: () -> Unit,) {
+fun NatureAlbumApp (viewModel: HomeViewModel) {
     val navController = rememberNavController()
 
     NatureAlbumTheme {
-        NatureAlbumNavHost(navController, onClickCamera, viewModel)
+        NatureAlbumNavHost(navController, viewModel)
     }
 }
 
 @Composable
 fun NatureAlbumNavHost(
     navController: NavHostController,
-    onClickCamera: () -> Unit,
     viewModel: HomeViewModel,
 ) {
     NavHost(
@@ -28,7 +33,15 @@ fun NatureAlbumNavHost(
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(homeViewModel = viewModel)
+            HomeScreen(homeViewModel = viewModel, onTakePicture = {fileName ->
+                navController.navigate("savePhoto/${fileName}"
+                )})
+        }
+        composable("savePhoto/{fileName}") { backStackEntry ->
+            val fileName = backStackEntry.arguments?.getString("fileName")
+            fileName?.let{
+                SavePhotoScreen(File(LocalContext.current.filesDir, fileName))
+            }
         }
     }
 }

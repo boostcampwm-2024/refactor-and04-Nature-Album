@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -21,9 +20,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -43,6 +40,15 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+
+@Composable
+fun SavePhotoScreen(
+    fileName: String
+) {
+    SavePhotoScreen(
+        model = fileName,
+    )
+}
 
 @Composable
 fun SavePhotoScreen(
@@ -80,8 +86,16 @@ fun SavePhotoScreen(
                 horizontalArrangement = Arrangement.spacedBy(30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconTextButton(modifier = modifier.weight(1f),imageVector = Icons.Default.Close, text = "취소", onClick = {})
-                IconTextButton(modifier = modifier.weight(1f),imageVector = Icons.Outlined.Create, text = "저장", onClick = {})
+                IconTextButton(
+                    modifier = modifier.weight(1f),
+                    imageVector = Icons.Default.Close,
+                    text = "취소",
+                    onClick = {})
+                IconTextButton(
+                    modifier = modifier.weight(1f),
+                    imageVector = Icons.Outlined.Create,
+                    text = "저장",
+                    onClick = {})
             }
         }
     }
@@ -122,7 +136,7 @@ private fun IconTextButton(
 private fun ToggleButton(
     selected: Boolean,
     modifier: Modifier = Modifier,
-){
+) {
     Spacer(modifier = modifier.size(24.dp))
     Row(
         modifier = modifier.padding(vertical = 8.dp),
@@ -130,7 +144,7 @@ private fun ToggleButton(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RadioButton(
-            selected =selected,
+            selected = selected,
             {},
             modifier = modifier
                 .size(24.dp)

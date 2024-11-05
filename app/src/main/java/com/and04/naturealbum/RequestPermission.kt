@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -30,9 +31,9 @@ fun onClickCamera(
             permissions
         ) != PackageManager.PERMISSION_GRANTED
     }
-    if (deniedPermissions.isEmpty()) {
-        dispatchTakePictureIntent(context, takePictureLauncher)
-    } else {
+//    if (deniedPermissions.isEmpty()) {
+//        dispatchTakePictureIntent(context, takePictureLauncher)
+//    } else {
         val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
             ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         }
@@ -41,17 +42,19 @@ fun onClickCamera(
         } else {
             requestPermissions(context, requestPermissionLauncher, takePictureLauncher)
         }
-    }
+//    }
 }
 
 private fun hasCameraHardware(context: Context): Boolean {
     return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 }
 
-fun dispatchTakePictureIntent(context: Context, takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
+fun dispatchTakePictureIntent(context: Context, fileName: String, takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
     val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    val imageFile = File(context.filesDir, "${System.currentTimeMillis()}.jpg")
+
+    val imageFile = File(context.filesDir, fileName)
     val imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+
     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
     try {
         takePictureLauncher.launch(takePictureIntent)
@@ -68,11 +71,11 @@ private fun requestPermissions(
     val deniedPermissions = REQUESTED_PERMISSIONS.filter { permission ->
         ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
     }
-    if (deniedPermissions.isEmpty()) {
-        dispatchTakePictureIntent(context, takePictureLauncher)
-    } else {
+//    if (deniedPermissions.isEmpty()) {
+//        dispatchTakePictureIntent(context, takePictureLauncher)
+//    } else {
         requestPermissionLauncher.launch(deniedPermissions.toTypedArray())
-    }
+//    }
 }
 
 private fun showPermissionExplainDialog(

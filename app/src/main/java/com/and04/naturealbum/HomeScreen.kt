@@ -46,7 +46,9 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
+    onTakePicture: (String) -> Unit = {},
 ) {
+    var fileName: String = ""
     val context = LocalContext.current
     val activity = context as? Activity ?: return
     val dialogState = remember { mutableStateOf(DialogData()) }
@@ -55,7 +57,7 @@ fun HomeScreen(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
-                Log.d("FFFF", "사진 촬영 성공")
+                onTakePicture(fileName)
             }
         }
     val requestPermissionLauncher =
@@ -64,7 +66,8 @@ fun HomeScreen(
         ) { permissions ->
             val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
             if (deniedPermissions.isEmpty()) {
-                dispatchTakePictureIntent(context, takePictureLauncher)
+                fileName = "${System.currentTimeMillis()}.jpg"
+                dispatchTakePictureIntent(context, fileName, takePictureLauncher)
             } else {
                 val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
                     ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
