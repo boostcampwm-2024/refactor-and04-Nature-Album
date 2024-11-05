@@ -31,42 +31,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import com.and04.naturealbum.ui.theme.AppTypography
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-data class Album(
-    val id: Int,
-    val label: Label,
-    val photoDetail: PhotoDetail
-)
-
-data class Label(
-    val id: Int,
-    val backgroundColor: Color,
-    val name: String
-)
-
-data class PhotoDetail(
-    val id: Int,
-    val imageResId: Int,
-    val description: String
-)
-
-
-fun getDummyAlbums(): List<Album> {
-    val label1 = Label(1, Color(0xFFE57373), "식빵")
-    val label2 = Label(2, Color(0xFF81C784), "고양이")
-    val photo1 = PhotoDetail(1, R.drawable.sample_image_01, "밥 먹자")
-    val photo2 = PhotoDetail(2, R.drawable.sample_image_02, "고양이")
-    return listOf(
-        Album(1, label1, photo1),
-        Album(2, label2, photo2),
-        Album(3, label1, photo1),
-        Album(4, label2, photo2)
-    )
-}
 
 @Composable
 fun CustomLabel(
@@ -74,14 +43,12 @@ fun CustomLabel(
     backgroundColor: Color,
     modifier: Modifier = Modifier
 ) {
-
     val calculatedTextColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .background(color = backgroundColor, shape = MaterialTheme.shapes.large)
-            .clip(RoundedCornerShape(50))
+            .background(color = backgroundColor, shape = CircleShape)
             .fillMaxWidth(0.8f)
     ) {
         Text(
@@ -112,7 +79,6 @@ fun AlbumItem(album: Album, modifier: Modifier = Modifier) {
                 .clip(MaterialTheme.shapes.medium),
             contentScale = ContentScale.Crop
         )
-
     }
 }
 
@@ -147,7 +113,6 @@ fun AlbumScreen(albums: List<Album>) {
         AlbumGrid(albums = albums)
     }
 }
-
 
 @Preview(
     name = "CustomLabel Light Mode",
