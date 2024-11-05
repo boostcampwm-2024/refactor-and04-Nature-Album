@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +47,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -90,11 +93,15 @@ fun SavePhotoScreen(
                 .padding(horizontal = 16.dp)
         ) {
             AsyncImage(
-                model = model,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(model)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = modifier
                     .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
+                    .align(Alignment.CenterHorizontally)
+                    .clip(RoundedCornerShape(10.dp))
             )
 
             Spacer(modifier = modifier.size(36.dp))
