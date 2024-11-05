@@ -15,19 +15,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +58,7 @@ fun SavePhotoScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
     model: Any?,
@@ -60,47 +66,66 @@ fun SavePhotoScreen(
     label: Label? = null,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        AsyncImage(
-            model = model,
-            contentDescription = null,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(R.string.app_name))
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = null /* TODO */
+                        )
+                    }
+                }
+            )
+        },
+    ) { innerPadding ->
+        Column(
             modifier = modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-        )
-
-        Spacer(modifier = modifier.size(36.dp))
-        LabelSelection(label, modifier = modifier)
-
-        Spacer(modifier = modifier.size(36.dp))
-        Description(description, modifier = modifier)
-
-        ToggleButton(selected = false, modifier = modifier)
-
-        Spacer(modifier = modifier.size(36.dp))
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(30.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
-            IconTextButton(
-                modifier = modifier.weight(1f),
-                imageVector = Icons.Default.Close,
-                text = stringResource(R.string.save_photo_screen_cancel),
-                onClick = {})
-            IconTextButton(
-                modifier = modifier.weight(1f),
-                imageVector = Icons.Outlined.Create,
-                text = stringResource(R.string.save_photo_screen_save),
-                onClick = {})
-        }
+            AsyncImage(
+                model = model,
+                contentDescription = null,
+                modifier = modifier
+                    .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+            )
 
+            Spacer(modifier = modifier.size(36.dp))
+            LabelSelection(label, modifier = modifier)
+
+            Spacer(modifier = modifier.size(36.dp))
+            Description(description, modifier = modifier)
+
+            ToggleButton(selected = false, modifier = modifier)
+
+            Spacer(modifier = modifier.size(36.dp))
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(30.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconTextButton(
+                    modifier = modifier.weight(1f),
+                    imageVector = Icons.Default.Close,
+                    text = stringResource(R.string.save_photo_screen_cancel),
+                    onClick = {})
+                IconTextButton(
+                    modifier = modifier.weight(1f),
+                    imageVector = Icons.Outlined.Create,
+                    text = stringResource(R.string.save_photo_screen_save),
+                    onClick = {})
+            }
+
+        }
     }
 }
 
