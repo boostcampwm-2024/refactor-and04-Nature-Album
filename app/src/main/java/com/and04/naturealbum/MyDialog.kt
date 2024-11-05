@@ -1,50 +1,62 @@
 package com.and04.naturealbum
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Button
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.window.Dialog
-import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+
 
 @Composable
 fun MyDialog(
-    dialogData: DialogData,
+    dialogData: DialogData
 ) {
-    if (dialogData.isShow){
-        Dialog(
-            onDismissRequest = dialogData.onDismiss
-        ) {
-            Column {
-                Text(text = dialogData.text)
-                Row {
-                    Button(onClick = dialogData.onNegative) { Text(text = dialogData.negativeText) }
-                    Button(onClick = dialogData.onPositive) { Text(text = dialogData.positiveText) }
+    AlertDialog(
+        icon = {
+            if (dialogData.icon != null && dialogData.iconDescription != null){
+                Icon(painter = painterResource(dialogData.icon) , contentDescription = stringResource(dialogData.iconDescription))
+            }
+        },
+        title = {
+            dialogData.dialogTitle?.let { Text(text = stringResource(it)) }
+        },
+        text = {
+            dialogData.dialogText?.let { Text(text = stringResource(it)) }
+        },
+        onDismissRequest = {
+            dialogData.onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    dialogData.onConfirmation()
                 }
+            ) {
+                Text(stringResource(R.string.dialog_confirm_button))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    dialogData.onDismissRequest()
+                }
+            ) {
+                Text(stringResource(R.string.dialog_dismiss_button))
             }
         }
-    }
+    )
 }
 
 data class DialogData(
-    val text: String = "",
-    val positiveText: String = "yes",
-    val negativeText: String = "no",
-    val onDismiss: () -> Unit = {},
-    val onNegative: () -> Unit = {},
-    val onPositive: () -> Unit = {},
-    val isShow: Boolean = true
+    val onDismissRequest: () -> Unit = {},
+    val onConfirmation: () -> Unit = {},
+    @StringRes val dialogTitle: Int? = null,
+    @StringRes val dialogText: Int? = null,
+    @DrawableRes val icon: Int? = null,
+    @StringRes val iconDescription: Int? = null,
 )
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun MyDialogPreview() {
-    NatureAlbumTheme {
-        MyDialog(
-            DialogData()
-        )
-    }
-}

@@ -11,7 +11,8 @@ class HomeViewModel : ViewModel() {
     fun showDialog(dialogData: DialogData) {
         _dialogData.value = dialogData
     }
-    fun closeDialog(){
-        _dialogData.value = _dialogData.value.copy(isShow = false)
+
+    fun dismissDialog(){
+        _dialogData.value = DialogData()
     }
 }

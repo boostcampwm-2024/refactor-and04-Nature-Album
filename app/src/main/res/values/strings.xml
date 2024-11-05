@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Nature Album</string>
+
+    <string name="main_activity_permission_explain">이 앱은 촬영한 사진을 지도에 표시하고 도감을 작성하기 위해 카메라와 위치 접근 권한이 필요합니다.\n권한을 허용해 주시면 주변 생물에 대한 사진과 위치 정보를 기록하여 나만의 도감을 만들 수 있습니다.</string>
+    <string name="main_activity_permission_go_to_settings">설정으로 이동해서 직접 권한을 부여하세요.</string>
+
+    <string name="dialog_confirm_button">확인</string>
+    <string name="dialog_dismiss_button">취소</string>
+
 </resources>
