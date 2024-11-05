@@ -5,6 +5,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -37,31 +38,42 @@ fun SavePhotoScreen(
     label: Label? = null,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.padding(16.dp)) {
-        AsyncImage(
-            model = model,
-            contentDescription = null,
-            modifier = modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .clip(RoundedCornerShape(10.dp))
-        )
-        LabelSelection(label, modifier = modifier)
-        Description(description, modifier = modifier)
-        Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(false, {})
-            Text("대표 이미지로 설정하기")
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Column(modifier = modifier.weight(1f)) {
+            AsyncImage(
+                model = model,
+                contentDescription = null,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .clip(RoundedCornerShape(10.dp))
+            )
+            LabelSelection(label, modifier = modifier)
+            Description(description, modifier = modifier)
         }
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(onClick = {}, modifier = modifier) {
-                Text("취소")
+        Column(modifier = modifier.wrapContentHeight()) {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(false, {})
+                Text("대표 이미지로 설정하기")
             }
-            Button(onClick = {}, modifier = modifier) {
-                Text("저장")
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = {}, modifier = modifier) {
+                    Text("취소")
+                }
+                Button(onClick = {}, modifier = modifier) {
+                    Text("저장")
+                }
             }
         }
     }
@@ -126,13 +138,13 @@ private fun Description(
     Column(modifier = modifier) {
         Text(
             "설명",
-            modifier = modifier,
+            modifier = modifier.wrapContentHeight(),
         )
         TextField(
             value = description,
             onValueChange = {},
             placeholder = { Text("설명을 쓰세요") },
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxSize()
         )
     }
 }
