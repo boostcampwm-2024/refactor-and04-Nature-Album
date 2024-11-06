@@ -16,7 +16,7 @@ class HomeViewModel : ViewModel() {
         _dialogData.value = dialogData
     }
 
-    fun dismissDialog(){
+    fun dismissDialog() {
         _dialogData.value = DialogData()
     }
 }

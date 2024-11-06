@@ -14,8 +14,6 @@ import androidx.activity.result.ActivityResult
 import androidx.compose.runtime.MutableState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import java.io.File
 
 fun onClickCamera(
     context: Context,

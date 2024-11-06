@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -64,7 +66,7 @@ fun SavePhotoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
-    model: Any?,
+    model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier
@@ -124,12 +126,12 @@ fun SavePhotoScreen(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Default.Close,
                     text = stringResource(R.string.save_photo_screen_cancel),
-                    onClick = {})
+                    onClick = { TODO() })
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     text = stringResource(R.string.save_photo_screen_save),
-                    onClick = {})
+                    onClick = { TODO() })
             }
 
         }
@@ -174,7 +176,12 @@ private fun ToggleButton(
 ) {
     Spacer(modifier = modifier.size(24.dp))
     Row(
-        modifier = modifier.padding(vertical = 8.dp),
+        modifier = modifier
+            .padding(vertical = 8.dp)
+            .selectable(
+                selected = selected,
+                onClick = { TODO() }
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -203,7 +210,7 @@ private fun LabelSelection(
         )
         Spacer(modifier = modifier.size(8.dp))
         Button(
-            onClick = {},
+            onClick = { TODO() }, // TODO: 라벨 선택화면으로 전환
             modifier = modifier
                 .fillMaxWidth(),
             contentPadding = PaddingValues(all = 4.dp),
@@ -231,14 +238,15 @@ private fun LabelSelection(
                         .padding(horizontal = 4.dp)
                 ) {
                     label?.let {
+                        val backgroundColor = Color(label.backgroundColor)
                         SuggestionChip(
                             onClick = {},
                             label = {
-                                Text(text = it.name)
+                                Text(text = label.name)
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = Color(it.backgroundColor),
-                                labelColor = getLabelTextColor(it.backgroundColor)
+                                containerColor = backgroundColor,
+                                labelColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White,
                             )
                         )
                     }
@@ -256,13 +264,6 @@ private fun LabelSelection(
     }
 }
 
-fun getLabelTextColor(color: Long): Color {
-    val r = (color shr 16) and 0xFF
-    val g = (color shr 8) and 0xFF
-    val b = color and 0xFF
-    return if (r * 0.299 + g * 0.587 + b * 0.114 > 186) Color.Black else Color.White
-}
-
 @Composable
 private fun Description(
     description: String,
@@ -278,7 +279,7 @@ private fun Description(
         Spacer(modifier = modifier.size(8.dp))
         TextField(
             value = description,
-            onValueChange = {},
+            onValueChange = { TODO() },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
                 .fillMaxWidth()

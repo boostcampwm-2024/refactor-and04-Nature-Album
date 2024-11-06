@@ -11,7 +11,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
 
 @Composable
-fun NatureAlbumApp () {
+fun NatureAlbumApp() {
     val navController = rememberNavController()
 
     NatureAlbumTheme {
@@ -28,13 +28,15 @@ fun NatureAlbumNavHost(
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(onTakePicture = {fileName ->
-                navController.navigate("savePhoto/${fileName}"
-                )})
+            HomeScreen(onTakePicture = { fileName ->
+                navController.navigate(
+                    "savePhoto/${fileName}"
+                )
+            })
         }
         composable("savePhoto/{fileName}") { backStackEntry ->
             val fileName = backStackEntry.arguments?.getString("fileName")
-            fileName?.let{
+            fileName?.let {
                 SavePhotoScreen(File(LocalContext.current.filesDir, fileName))
             }
         }

@@ -8,7 +8,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,7 +63,8 @@ fun HomeScreen(
     val takePicture = {
         imageFileName = "${System.currentTimeMillis()}.jpg"
         val imageFile = File(context.filesDir, imageFileName)
-        val imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+        val imageUri =
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
         dispatchTakePictureIntent(imageUri, takePictureLauncher)
     }
 
