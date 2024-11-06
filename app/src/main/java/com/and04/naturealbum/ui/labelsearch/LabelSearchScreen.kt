@@ -1,5 +1,6 @@
-package com.and04.naturealbum.ui.label_search
+package com.and04.naturealbum.ui.labelsearch
 
+import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,12 +31,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,11 +64,13 @@ fun LabelSearchScreen() {
 }
 
 @Composable
-private fun SearchContent(innerPadding: PaddingValues) {
+private fun SearchContent(
+    innerPadding: PaddingValues,
+    labelSearchViewModel: LabelSearchViewModel = viewModel()
+) {
     var query by rememberSaveable { mutableStateOf("") }
     var randomColor by rememberSaveable { mutableStateOf("") }
-    //TODO DB에서 라벨 목록 가져오기
-    val data = listOf("고양이", "강아지", "장수말벌")
+    val labelsState by labelSearchViewModel.labels.collectAsState()
 
     Column(
         modifier = Modifier
@@ -75,7 +81,7 @@ private fun SearchContent(innerPadding: PaddingValues) {
             modifier = Modifier.fillMaxWidth(),
             value = query,
             onValueChange = {
-                if(it.length > 100) return@TextField
+                if (it.length > 100) return@TextField
                 else query = it
             },
             placeholder = { Text(stringResource(R.string.label_search_label_search)) },
@@ -94,10 +100,9 @@ private fun SearchContent(innerPadding: PaddingValues) {
         )
 
         LazyColumn {
-            val queryLabelList = data.filter { it.contains(query) }
+            val queryLabelList = labelsState.filter { label -> label.name == query }
             items(queryLabelList) { label ->
-                //TODO 라벨 색상 지정
-                UnderLineAssistChip(title = label, color = "")
+                UnderLineAssistChip(title = label.name, color = label.backgroundColor)
             }
         }
 
@@ -112,14 +117,14 @@ private fun SearchContent(innerPadding: PaddingValues) {
                 label = { Text(query) },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = Color(
-                        android.graphics.Color.parseColor(
+                        parseColor(
                             randomColor.ifBlank {
                                 randomColor = getRandomColor()
                                 randomColor
                             }
                         )
                     ),
-                    labelColor = getLabelTextColor(randomColor)
+                    labelColor = if (Color(parseColor(randomColor)).luminance() > 0.5f) Color.Black else Color.White
                 )
             )
         }
@@ -136,6 +141,10 @@ fun UnderLineAssistChip(
             .padding(start = 12.dp),
         onClick = { }, //TODO 클릭 시 해당 라벨 선택 후 종료
         label = { Text(title) },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = Color(parseColor(color)),
+            labelColor = if (Color(parseColor(color)).luminance() > 0.5f) Color.Black else Color.White
+        )
     )
 
     Spacer(
