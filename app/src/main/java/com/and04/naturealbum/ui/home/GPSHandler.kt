@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.home
 
 import android.app.Activity
 import android.content.IntentSender
+import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -16,18 +17,18 @@ class GPSHandler(
     private val takePicture: () -> Unit,
 ) {
     private val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        10000L
-    ).apply {
-        setMinUpdateIntervalMillis(5000L)
-        setMaxUpdateAgeMillis(150000L)
-    }.build()
+        Priority.PRIORITY_LOW_POWER,
+        0L,
+    ).build()
     private val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
     private val client: SettingsClient = LocationServices.getSettingsClient(activity)
 
     fun startLocationUpdates() {
         client.checkLocationSettings(builder.build())
-            .addOnSuccessListener { takePicture() }
+            .addOnSuccessListener {
+                Log.d("FFFF", "suc")
+                takePicture()
+            }
             .addOnFailureListener { exception ->
                 if (exception is ResolvableApiException) {
                     resolveLocationSettings(exception)

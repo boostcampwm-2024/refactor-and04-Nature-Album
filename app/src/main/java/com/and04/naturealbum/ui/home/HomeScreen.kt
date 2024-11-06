@@ -1,12 +1,14 @@
 package com.and04.naturealbum.ui.home
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,13 +36,37 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun HomeScreen(
-    allPermissionGranted: () -> Unit = {},
+    takePicture: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
 
     var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
     val dialogPermissionExplainState = remember { mutableStateOf(false) }
+
+    val locationSettingsLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartIntentSenderForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                takePicture()
+            }
+        }
+    val isGrantedGPS = { intentSenderRequest: IntentSenderRequest ->
+        locationSettingsLauncher.launch(intentSenderRequest)
+    }
+    val allPermissionGranted = {
+        GPSHandler(
+            activity,
+            { intentSenderRequest ->
+                isGrantedGPS(intentSenderRequest)
+            },
+            {
+                takePicture()
+            }
+        ).startLocationUpdates()
+    }
+
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
