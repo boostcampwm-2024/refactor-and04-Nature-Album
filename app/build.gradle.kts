@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -70,6 +71,20 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
+    //compose navigation
+    implementation(libs.androidx.navigation.compose)
+
+    //kotlin serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    //compose viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
 
     //Room DB
     implementation(libs.androidx.room.runtime)
