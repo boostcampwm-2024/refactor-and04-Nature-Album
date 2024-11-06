@@ -84,7 +84,7 @@ dependencies {
 
     //compose viewmodel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    implementation(libs.androidx.runtime.livedata)
 
     //Room DB
     implementation(libs.androidx.room.runtime)

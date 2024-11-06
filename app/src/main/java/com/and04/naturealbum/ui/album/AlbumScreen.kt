@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.album
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,14 +17,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,14 +30,15 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.theme.AppTypography
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
-
 
 @Composable
 fun CustomLabel(
@@ -110,12 +108,13 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 }
 
 @Composable
-fun AlbumScreen(albums: List<AlbumDto>) {
+fun AlbumScreen(viewModel: AlbumViewModel = viewModel()) {
+    val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        AlbumGrid(albums = albums)
+        albumList?.let { AlbumGrid(albums = it) }
     }
 }
 
@@ -164,16 +163,16 @@ fun CustomLabelPreview() {
 fun AlbumItemPreview() {
     NatureAlbumTheme() {
         Surface {
-            val album = Album(
-                id = 1,
-                label = Label(id = 1, backgroundColor = Color(0xFFE57373), name = "고양이"),
-                photoDetail = PhotoDetail(
-                    id = 1,
-                    imageResId = R.drawable.sample_image_01,
-                    description = "고양고양이"
-                )
-            )
-            //AlbumItem(album = album)
+//            val album = Album(
+//                id = 1,
+//                label = Label(id = 1, backgroundColor = Color(0xFFE57373), name = "고양이"),
+//                photoDetail = PhotoDetail(
+//                    id = 1,
+//                    imageResId = R.drawable.sample_image_01,
+//                    description = "고양고양이"
+//                )
+//            )
+//            AlbumItem(album = album)
         }
     }
 }
@@ -192,8 +191,8 @@ fun AlbumItemPreview() {
 fun AlbumGridPreview() {
     NatureAlbumTheme() {
         Surface {
-            val albums = remember { getDummyAlbums() }
-            //AlbumGrid(albums = albums)
+//            val albums = remember { getDummyAlbums() }
+//            AlbumGrid(albums = albums)
         }
     }
 }
@@ -212,8 +211,8 @@ fun AlbumGridPreview() {
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
-            val albums = remember { getDummyAlbums() }
-            //AlbumScreen(albums = albums)
+//            val albums = remember { getDummyAlbums() }
+//            AlbumScreen(albums = albums)
         }
     }
 }

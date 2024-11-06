@@ -6,7 +6,6 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface DataRepository {
@@ -19,6 +18,7 @@ interface DataRepository {
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
     suspend fun getLabelBackgroundColorById(id: Int): String
+    suspend fun insertLabel(label: Label)
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -31,6 +31,10 @@ class DataRepositoryImpl @Inject constructor(
             labelDao.insertLabel(label)
             labelDao.getIdByName(label.name) ?: error("INSERT LABEL FAIL")
         }
+    }
+
+    override suspend fun insertLabel(label: Label) {
+        labelDao.insertLabel(label)
     }
 
     override suspend fun insertPhoto(photoDetail: PhotoDetail) {
