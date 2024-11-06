@@ -29,7 +29,7 @@ interface AlbumDao {
     fun insertAlbum(album: Album)
 
     @Query("SELECT * FROM album")
-    fun getALLAlbum(): Flow<List<Album>>
+    fun getALLAlbum(): List<Album>
 
     @Query("SELECT name FROM label WHERE id = :id")
     fun getLabelNameById(id: Int): String
@@ -44,7 +44,7 @@ interface PhotoDetailDao {
     fun insertPhotoDetail(photoDetail: PhotoDetail)
 
     @Query("SELECT * FROM photo_detail")
-    fun getAllPhotoDetail(): Flow<List<PhotoDetail>>
+    fun getAllPhotoDetail(): List<PhotoDetail>
 
     @Query("SELECT * FROM photo_detail WHERE id = :id")
     fun getPhotoDetailById(id: Int): PhotoDetail

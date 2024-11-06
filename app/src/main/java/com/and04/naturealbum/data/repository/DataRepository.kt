@@ -13,9 +13,9 @@ interface DataRepository {
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail)
     suspend fun insertPhotoInAlbum(album: Album)
-    fun getAllPhotoDetail(): Flow<List<PhotoDetail>>
+    suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String>
-    fun getALLAlbum(): Flow<List<Album>>
+    suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
 }
@@ -40,7 +40,7 @@ class DataRepositoryImpl @Inject constructor(
         albumDao.insertAlbum(album)
     }
 
-    override fun getAllPhotoDetail(): Flow<List<PhotoDetail>> {
+    override suspend fun getAllPhotoDetail(): List<PhotoDetail> {
         return photoDetailDao.getAllPhotoDetail()
     }
 
@@ -48,7 +48,7 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
     }
 
-    override fun getALLAlbum(): Flow<List<Album>> {
+    override suspend fun getALLAlbum(): List<Album> {
         return albumDao.getALLAlbum()
     }
 
