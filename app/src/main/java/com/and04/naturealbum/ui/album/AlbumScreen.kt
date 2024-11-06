@@ -33,9 +33,13 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
+import androidx.core.net.toUri
+import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.theme.AppTypography
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.toColor
 
 
 @Composable
@@ -63,17 +67,17 @@ fun CustomLabel(
 
 
 @Composable
-fun AlbumItem(album: Album, modifier: Modifier = Modifier) {
+fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CustomLabel(text = album.label.name, backgroundColor = album.label.backgroundColor)
+        CustomLabel(text = album.labelName, backgroundColor = album.labelBackgroundColor.toColor())
         Spacer(modifier = Modifier.height(10.dp))
-        Image(
-            painter = painterResource(id = album.photoDetail.imageResId),
-            contentDescription = album.photoDetail.description,
+        AsyncImage(
+            model = album.photoDetailUri.toUri(),
+            contentDescription = album.labelName, // TODO: 해당 description 무엇으로 할지 확정
             modifier = Modifier
                 .wrapContentSize(Alignment.Center)
                 .aspectRatio(1f)
@@ -84,7 +88,7 @@ fun AlbumItem(album: Album, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AlbumGrid(albums: List<Album>) {
+fun AlbumGrid(albums: List<AlbumDto>) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
@@ -106,7 +110,7 @@ fun AlbumGrid(albums: List<Album>) {
 }
 
 @Composable
-fun AlbumScreen(albums: List<Album>) {
+fun AlbumScreen(albums: List<AlbumDto>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -169,7 +173,7 @@ fun AlbumItemPreview() {
                     description = "고양고양이"
                 )
             )
-            AlbumItem(album = album)
+            //AlbumItem(album = album)
         }
     }
 }
@@ -189,7 +193,7 @@ fun AlbumGridPreview() {
     NatureAlbumTheme() {
         Surface {
             val albums = remember { getDummyAlbums() }
-            AlbumGrid(albums = albums)
+            //AlbumGrid(albums = albums)
         }
     }
 }
@@ -209,7 +213,7 @@ fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
             val albums = remember { getDummyAlbums() }
-            AlbumScreen(albums = albums)
+            //AlbumScreen(albums = albums)
         }
     }
 }

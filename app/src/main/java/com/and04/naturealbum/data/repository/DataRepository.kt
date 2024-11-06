@@ -14,10 +14,11 @@ interface DataRepository {
     suspend fun insertPhoto(photoDetail: PhotoDetail)
     suspend fun insertPhotoInAlbum(album: Album)
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
-    suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String>
+    suspend fun getPhotoDetailUriByLabelId(labelId: Int): String
     suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
+    suspend fun getLabelBackgroundColorById(id: Int): String
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -44,7 +45,7 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetail()
     }
 
-    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String> {
+    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): String {
         return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
     }
 
@@ -53,10 +54,14 @@ class DataRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLabelNameById(id: Int): String {
-        return albumDao.getLabelNameById(id)
+        return labelDao.getLabelNameById(id)
+    }
+
+    override suspend fun getLabelBackgroundColorById(id: Int): String {
+        return labelDao.getLabelBackgroundColorById(id)
     }
 
     override suspend fun getPhotoDetailUriById(id: Int): String {
-        return albumDao.getPhotoDetailUriById(id)
+        return photoDetailDao.getPhotoDetailUriById(id)
     }
 }

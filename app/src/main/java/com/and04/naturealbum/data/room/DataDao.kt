@@ -21,6 +21,12 @@ interface LabelDao {
 
     @Query("SELECT id FROM label WHERE name = :name")
     fun getIdByName(name: String): Int?
+
+    @Query("SELECT background_color FROM label WHERE id = :id")
+    fun getLabelBackgroundColorById(id: Int): String
+
+    @Query("SELECT name FROM label WHERE id = :id")
+    fun getLabelNameById(id: Int): String
 }
 
 @Dao
@@ -30,12 +36,6 @@ interface AlbumDao {
 
     @Query("SELECT * FROM album")
     fun getALLAlbum(): List<Album>
-
-    @Query("SELECT name FROM label WHERE id = :id")
-    fun getLabelNameById(id: Int): String
-
-    @Query("SELECT photo_uri FROM photo_detail WHERE id = :id")
-    fun getPhotoDetailUriById(id: Int): String
 }
 
 @Dao
@@ -53,5 +53,6 @@ interface PhotoDetailDao {
     fun getPhotoDetailUriById(id: Int): String
 
     @Query("SELECT photo_uri FROM photo_detail WHERE label_id = :labelId")
-    fun getAllPhotoDetailUriByLabelId(labelId: Int): List<String>
+    fun getAllPhotoDetailUriByLabelId(labelId: Int): String
+
 }
