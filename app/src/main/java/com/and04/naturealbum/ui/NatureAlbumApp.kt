@@ -40,7 +40,14 @@ fun NatureAlbumNavHost(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
-                navController.navigate(NavigateDestination.SavePhoto.route)
+                navController.navigate(NavigateDestination.SavePhoto.route) {
+                    launchSingleTop = true
+                }
+            } else {
+                navController.navigate(NavigateDestination.Home.route) {
+                    popUpTo(NavigateDestination.Home.route) { inclusive = false }
+                    launchSingleTop = true
+                }
             }
         }
     val takePicture = {
@@ -67,7 +74,7 @@ fun NatureAlbumNavHost(
             HomeScreen(allPermissionGranted = { takePicture() })
         }
         composable(NavigateDestination.SavePhoto.route) {
-            imageUri?.let { uri -> SavePhotoScreen(model = uri) }
+            imageUri?.let { uri -> SavePhotoScreen(model = uri, onBack = { takePicture() }) }
         }
     }
 }

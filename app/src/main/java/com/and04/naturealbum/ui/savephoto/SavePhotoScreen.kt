@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.savephoto
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,10 +68,12 @@ fun SavePhotoScreen(
 @Composable
 fun SavePhotoScreen(
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
+    onBack: () -> Unit = {},
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier
 ) {
+    BackHandler(onBack = onBack)
     Scaffold(
         topBar = {
             TopAppBar(
@@ -126,7 +129,7 @@ fun SavePhotoScreen(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Default.Close,
                     text = stringResource(R.string.save_photo_screen_cancel),
-                    onClick = { TODO() })
+                    onClick = { onBack() })
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
