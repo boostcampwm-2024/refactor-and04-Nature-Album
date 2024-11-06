@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.album
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,6 +33,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
+import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.theme.AppTypography
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 

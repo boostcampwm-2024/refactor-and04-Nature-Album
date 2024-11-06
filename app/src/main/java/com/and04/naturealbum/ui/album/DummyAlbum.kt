@@ -1,6 +1,7 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.album
 
 import androidx.compose.ui.graphics.Color
+import com.and04.naturealbum.R
 
 data class Album(
     val id: Int,
