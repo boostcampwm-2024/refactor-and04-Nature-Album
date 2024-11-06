@@ -1,5 +1,11 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.data.repository
 
+import com.and04.naturealbum.data.room.Album
+import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.room.LabelDao
+import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.room.PhotoDetailDao
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.data.room
 
 import androidx.room.Dao
 import androidx.room.Insert
