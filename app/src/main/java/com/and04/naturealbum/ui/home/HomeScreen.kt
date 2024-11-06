@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
@@ -34,10 +32,8 @@ import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = viewModel(),
     allPermissionGranted: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -45,7 +41,6 @@ fun HomeScreen(
 
     var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
     val dialogPermissionExplainState = remember { mutableStateOf(false) }
-
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -69,15 +64,13 @@ fun HomeScreen(
         requestPermissionLauncher.launch(deniedPermissions)
     }
 
-    val permissionHandler by remember {
-        mutableStateOf(
-            PermissionHandler(
-                context = context,
-                activity = activity,
-                allPermissionGranted = allPermissionGranted,
-                onRequestPermission = onRequestPermission,
-                dialogPermissionExplainState = dialogPermissionExplainState
-            )
+    val permissionHandler = remember {
+        PermissionHandler(
+            context = context,
+            activity = activity,
+            allPermissionGranted = { allPermissionGranted() },
+            onRequestPermission = onRequestPermission,
+            dialogPermissionExplainState = dialogPermissionExplainState
         )
     }
 
