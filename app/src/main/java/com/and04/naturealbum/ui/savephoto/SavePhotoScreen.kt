@@ -1,4 +1,4 @@
-package com.and04.naturealbum.savephoto
+package com.and04.naturealbum.ui.savephoto
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -10,38 +10,45 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -54,6 +61,7 @@ fun SavePhotoScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
     model: Any?,
@@ -61,27 +69,49 @@ fun SavePhotoScreen(
     label: Label? = null,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Column(modifier = modifier.weight(1f)) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(R.string.app_name))
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = null /* TODO */
+                        )
+                    }
+                }
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
             AsyncImage(
-                model = model,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(model)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
+                    .weight(1f)
+                    .align(Alignment.CenterHorizontally)
                     .clip(RoundedCornerShape(10.dp))
             )
+
             Spacer(modifier = modifier.size(36.dp))
             LabelSelection(label, modifier = modifier)
+
             Spacer(modifier = modifier.size(36.dp))
             Description(description, modifier = modifier)
-        }
-        Column(modifier = modifier.wrapContentHeight()) {
+
             ToggleButton(selected = false, modifier = modifier)
+
             Spacer(modifier = modifier.size(36.dp))
             Row(
                 modifier = modifier
@@ -93,14 +123,15 @@ fun SavePhotoScreen(
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Default.Close,
-                    text = "취소",
+                    text = stringResource(R.string.save_photo_screen_cancel),
                     onClick = {})
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
-                    text = "저장",
+                    text = stringResource(R.string.save_photo_screen_save),
                     onClick = {})
             }
+
         }
     }
 }
@@ -153,7 +184,7 @@ private fun ToggleButton(
             modifier = modifier
                 .size(24.dp)
         )
-        Text("대표 이미지로 설정하기")
+        Text(stringResource(R.string.save_photo_screen_set_represent))
     }
 }
 
@@ -165,7 +196,7 @@ private fun LabelSelection(
 
     Column(modifier = modifier) {
         Text(
-            "라벨",
+            stringResource(R.string.save_photo_screen_label),
             modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
@@ -211,7 +242,7 @@ private fun LabelSelection(
                             )
                         )
                     }
-                        ?: Text(text = "라벨을 선택해주세요.")
+                        ?: Text(text = stringResource(R.string.save_photo_screen_select_label))
                 }
             }
             Icon(
@@ -239,7 +270,7 @@ private fun Description(
 ) {
     Column(modifier = modifier) {
         Text(
-            "설명",
+            stringResource(R.string.save_photo_screen_description),
             modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
@@ -248,8 +279,10 @@ private fun Description(
         TextField(
             value = description,
             onValueChange = {},
-            placeholder = { Text("설명을 쓰세요") },
-            modifier = modifier.fillMaxSize()
+            placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
+            modifier = modifier
+                .fillMaxWidth()
+                .height(120.dp),
         )
     }
 }
