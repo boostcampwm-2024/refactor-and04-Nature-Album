@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.component
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape

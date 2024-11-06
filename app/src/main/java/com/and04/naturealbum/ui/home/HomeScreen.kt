@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.home
 
 import android.app.Activity
 import android.app.Activity.RESULT_OK
@@ -37,6 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.and04.naturealbum.ui.component.DialogData
+import com.and04.naturealbum.ui.component.MyDialog
+import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
 

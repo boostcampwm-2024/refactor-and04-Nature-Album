@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

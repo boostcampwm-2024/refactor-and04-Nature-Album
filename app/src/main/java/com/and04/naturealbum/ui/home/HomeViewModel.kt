@@ -1,7 +1,8 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.ui.home
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import com.and04.naturealbum.ui.component.DialogData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
