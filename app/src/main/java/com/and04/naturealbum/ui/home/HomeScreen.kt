@@ -49,6 +49,7 @@ import java.io.File
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onTakePicture: (String) -> Unit = {},
+    onNavigateToAlbum: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var imageFileName = ""
@@ -128,6 +129,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(2f)
                     .fillMaxSize(),
+                onNavigateToAlbum = onNavigateToAlbum
             )
         }
     }
@@ -178,6 +180,7 @@ fun NavigateContent(
     takePicture: () -> Unit,
     dialogPermissionExplainState: MutableState<Boolean>,
     modifier: Modifier = Modifier,
+    onNavigateToAlbum: () -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -189,7 +192,7 @@ fun NavigateContent(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            RoundedShapeButton("TODO", modifier) { /* TODO */ }
+            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
             RoundedShapeButton("TODO", modifier) {
                 onClickCamera(
                     context = context,
