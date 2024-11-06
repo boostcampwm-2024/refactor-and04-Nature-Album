@@ -82,7 +82,6 @@ fun HomeScreen(
                 if (hasPreviouslyDeniedPermission) {
                     dialogPermissionExplainState.value = true
                 } else {
-                    Log.d("FFFF","설정 이동")
                     dialogPermissionGoToSettingsState.value = true
                 }
             }
