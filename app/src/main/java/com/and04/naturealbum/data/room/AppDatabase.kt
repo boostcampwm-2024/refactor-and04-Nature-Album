@@ -23,7 +23,9 @@ abstract class AppDatabase : RoomDatabase() {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, AppDatabase::class.java, "nature_album_database")
                     .build()
-                    .also { Instance = it }
+                    .also { appDataBase ->
+                        Instance = appDataBase
+                    }
             }
         }
     }
