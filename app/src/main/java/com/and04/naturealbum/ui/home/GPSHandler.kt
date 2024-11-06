@@ -7,36 +7,30 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 
 class GPSHandler(
-    private val activity: Activity,
+    activity: Activity,
     private val isGpsEnabled: (IntentSenderRequest) -> Unit,
     private val takePicture: () -> Unit,
 ) {
-    private lateinit var mLocationSettingsRequest: LocationSettingsRequest
-    private lateinit var mSettingsClient: SettingsClient
-    private lateinit var mLocationRequest: LocationRequest
-
-    init {
-        mLocationRequest = LocationRequest.create().apply {
-            interval = 20 * 1000
-            priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        }
-        mSettingsClient = LocationServices.getSettingsClient(activity)
-        val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(mLocationRequest)
-        mLocationSettingsRequest = builder.build()
-    }
+    private val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        10000L
+    ).apply {
+        setMinUpdateIntervalMillis(5000L)
+        setMaxUpdateAgeMillis(150000L)
+    }.build()
+    private val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+    private val client: SettingsClient = LocationServices.getSettingsClient(activity)
 
     fun startLocationUpdates() {
-        mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
-            .addOnSuccessListener(activity) {
-                takePicture()
-            }
-            .addOnFailureListener(activity) { e ->
-                if (e is ResolvableApiException) {
-                    resolveLocationSettings(e)
+        client.checkLocationSettings(builder.build())
+            .addOnSuccessListener { takePicture() }
+            .addOnFailureListener { exception ->
+                if (exception is ResolvableApiException) {
+                    resolveLocationSettings(exception)
                 }
             }
     }
