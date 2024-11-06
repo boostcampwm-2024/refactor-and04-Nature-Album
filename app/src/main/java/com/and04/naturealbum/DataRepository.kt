@@ -1,19 +1,20 @@
 package com.and04.naturealbum
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 interface DataRepository {
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail)
     suspend fun insertPhotoInAlbum(album: Album)
     fun getAllPhotoDetail(): Flow<List<PhotoDetail>>
-    suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<PhotoDetail>
+    suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String>
     fun getALLAlbum(): Flow<List<Album>>
     suspend fun getLabelNameById(id: Int): String
-    suspend fun getPhotoDetailUriById(id: Int): PhotoDetail
+    suspend fun getPhotoDetailUriById(id: Int): String
 }
 
-class DataRepositoryImpl(
+class DataRepositoryImpl @Inject constructor(
     private val labelDao: LabelDao,
     private val albumDao: AlbumDao,
     private val photoDetailDao: PhotoDetailDao
@@ -37,7 +38,7 @@ class DataRepositoryImpl(
         return photoDetailDao.getAllPhotoDetail()
     }
 
-    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<PhotoDetail> {
+    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String> {
         return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
     }
 
@@ -49,7 +50,7 @@ class DataRepositoryImpl(
         return albumDao.getLabelNameById(id)
     }
 
-    override suspend fun getPhotoDetailUriById(id: Int): PhotoDetail {
+    override suspend fun getPhotoDetailUriById(id: Int): String {
         return albumDao.getPhotoDetailUriById(id)
     }
 }
