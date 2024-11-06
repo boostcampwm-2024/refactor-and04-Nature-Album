@@ -5,10 +5,10 @@ fun getRandomColor(): String {
     val g = (0..255).random()
     val b = (0..255).random()
 
-    return "#${r.toHex()}${g.toHex()}${b.toHex()}"
+    return "FF${r.toHex()}${g.toHex()}${b.toHex()}"
 }
 
-fun Int.toHex(): String {
+private fun Int.toHex(): String {
     val hex = Integer.toHexString(this)
     return if (hex.length == 1) "0$hex" else hex
 }

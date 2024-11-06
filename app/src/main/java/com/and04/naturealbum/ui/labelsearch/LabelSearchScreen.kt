@@ -1,6 +1,6 @@
 package com.and04.naturealbum.ui.labelsearch
 
-import android.graphics.Color.parseColor
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,18 +32,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.room.Label
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LabelSearchScreen() {
+fun LabelSearchScreen(
+    onSelected: (Label) -> Unit = {}
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -59,18 +63,20 @@ fun LabelSearchScreen() {
             )
         }
     ) { innerPadding ->
-        SearchContent(innerPadding)
+        SearchContent(innerPadding, onSelected)
     }
 }
 
 @Composable
 private fun SearchContent(
     innerPadding: PaddingValues,
-    labelSearchViewModel: LabelSearchViewModel = viewModel()
+    onSelected: (Label) -> Unit,
+    labelSearchViewModel: LabelSearchViewModel = hiltViewModel()
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var randomColor by rememberSaveable { mutableStateOf("") }
     val labelsState by labelSearchViewModel.labels.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -102,7 +108,7 @@ private fun SearchContent(
         LazyColumn {
             val queryLabelList = labelsState.filter { label -> label.name == query }
             items(queryLabelList) { label ->
-                UnderLineAssistChip(title = label.name, color = label.backgroundColor)
+                UnderLineAssistChip(label, onSelected)
             }
         }
 
@@ -110,21 +116,31 @@ private fun SearchContent(
             modifier = Modifier.padding(start = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val toastText = stringResource(R.string.label_search_blank_query_toast)
             Text(stringResource(R.string.label_search_create))
             Spacer(Modifier.size(4.dp))
             AssistChip(
-                onClick = { }, //TODO 클릭 시 해당 라벨 선택 후 종료
+                onClick = {
+                    if (query.isBlank()) {
+                        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+                        return@AssistChip
+                    }
+                    onSelected(
+                        Label(
+                            backgroundColor = randomColor,
+                            name = query
+                        )
+                    )
+                },
                 label = { Text(query) },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = Color(
-                        parseColor(
-                            randomColor.ifBlank {
-                                randomColor = getRandomColor()
-                                randomColor
-                            }
-                        )
+                        randomColor.ifBlank {
+                            randomColor = getRandomColor()
+                            randomColor
+                        }.toLong(16)
                     ),
-                    labelColor = if (Color(parseColor(randomColor)).luminance() > 0.5f) Color.Black else Color.White
+                    labelColor = if (Color(randomColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
                 )
             )
         }
@@ -133,17 +149,18 @@ private fun SearchContent(
 
 @Composable
 fun UnderLineAssistChip(
-    title: String,
-    color: String
+    label: Label,
+    onSelected: (Label) -> Unit
 ) {
     AssistChip(
         modifier = Modifier
             .padding(start = 12.dp),
-        onClick = { }, //TODO 클릭 시 해당 라벨 선택 후 종료
-        label = { Text(title) },
+        onClick = { onSelected(label) },
+        label = { Text(label.name) },
+
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = Color(parseColor(color)),
-            labelColor = if (Color(parseColor(color)).luminance() > 0.5f) Color.Black else Color.White
+            containerColor = Color(label.backgroundColor.toLong(16)),
+            labelColor = if (Color(label.backgroundColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
         )
     )
 

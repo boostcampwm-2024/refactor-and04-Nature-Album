@@ -53,6 +53,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
@@ -244,7 +245,7 @@ private fun LabelSelection(
                         .padding(horizontal = 4.dp)
                 ) {
                     label?.let {
-                        val backgroundColor = Color(label.backgroundColor)
+                        val backgroundColor = Color(label.backgroundColor.toLong(16))
                         SuggestionChip(
                             onClick = {},
                             label = {
@@ -300,7 +301,7 @@ private fun Description(
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
-        SavePhotoScreen(R.drawable.cat_dummy, label = Label(0, 0xFF0000FF, "cat"))
+        SavePhotoScreen(R.drawable.cat_dummy, label = Label(0, "0000FF", "cat"))
     }
 }
 
@@ -322,7 +323,7 @@ private fun ScreenDescriptionPreview() {
             R.drawable.cat_dummy, description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
                     "그 아래는 스크롤이 되도록 해보아요\n" +
-                    "룰루", label = Label(0, 0xFFFFFFFF, "cat")
+                    "룰루", label = Label(0, "FFFFFF", "cat")
         )
     }
 }

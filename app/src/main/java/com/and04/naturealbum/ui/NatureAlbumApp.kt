@@ -15,7 +15,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.home.HomeScreen
+import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -66,6 +68,8 @@ fun NatureAlbumNavHost(
         }
     }
 
+    var selectedLabel: Label? = remember { null }
+
     NavHost(
         navController = navController,
         startDestination = NavigateDestination.Home.route
@@ -74,7 +78,22 @@ fun NatureAlbumNavHost(
             HomeScreen(allPermissionGranted = { takePicture() })
         }
         composable(NavigateDestination.SavePhoto.route) {
-            imageUri?.let { uri -> SavePhotoScreen(model = uri, onBack = { takePicture() }) }
+            imageUri?.let { uri ->
+                SavePhotoScreen(
+                    model = uri,
+                    onBack = { takePicture() },
+                    label = selectedLabel,
+                    onLabelSelect = {
+                        navController.navigate(NavigateDestination.SearchLabel.route)
+                    }
+                )
+            }
+        }
+        composable(NavigateDestination.SearchLabel.route) {
+            LabelSearchScreen {
+                selectedLabel = it
+                navController.popBackStack()
+            }
         }
     }
 }
