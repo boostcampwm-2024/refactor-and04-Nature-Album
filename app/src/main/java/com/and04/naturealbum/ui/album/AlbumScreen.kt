@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
@@ -108,13 +109,13 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 }
 
 @Composable
-fun AlbumScreen(viewModel: AlbumViewModel = viewModel()) {
+fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        albumList?.let { AlbumGrid(albums = it) }
+        albumList?.let { albumList -> AlbumGrid(albums = albumList) }
     }
 }
 
