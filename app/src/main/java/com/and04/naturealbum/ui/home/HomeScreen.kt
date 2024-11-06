@@ -1,13 +1,10 @@
 package com.and04.naturealbum.ui.home
 
 import android.app.Activity
-import android.app.Activity.RESULT_OK
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.DialogData
@@ -37,44 +33,18 @@ import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
-    onTakePicture: (String) -> Unit = {},
+    allPermissionGranted: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    var imageFileName = ""
     val activity = context as? Activity ?: return
 
     var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
     val dialogPermissionExplainState = remember { mutableStateOf(false) }
-
-    val takePictureLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                onTakePicture(imageFileName)
-            }
-        }
-
-    val allPermissionGranted = {
-        imageFileName = "${System.currentTimeMillis()}.jpg"
-        val imageFile = File(context.filesDir, imageFileName)
-        val imageUri =
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-            putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-            try {
-                takePictureLauncher.launch(this)
-            } catch (e: ActivityNotFoundException) {
-                // TODO: 카메라 전환 오류 처리
-            }
-        }
-    }
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(

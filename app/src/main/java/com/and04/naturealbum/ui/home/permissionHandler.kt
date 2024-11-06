@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.home
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.runtime.MutableState
@@ -13,7 +12,7 @@ import androidx.core.content.ContextCompat
 class PermissionHandler(
     private val context: Context,
     private val activity: Activity,
-    private val allPermissionGranted: () -> Intent,
+    private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
     private var dialogPermissionExplainState: MutableState<Boolean>,
 ) {
