@@ -69,6 +69,8 @@ fun SavePhotoScreen(
 fun SavePhotoScreen(
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
     onBack: () -> Unit = {},
+    onSave: () -> Unit = {},
+    onLabelSelect: () -> Unit = {},
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier
@@ -110,7 +112,7 @@ fun SavePhotoScreen(
             )
 
             Spacer(modifier = modifier.size(36.dp))
-            LabelSelection(label, modifier = modifier)
+            LabelSelection(label, onClick = onLabelSelect, modifier = modifier)
 
             Spacer(modifier = modifier.size(36.dp))
             Description(description, modifier = modifier)
@@ -134,7 +136,7 @@ fun SavePhotoScreen(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     text = stringResource(R.string.save_photo_screen_save),
-                    onClick = { TODO() })
+                    onClick = { onSave() })
             }
 
         }
@@ -201,6 +203,7 @@ private fun ToggleButton(
 @Composable
 private fun LabelSelection(
     label: Label?,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -213,7 +216,7 @@ private fun LabelSelection(
         )
         Spacer(modifier = modifier.size(8.dp))
         Button(
-            onClick = { TODO() }, // TODO: 라벨 선택화면으로 전환
+            onClick = { onClick() },
             modifier = modifier
                 .fillMaxWidth(),
             contentPadding = PaddingValues(all = 4.dp),
