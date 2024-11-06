@@ -1,5 +1,7 @@
 package com.and04.naturealbum.ui.album
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,8 +25,8 @@ class AlbumViewModel @Inject constructor(
     private val _albumList = MutableLiveData<List<AlbumDto>>()
     val albumList: LiveData<List<AlbumDto>> = _albumList
 
-    init {
-        createDummyData() // TODO: 이후 Room DB에 데이터 들어가 있으면 삭제 예정
+    fun initialize(context: Context) {
+        createDummyData(context) // TODO: 이후 Room DB에 데이터 들어가 있으면 삭제 예정
         loadAlbums()
     }
 
@@ -49,7 +51,12 @@ class AlbumViewModel @Inject constructor(
     }
 
     // TODO: 이후 Room DB에 데이터 들어가 있으면 삭제 예정
-    fun createDummyData() {
+    fun getDrawableUriString(context: Context, drawableId: Int): String {
+        return Uri.parse("android.resource://${context.packageName}/$drawableId").toString()
+    }
+
+    // TODO: 이후 Room DB에 데이터 들어가 있으면 삭제 예정
+    fun createDummyData(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             // Sample Labels 삽입
             val labels = listOf(
@@ -61,9 +68,10 @@ class AlbumViewModel @Inject constructor(
                 repository.insertLabel(label)
             }
 
-            val uri01 = "drawable://" + R.drawable.sample_image_01
-            val uri02 = "drawable://" + R.drawable.sample_image_02
-            val uri03 = "drawable://" + R.drawable.sample_image_01
+            val uri01 = getDrawableUriString(context, R.drawable.sample_image_01)
+            val uri02 = getDrawableUriString(context, R.drawable.sample_image_02)
+            val uri03 = getDrawableUriString(context, R.drawable.sample_image_01)
+
 
             val photoDetails = listOf(
                 PhotoDetail(

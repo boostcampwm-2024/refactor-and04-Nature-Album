@@ -32,9 +32,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.theme.AppTypography
@@ -110,6 +110,9 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 
 @Composable
 fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
+    // TODO: 현재 Room DB 더미 데이터 넣는 용도 때문에 context 필요. 추후 room DB 데이터 들어가면 수정 예정.
+    val context = LocalContext.current
+    viewModel.initialize(context)
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
