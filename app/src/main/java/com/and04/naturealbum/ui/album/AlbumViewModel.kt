@@ -19,11 +19,11 @@ class AlbumViewModel @Inject constructor(
     private val _albumList = MutableLiveData<List<AlbumDto>>()
     val albumList: LiveData<List<AlbumDto>> = _albumList
 
-    fun initialize() {
+    init{
         loadAlbums()
     }
 
-    fun loadAlbums() {
+    private fun loadAlbums() {
         viewModelScope.launch(Dispatchers.IO) {
             _albumList.postValue(repository.getAllAlbum())
         }

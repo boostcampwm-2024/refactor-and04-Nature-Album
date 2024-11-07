@@ -110,7 +110,6 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 
 @Composable
 fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
-    viewModel.initialize()
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
