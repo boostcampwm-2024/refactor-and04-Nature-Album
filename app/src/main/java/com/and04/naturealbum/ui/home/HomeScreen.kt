@@ -118,6 +118,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(2f)
                     .fillMaxSize(),
+                onNavigateToAlbum = onNavigateToAlbum
             )
         }
     }
@@ -162,6 +163,7 @@ fun InfoContent(modifier: Modifier) {
 fun NavigateContent(
     permissionHandler: PermissionHandler,
     modifier: Modifier = Modifier,
+    onNavigateToAlbum: () -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -173,7 +175,7 @@ fun NavigateContent(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            RoundedShapeButton("TODO", modifier) { /* TODO */ }
+            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
             RoundedShapeButton("TODO", modifier) {
                 permissionHandler.onClickCamera()
             }

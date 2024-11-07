@@ -13,5 +13,8 @@ sealed class NavigateDestination(val route: String) : Destination {
     data object SavePhoto : NavigateDestination("save_photo")
 
     @Serializable
+    data object Album : NavigateDestination("album")
+    
+    @Serializable
     data object SearchLabel : NavigateDestination("search_label")
 }

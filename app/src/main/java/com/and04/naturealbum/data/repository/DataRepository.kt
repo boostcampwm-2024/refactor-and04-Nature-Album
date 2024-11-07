@@ -1,12 +1,12 @@
 package com.and04.naturealbum.data.repository
 
+import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface DataRepository {
@@ -14,11 +14,14 @@ interface DataRepository {
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail)
     suspend fun insertPhotoInAlbum(album: Album)
-    fun getAllPhotoDetail(): Flow<List<PhotoDetail>>
-    suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String>
-    fun getALLAlbum(): Flow<List<Album>>
+    suspend fun getAllPhotoDetail(): List<PhotoDetail>
+    suspend fun getPhotoDetailUriByLabelId(labelId: Int): String
+    suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
+    suspend fun getLabelBackgroundColorById(id: Int): String
+    suspend fun insertLabel(label: Label)
+    suspend fun getAllAlbum(): List<AlbumDto>
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -37,6 +40,10 @@ class DataRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun insertLabel(label: Label) {
+        labelDao.insertLabel(label)
+    }
+
     override suspend fun insertPhoto(photoDetail: PhotoDetail) {
         photoDetailDao.insertPhotoDetail(photoDetail)
     }
@@ -45,23 +52,31 @@ class DataRepositoryImpl @Inject constructor(
         albumDao.insertAlbum(album)
     }
 
-    override fun getAllPhotoDetail(): Flow<List<PhotoDetail>> {
+    override suspend fun getAllPhotoDetail(): List<PhotoDetail> {
         return photoDetailDao.getAllPhotoDetail()
     }
 
-    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): List<String> {
+    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): String {
         return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
     }
 
-    override fun getALLAlbum(): Flow<List<Album>> {
+    override suspend fun getALLAlbum(): List<Album> {
         return albumDao.getALLAlbum()
     }
 
     override suspend fun getLabelNameById(id: Int): String {
-        return albumDao.getLabelNameById(id)
+        return labelDao.getLabelNameById(id)
+    }
+
+    override suspend fun getLabelBackgroundColorById(id: Int): String {
+        return labelDao.getLabelBackgroundColorById(id)
     }
 
     override suspend fun getPhotoDetailUriById(id: Int): String {
-        return albumDao.getPhotoDetailUriById(id)
+        return photoDetailDao.getPhotoDetailUriById(id)
+    }
+
+    override suspend fun getAllAlbum(): List<AlbumDto> {
+        return albumDao.getAllAlbum()
     }
 }
