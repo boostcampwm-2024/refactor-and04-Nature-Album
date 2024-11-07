@@ -1,8 +1,6 @@
 package com.and04.naturealbum.ui
 
-import android.app.Activity
 import android.app.Activity.RESULT_OK
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
@@ -35,7 +33,6 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
-    val activity = context as? Activity ?: return
     var imageUri: Uri? = remember { null }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
@@ -55,7 +52,8 @@ fun NatureAlbumNavHost(
             putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
             try {
                 takePictureLauncher.launch(this)
-            } catch (e: ActivityNotFoundException) {
+            } catch (e: Exception) {
+                e
                 // TODO: 카메라 전환 오류 처리
             }
         }

@@ -2,7 +2,6 @@ package com.and04.naturealbum.ui.home
 
 import android.app.Activity
 import android.content.IntentSender
-import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -26,7 +25,6 @@ class GPSHandler(
     fun startLocationUpdates() {
         client.checkLocationSettings(builder.build())
             .addOnSuccessListener {
-                Log.d("FFFF", "suc")
                 takePicture()
             }
             .addOnFailureListener { exception ->
