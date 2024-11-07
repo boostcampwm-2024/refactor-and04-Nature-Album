@@ -37,6 +37,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun HomeScreen(
     takePicture: () -> Unit,
+    onNavigateToAlbum: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -190,6 +191,6 @@ fun NavigateContent(
 @Composable
 fun HomePreview() {
     NatureAlbumTheme {
-        HomeScreen {}
+        HomeScreen({})
     }
 }

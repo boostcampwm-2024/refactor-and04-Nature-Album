@@ -78,7 +78,10 @@ fun NatureAlbumNavHost(
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(takePicture = { takePicture() })
+            HomeScreen(
+                takePicture = { takePicture() },
+                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) }
+            )
         }
 
         composable(NavigateDestination.SavePhoto.route) {
