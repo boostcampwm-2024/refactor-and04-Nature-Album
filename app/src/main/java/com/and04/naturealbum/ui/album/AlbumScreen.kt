@@ -110,9 +110,7 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 
 @Composable
 fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
-    // TODO: 현재 Room DB 더미 데이터 넣는 용도 때문에 context 필요. 추후 room DB 데이터 들어가면 수정 예정.
-    val context = LocalContext.current
-    viewModel.initialize(context)
+    viewModel.initialize()
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
