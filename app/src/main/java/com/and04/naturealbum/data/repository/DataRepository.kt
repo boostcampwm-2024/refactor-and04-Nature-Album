@@ -1,5 +1,6 @@
 package com.and04.naturealbum.data.repository
 
+import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.Label
@@ -19,6 +20,7 @@ interface DataRepository {
     suspend fun getPhotoDetailUriById(id: Int): String
     suspend fun getLabelBackgroundColorById(id: Int): String
     suspend fun insertLabel(label: Label)
+    suspend fun getAllAlbum(): List<AlbumDto>
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -67,5 +69,9 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getPhotoDetailUriById(id: Int): String {
         return photoDetailDao.getPhotoDetailUriById(id)
+    }
+
+    override suspend fun getAllAlbum(): List<AlbumDto> {
+        return albumDao.getAllAlbum()
     }
 }

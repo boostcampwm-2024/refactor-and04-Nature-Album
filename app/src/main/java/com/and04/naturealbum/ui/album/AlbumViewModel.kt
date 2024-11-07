@@ -32,21 +32,7 @@ class AlbumViewModel @Inject constructor(
 
     fun loadAlbums() {
         viewModelScope.launch(Dispatchers.IO) {
-            val albums = repository.getALLAlbum()
-
-            val albumDtos = albums.map { album ->
-                val labelName = repository.getLabelNameById(album.labelId)
-                val photoDetailUri = repository.getPhotoDetailUriByLabelId(album.photoDetailId)
-                val labelBackgroundColor = repository.getLabelBackgroundColorById(album.labelId)
-                AlbumDto(
-                    labelId = album.labelId,
-                    labelName = labelName,
-                    labelBackgroundColor = labelBackgroundColor,
-                    photoDetailUri = photoDetailUri
-                )
-            }
-
-            _albumList.postValue(albumDtos)
+            _albumList.postValue(repository.getAllAlbum())
         }
     }
 

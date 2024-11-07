@@ -3,6 +3,7 @@ package com.and04.naturealbum.data.room
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.and04.naturealbum.data.dto.AlbumDto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,6 +34,20 @@ interface LabelDao {
 interface AlbumDao {
     @Insert
     fun insertAlbum(album: Album)
+
+    @Query("""
+        SELECT
+            label.id AS labelId,
+            label.name AS labelName,
+            label.background_color AS labelBackgroundColor,
+            photo_detail.photo_uri AS photoDetailUri           
+        FROM
+            album
+        JOIN label ON album.label_id = label.id
+        JOIN photo_detail ON album.label_id = photo_detail.label_id
+            
+    """)
+    fun getAllAlbum(): List<AlbumDto>
 
     @Query("SELECT * FROM album")
     fun getALLAlbum(): List<Album>
