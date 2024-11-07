@@ -19,6 +19,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -86,9 +88,9 @@ private fun SearchContent(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = query,
-            onValueChange = {
-                if (it.length > 100) return@TextField
-                else query = it
+            onValueChange = { changeQuery ->
+                if (changeQuery.length > 100) return@TextField
+                else query = changeQuery
             },
             placeholder = { Text(stringResource(R.string.label_search_label_search)) },
             colors = TextFieldDefaults.colors(
@@ -108,7 +110,7 @@ private fun SearchContent(
         LazyColumn {
             val queryLabelList = labelsState.filter { label -> label.name == query }
             items(queryLabelList) { label ->
-                UnderLineAssistChip(label, onSelected)
+                UnderLineSuggestionChip(label, onSelected)
             }
         }
 
@@ -119,11 +121,11 @@ private fun SearchContent(
             val toastText = stringResource(R.string.label_search_blank_query_toast)
             Text(stringResource(R.string.label_search_create))
             Spacer(Modifier.size(4.dp))
-            AssistChip(
+            SuggestionChip(
                 onClick = {
                     if (query.isBlank()) {
                         Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
-                        return@AssistChip
+                        return@SuggestionChip
                     }
                     onSelected(
                         Label(
@@ -133,7 +135,7 @@ private fun SearchContent(
                     )
                 },
                 label = { Text(query) },
-                colors = AssistChipDefaults.assistChipColors(
+                colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = Color(
                         randomColor.ifBlank {
                             randomColor = getRandomColor()
@@ -148,11 +150,11 @@ private fun SearchContent(
 }
 
 @Composable
-fun UnderLineAssistChip(
+fun UnderLineSuggestionChip(
     label: Label,
     onSelected: (Label) -> Unit
 ) {
-    AssistChip(
+    SuggestionChip(
         modifier = Modifier
             .padding(start = 12.dp),
         onClick = { onSelected(label) },
