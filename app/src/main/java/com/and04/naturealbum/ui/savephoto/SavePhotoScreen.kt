@@ -3,6 +3,7 @@ package com.and04.naturealbum.ui.savephoto
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,22 +57,13 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-@Composable
-fun SavePhotoScreen(
-    fileName: String
-) {
-    SavePhotoScreen(
-        model = fileName,
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
-    onBack: () -> Unit = {},
-    onSave: () -> Unit = {},
-    onLabelSelect: () -> Unit = {},
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier
@@ -131,12 +123,12 @@ fun SavePhotoScreen(
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Default.Close,
-                    text = stringResource(R.string.save_photo_screen_cancel),
+                    stringRes = R.string.save_photo_screen_cancel,
                     onClick = { onBack() })
                 IconTextButton(
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
-                    text = stringResource(R.string.save_photo_screen_save),
+                    stringRes = R.string.save_photo_screen_save,
                     onClick = { onSave() })
             }
 
@@ -148,7 +140,7 @@ fun SavePhotoScreen(
 private fun IconTextButton(
     imageVector: ImageVector,
     modifier: Modifier = Modifier,
-    text: String,
+    @StringRes stringRes: Int,
     onClick: () -> Unit
 ) {
     Button(
@@ -167,7 +159,7 @@ private fun IconTextButton(
                 contentDescription = null
             )
             Text(
-                text = text,
+                text = stringResource(stringRes),
                 textAlign = TextAlign.Center,
                 modifier = modifier
             )
@@ -301,7 +293,12 @@ private fun Description(
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
-        SavePhotoScreen(R.drawable.cat_dummy, label = Label(0, "0000FF", "cat"))
+        SavePhotoScreen(
+            model = R.drawable.cat_dummy,
+            label = Label(0, "0000FF", "cat"),
+            onBack = { },
+            onSave = {},
+            onLabelSelect = {})
     }
 }
 
@@ -310,7 +307,7 @@ private fun ScreenPreview() {
 @Composable
 private fun ScreenEmptyPreview() {
     NatureAlbumTheme {
-        SavePhotoScreen(R.drawable.cat_dummy)
+        SavePhotoScreen(model = R.drawable.cat_dummy, onBack = { }, onSave = {}, onLabelSelect = {})
     }
 }
 
@@ -320,10 +317,14 @@ private fun ScreenEmptyPreview() {
 private fun ScreenDescriptionPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            R.drawable.cat_dummy, description = "내용을 적어보아요.\n" +
+            model = R.drawable.cat_dummy,
+            description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
                     "그 아래는 스크롤이 되도록 해보아요\n" +
-                    "룰루", label = Label(0, "FFFFFF", "cat")
-        )
+                    "룰루",
+            label = Label(0, "FFFFFF", "cat"),
+            onBack = { },
+            onSave = {},
+            onLabelSelect = {})
     }
 }

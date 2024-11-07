@@ -97,6 +97,9 @@ dependencies {
     kapt(libs.hilt.android.compiler)
     kapt(libs.kotlinx.metadata.jvm)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    //location
+    implementation(libs.play.services.location)
 }
 
 kapt {

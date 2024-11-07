@@ -1,12 +1,14 @@
 package com.and04.naturealbum.ui.home
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
@@ -34,17 +34,38 @@ import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = viewModel(),
-    allPermissionGranted: () -> Unit = {},
+    takePicture: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
 
     var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
     val dialogPermissionExplainState = remember { mutableStateOf(false) }
+
+    val locationSettingsLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartIntentSenderForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                takePicture()
+            }
+        }
+    val isGrantedGPS = { intentSenderRequest: IntentSenderRequest ->
+        locationSettingsLauncher.launch(intentSenderRequest)
+    }
+    val allPermissionGranted = {
+        GPSHandler(
+            activity,
+            { intentSenderRequest ->
+                isGrantedGPS(intentSenderRequest)
+            },
+            {
+                takePicture()
+            }
+        ).startLocationUpdates()
+    }
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
@@ -69,15 +90,13 @@ fun HomeScreen(
         requestPermissionLauncher.launch(deniedPermissions)
     }
 
-    val permissionHandler by remember {
-        mutableStateOf(
-            PermissionHandler(
-                context = context,
-                activity = activity,
-                allPermissionGranted = allPermissionGranted,
-                onRequestPermission = onRequestPermission,
-                dialogPermissionExplainState = dialogPermissionExplainState
-            )
+    val permissionHandler = remember {
+        PermissionHandler(
+            context = context,
+            activity = activity,
+            allPermissionGranted = { allPermissionGranted() },
+            onRequestPermission = onRequestPermission,
+            dialogPermissionExplainState = dialogPermissionExplainState
         )
     }
 
@@ -111,7 +130,7 @@ fun HomeScreen(
                     permissionHandler.requestPermissions()
                 },
                 onDismissRequest = { dialogPermissionExplainState.value = false },
-                dialogText = R.string.main_activity_permission_explain,
+                dialogText = R.string.Home_Screen_permission_explain,
             )
         )
     }
@@ -128,7 +147,7 @@ fun HomeScreen(
                     context.startActivity(intent)
                 },
                 onDismissRequest = { dialogPermissionGoToSettingsState = false },
-                dialogText = R.string.main_activity_permission_go_to_settings,
+                dialogText = R.string.Home_Screen_permission_go_to_settings,
             )
         )
     }
@@ -169,6 +188,6 @@ fun NavigateContent(
 @Composable
 fun HomePreview() {
     NatureAlbumTheme {
-        HomeScreen()
+        HomeScreen {}
     }
 }

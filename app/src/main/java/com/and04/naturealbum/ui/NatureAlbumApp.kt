@@ -36,7 +36,7 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
-    var imageUri: Uri? = remember { null }
+    var imageUri: Uri = remember { Uri.EMPTY }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -46,6 +46,7 @@ fun NatureAlbumNavHost(
                     launchSingleTop = true
                 }
             } else {
+                imageUri = Uri.EMPTY
                 navController.navigate(NavigateDestination.Home.route) {
                     popUpTo(NavigateDestination.Home.route) { inclusive = false }
                     launchSingleTop = true
@@ -53,6 +54,7 @@ fun NatureAlbumNavHost(
             }
         }
     val takePicture = {
+        // TODO: imageUri가 EMPTY일때 해당 파일 삭제
         val fileName = "${System.currentTimeMillis()}.jpg"
         val imageFile = File(context.filesDir, fileName)
         imageUri =
@@ -75,20 +77,21 @@ fun NatureAlbumNavHost(
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
-            HomeScreen(allPermissionGranted = { takePicture() })
+            HomeScreen(takePicture = { takePicture() })
         }
+
         composable(NavigateDestination.SavePhoto.route) {
-            imageUri?.let { uri ->
-                SavePhotoScreen(
-                    model = uri,
-                    onBack = { takePicture() },
-                    label = selectedLabel,
-                    onLabelSelect = {
-                        navController.navigate(NavigateDestination.SearchLabel.route)
-                    }
-                )
-            }
+            SavePhotoScreen(
+                model = imageUri,
+                onBack = { takePicture() },
+                onSave = { /* TODO */ },
+                label = selectedLabel,
+                onLabelSelect = {
+                    navController.navigate(NavigateDestination.SearchLabel.route)
+                }
+            )
         }
+
         composable(NavigateDestination.SearchLabel.route) {
             LabelSearchScreen {
                 selectedLabel = it
