@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -108,7 +107,7 @@ private fun SearchContent(
         )
 
         LazyColumn {
-            val queryLabelList = labelsState.filter { label -> label.name == query }
+            val queryLabelList = labelsState.filter { label -> label.name.contains(query) }
             items(queryLabelList) { label ->
                 UnderLineSuggestionChip(label, onSelected)
             }

@@ -37,6 +37,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +56,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -66,8 +73,16 @@ fun SavePhotoScreen(
     onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: SavePhotoViewModel = hiltViewModel()
 ) {
+    val uiState = viewModel.uiState.collectAsState()
+    var rememberDescription by rememberSaveable { mutableStateOf(description) }
+    var saveEnable = remember { false }
+    if (uiState.value == UiState.Success) {
+        onSave()
+    }
+    saveEnable = (label != null) && (uiState.value != UiState.Loading)
     BackHandler(onBack = onBack)
     Scaffold(
         topBar = {
@@ -108,7 +123,10 @@ fun SavePhotoScreen(
             LabelSelection(label, onClick = onLabelSelect, modifier = modifier)
 
             Spacer(modifier = modifier.size(36.dp))
-            Description(description, modifier = modifier)
+            Description(description = rememberDescription,
+                modifier = modifier,
+                onValueChange = { newDescription -> rememberDescription = newDescription }
+            )
 
             ToggleButton(selected = false, modifier = modifier)
 
@@ -126,10 +144,17 @@ fun SavePhotoScreen(
                     stringRes = R.string.save_photo_screen_cancel,
                     onClick = { onBack() })
                 IconTextButton(
+                    enabled = saveEnable,
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
-                    onClick = { onSave() })
+                    onClick = {
+                        viewModel.savePhoto(
+                            uri = model.toString(),
+                            label = label!!,
+                            description = rememberDescription
+                        )
+                    })
             }
 
         }
@@ -138,12 +163,14 @@ fun SavePhotoScreen(
 
 @Composable
 private fun IconTextButton(
+    enabled: Boolean = true,
     imageVector: ImageVector,
     modifier: Modifier = Modifier,
     @StringRes stringRes: Int,
     onClick: () -> Unit
 ) {
     Button(
+        enabled = enabled,
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         modifier = modifier,
@@ -178,7 +205,7 @@ private fun ToggleButton(
             .padding(vertical = 8.dp)
             .selectable(
                 selected = selected,
-                onClick = { TODO() }
+                onClick = { /*TODO()*/ }
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -266,7 +293,8 @@ private fun LabelSelection(
 @Composable
 private fun Description(
     description: String,
-    modifier: Modifier
+    modifier: Modifier,
+    onValueChange: (String) -> Unit
 ) {
     Column(modifier = modifier) {
         Text(
@@ -278,7 +306,7 @@ private fun Description(
         Spacer(modifier = modifier.size(8.dp))
         TextField(
             value = description,
-            onValueChange = { TODO() },
+            onValueChange = { onValueChange(it) },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
                 .fillMaxWidth()

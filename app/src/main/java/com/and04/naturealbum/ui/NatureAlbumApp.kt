@@ -15,8 +15,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
@@ -38,6 +38,7 @@ fun NatureAlbumNavHost(
 ) {
     val context = LocalContext.current
     var imageUri: Uri = remember { Uri.EMPTY }
+    var selectedLabel: Label? = remember { null }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -50,12 +51,13 @@ fun NatureAlbumNavHost(
                 imageUri = Uri.EMPTY
                 navController.navigate(NavigateDestination.Home.route) {
                     popUpTo(NavigateDestination.Home.route) { inclusive = false }
+                    selectedLabel = null
                     launchSingleTop = true
                 }
             }
         }
     val takePicture = {
-        // TODO: imageUri가 EMPTY일때 해당 파일 삭제
+        // TODO: imageUri가 EMPTY가 아닐때 해당 파일 삭제
         val fileName = "${System.currentTimeMillis()}.jpg"
         val imageFile = File(context.filesDir, fileName)
         imageUri =
@@ -71,7 +73,6 @@ fun NatureAlbumNavHost(
         }
     }
 
-    var selectedLabel: Label? = remember { null }
 
     NavHost(
         navController = navController,
@@ -88,7 +89,11 @@ fun NatureAlbumNavHost(
             SavePhotoScreen(
                 model = imageUri,
                 onBack = { takePicture() },
-                onSave = { /* TODO */ },
+                onSave = {
+                    navController.navigate(NavigateDestination.Album.route) {
+                        popUpTo(NavigateDestination.Home.route) { inclusive = false }
+                    }
+                },
                 label = selectedLabel,
                 onLabelSelect = {
                     navController.navigate(NavigateDestination.SearchLabel.route)
@@ -104,6 +109,8 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.Album.route) {
+            selectedLabel = null
+            imageUri = Uri.EMPTY
             AlbumScreen()
         }
     }
