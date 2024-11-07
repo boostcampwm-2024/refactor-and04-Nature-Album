@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface DataRepository {
+    suspend fun getLabels(): List<Label>
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail)
     suspend fun insertPhotoInAlbum(album: Album)
@@ -25,6 +26,10 @@ class DataRepositoryImpl @Inject constructor(
     private val albumDao: AlbumDao,
     private val photoDetailDao: PhotoDetailDao
 ) : DataRepository {
+    override suspend fun getLabels(): List<Label> {
+        return labelDao.getAllLabel()
+    }
+
     override suspend fun getIdByLabelName(label: Label): Int {
         return labelDao.getIdByName(label.name) ?: run {
             labelDao.insertLabel(label)

@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui
 
 import android.app.Activity.RESULT_OK
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
@@ -14,7 +15,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.home.HomeScreen
+import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -61,14 +64,13 @@ fun NatureAlbumNavHost(
             putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
             try {
                 takePictureLauncher.launch(this)
-            } catch (e: Exception) {
-                e
+            } catch (e: ActivityNotFoundException) {
                 // TODO: 카메라 전환 오류 처리
             }
         }
     }
 
-
+    var selectedLabel: Label? = remember { null }
 
     NavHost(
         navController = navController,
@@ -77,12 +79,24 @@ fun NatureAlbumNavHost(
         composable(NavigateDestination.Home.route) {
             HomeScreen(takePicture = { takePicture() })
         }
+
         composable(NavigateDestination.SavePhoto.route) {
             SavePhotoScreen(
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = { /* TODO */ },
-                onLabelSelect = { /* TODO */ })
+                label = selectedLabel,
+                onLabelSelect = {
+                    navController.navigate(NavigateDestination.SearchLabel.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.SearchLabel.route) {
+            LabelSearchScreen {
+                selectedLabel = it
+                navController.popBackStack()
+            }
         }
     }
 }
