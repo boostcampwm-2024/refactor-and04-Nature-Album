@@ -130,7 +130,7 @@ fun HomeScreen(
                     permissionHandler.requestPermissions()
                 },
                 onDismissRequest = { dialogPermissionExplainState.value = false },
-                dialogText = R.string.main_activity_permission_explain,
+                dialogText = R.string.Home_Screen_permission_explain,
             )
         )
     }
@@ -147,7 +147,7 @@ fun HomeScreen(
                     context.startActivity(intent)
                 },
                 onDismissRequest = { dialogPermissionGoToSettingsState = false },
-                dialogText = R.string.main_activity_permission_go_to_settings,
+                dialogText = R.string.Home_Screen_permission_go_to_settings,
             )
         )
     }
