@@ -152,55 +152,6 @@ fun CustomLabelPreview() {
 
 }
 
-
-@Preview(
-    name = "AlbumItem Light Mode",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_NO
-)
-@Preview(
-    name = "AlbumItem Dark Mode",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun AlbumItemPreview() {
-    NatureAlbumTheme() {
-        Surface {
-//            val album = Album(
-//                id = 1,
-//                label = Label(id = 1, backgroundColor = Color(0xFFE57373), name = "고양이"),
-//                photoDetail = PhotoDetail(
-//                    id = 1,
-//                    imageResId = R.drawable.sample_image_01,
-//                    description = "고양고양이"
-//                )
-//            )
-//            AlbumItem(album = album)
-        }
-    }
-}
-
-@Preview(
-    name = "AlbumGrid Light Mode",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_NO
-)
-@Preview(
-    name = "AlbumGrid Dark Mode",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun AlbumGridPreview() {
-    NatureAlbumTheme() {
-        Surface {
-//            val albums = remember { getDummyAlbums() }
-//            AlbumGrid(albums = albums)
-        }
-    }
-}
-
 @Preview(
     name = "AlbumScreen Light Mode",
     showBackground = true,
@@ -215,8 +166,7 @@ fun AlbumGridPreview() {
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
-//            val albums = remember { getDummyAlbums() }
-//            AlbumScreen(albums = albums)
+            AlbumScreen()
         }
     }
 }
