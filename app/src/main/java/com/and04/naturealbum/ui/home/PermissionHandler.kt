@@ -12,7 +12,7 @@ class PermissionHandler(
     private val activity: Activity,
     private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
-    private var showDialogPermissionExplain: () -> Unit,
+    private var showPermissionExplainDialog: () -> Unit,
 ) {
 
     fun onClickCamera() {
@@ -31,7 +31,7 @@ class PermissionHandler(
                 ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
             }
             if (hasPreviouslyDeniedPermission) {
-                showDialogPermissionExplain()
+                showPermissionExplainDialog()
             } else {
                 requestPermissions()
             }

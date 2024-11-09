@@ -12,7 +12,7 @@ import com.google.android.gms.location.SettingsClient
 
 class GPSHandler(
     activity: Activity,
-    private val isGpsEnabled: (IntentSenderRequest) -> Unit,
+    private val showGPSActivationDialog: (IntentSenderRequest) -> Unit,
     private val takePicture: () -> Unit,
 ) {
     private val locationRequest = LocationRequest.Builder(
@@ -37,7 +37,7 @@ class GPSHandler(
     private fun resolveLocationSettings(resolvable: ResolvableApiException) {
         val intentSenderRequest = IntentSenderRequest.Builder(resolvable.resolution).build()
         try {
-            isGpsEnabled(intentSenderRequest)
+            showGPSActivationDialog(intentSenderRequest)
         } catch (e: IntentSender.SendIntentException) {
             e.printStackTrace()
         }
