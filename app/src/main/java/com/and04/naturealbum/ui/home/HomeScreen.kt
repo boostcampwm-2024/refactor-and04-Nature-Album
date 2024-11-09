@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RoundedShapeButton
@@ -37,7 +36,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun HomeScreen(
     takePicture: () -> Unit,
-    onNavigateToAlbum: () -> Unit = {}
+    onNavigateToAlbum: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -126,31 +125,27 @@ fun HomeScreen(
 
     if (dialogPermissionExplainState.value) {
         MyDialog(
-            DialogData(
-                onConfirmation = {
-                    dialogPermissionExplainState.value = false
-                    permissionHandler.requestPermissions()
-                },
-                onDismissRequest = { dialogPermissionExplainState.value = false },
-                dialogText = R.string.Home_Screen_permission_explain,
-            )
+            onConfirmation = {
+                dialogPermissionExplainState.value = false
+                permissionHandler.requestPermissions()
+            },
+            onDismissRequest = { dialogPermissionExplainState.value = false },
+            dialogText = R.string.Home_Screen_permission_explain,
         )
     }
 
     if (dialogPermissionGoToSettingsState) {
         MyDialog(
-            DialogData(
-                onConfirmation = {
-                    dialogPermissionGoToSettingsState = false
-                    val intent =
-                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.fromParts("package", context.packageName, null)
-                        }
-                    context.startActivity(intent)
-                },
-                onDismissRequest = { dialogPermissionGoToSettingsState = false },
-                dialogText = R.string.Home_Screen_permission_go_to_settings,
-            )
+            onConfirmation = {
+                dialogPermissionGoToSettingsState = false
+                val intent =
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                context.startActivity(intent)
+            },
+            onDismissRequest = { dialogPermissionGoToSettingsState = false },
+            dialogText = R.string.Home_Screen_permission_go_to_settings,
         )
     }
 }
@@ -164,7 +159,7 @@ fun InfoContent(modifier: Modifier) {
 fun NavigateContent(
     permissionHandler: PermissionHandler,
     modifier: Modifier = Modifier,
-    onNavigateToAlbum: () -> Unit
+    onNavigateToAlbum: () -> Unit,
 ) {
     Column(
         modifier = modifier,

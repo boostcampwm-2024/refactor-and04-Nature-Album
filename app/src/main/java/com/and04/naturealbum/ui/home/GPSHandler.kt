@@ -34,8 +34,7 @@ class GPSHandler(
             }
     }
 
-    private fun resolveLocationSettings(exception: Exception) {
-        val resolvable = exception as ResolvableApiException
+    private fun resolveLocationSettings(resolvable: ResolvableApiException) {
         val intentSenderRequest = IntentSenderRequest.Builder(resolvable.resolution).build()
         try {
             isGpsEnabled(intentSenderRequest)
