@@ -42,7 +42,7 @@ fun HomeScreen(
     val activity = context as? Activity ?: return
 
     var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
-    val dialogPermissionExplainState = remember { mutableStateOf(false) }
+    var dialogPermissionExplainState by remember { mutableStateOf(false) }
 
     val locationSettingsLauncher =
         rememberLauncherForActivityResult(
@@ -79,7 +79,7 @@ fun HomeScreen(
                     ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
                 }
                 if (hasPreviouslyDeniedPermission) {
-                    dialogPermissionExplainState.value = true
+                    dialogPermissionExplainState = true
                 } else {
                     dialogPermissionGoToSettingsState = true
                 }
@@ -96,7 +96,7 @@ fun HomeScreen(
             activity = activity,
             allPermissionGranted = { allPermissionGranted() },
             onRequestPermission = onRequestPermission,
-            dialogPermissionExplainState = dialogPermissionExplainState
+            showDialogPermissionExplain = { dialogPermissionExplainState = true }
         )
     }
 
@@ -123,13 +123,13 @@ fun HomeScreen(
         }
     }
 
-    if (dialogPermissionExplainState.value) {
+    if (dialogPermissionExplainState) {
         MyDialog(
             onConfirmation = {
-                dialogPermissionExplainState.value = false
+                dialogPermissionExplainState = false
                 permissionHandler.requestPermissions()
             },
-            onDismissRequest = { dialogPermissionExplainState.value = false },
+            onDismissRequest = { dialogPermissionExplainState = false },
             dialogText = R.string.Home_Screen_permission_explain,
         )
     }
@@ -152,7 +152,7 @@ fun HomeScreen(
 
 @Composable
 fun InfoContent(modifier: Modifier) {
-    RoundedShapeButton("TODO", modifier) { /* TODO */ }
+    RoundedShapeButton(R.string.app_name, modifier) { /* TODO */ }
 }
 
 @Composable
@@ -165,14 +165,17 @@ fun NavigateContent(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        RoundedShapeButton("TODO", modifier) { /* TODO */ }
+        RoundedShapeButton(R.string.Home_Screen_button_map, modifier) { /* TODO */ }
 
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
-            RoundedShapeButton("TODO", modifier) {
+            RoundedShapeButton(
+                R.string.Home_Screen_button_field_guide,
+                modifier
+            ) { onNavigateToAlbum() }
+            RoundedShapeButton(R.string.Home_Screen_button_camera, modifier) {
                 permissionHandler.onClickCamera()
             }
         }

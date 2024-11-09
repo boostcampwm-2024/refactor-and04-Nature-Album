@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.runtime.MutableState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -13,7 +12,7 @@ class PermissionHandler(
     private val activity: Activity,
     private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
-    private var dialogPermissionExplainState: MutableState<Boolean>,
+    private var showDialogPermissionExplain: () -> Unit,
 ) {
 
     fun onClickCamera() {
@@ -32,7 +31,7 @@ class PermissionHandler(
                 ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
             }
             if (hasPreviouslyDeniedPermission) {
-                dialogPermissionExplainState.value = true
+                showDialogPermissionExplain()
             } else {
                 requestPermissions()
             }
