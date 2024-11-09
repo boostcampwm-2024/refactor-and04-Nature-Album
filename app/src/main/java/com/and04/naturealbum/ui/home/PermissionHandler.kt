@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -55,21 +54,11 @@ class PermissionHandler(
     }
 
     companion object {
-        private val REQUESTED_PERMISSIONS by lazy {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                listOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_MEDIA_LOCATION,
-                )
-            } else {
-                listOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                )
-            }
-        }
+        private val REQUESTED_PERMISSIONS =
+            listOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
     }
 }
