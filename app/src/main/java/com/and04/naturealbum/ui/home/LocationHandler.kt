@@ -13,7 +13,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 
-class GPSHandler(
+class LocationHandler(
     private val context: Context,
     private val takePicture: () -> Unit,
 ) {
