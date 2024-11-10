@@ -51,6 +51,7 @@ fun HomeScreen(
             }
         }
 
+
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -58,7 +59,7 @@ fun HomeScreen(
             val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
             when {
                 deniedPermissions.isEmpty() -> {
-                    gpsHandler.startLocationUpdates { intentSenderRequest ->
+                    gpsHandler.checkLocationSettings { intentSenderRequest ->
                         locationSettingsLauncher.launch(intentSenderRequest)
                     }
                 }
@@ -82,7 +83,7 @@ fun HomeScreen(
             context = context,
             activity = activity,
             allPermissionGranted = {
-                gpsHandler.startLocationUpdates { intentSenderRequest ->
+                gpsHandler.checkLocationSettings { intentSenderRequest ->
                     locationSettingsLauncher.launch(intentSenderRequest)
                 }
             },
