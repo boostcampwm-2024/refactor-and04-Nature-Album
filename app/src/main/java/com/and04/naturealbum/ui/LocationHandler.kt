@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.home
+package com.and04.naturealbum.ui
 
 import android.Manifest
 import android.content.Context
