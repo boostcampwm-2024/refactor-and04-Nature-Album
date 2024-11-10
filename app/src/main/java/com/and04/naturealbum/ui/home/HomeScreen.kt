@@ -33,6 +33,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun HomeScreen(
+    gpsHandler: GPSHandler,
     takePicture: () -> Unit,
     onNavigateToAlbum: () -> Unit,
 ) {
@@ -50,18 +51,6 @@ fun HomeScreen(
             }
         }
 
-    val allPermissionGranted = {
-        GPSHandler(
-            activity = activity,
-            showGPSActivationDialog = { intentSenderRequest ->
-                locationSettingsLauncher.launch(intentSenderRequest)
-            },
-            takePicture = {
-                takePicture()
-            }
-        ).startLocationUpdates()
-    }
-
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -69,7 +58,9 @@ fun HomeScreen(
             val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
             when {
                 deniedPermissions.isEmpty() -> {
-                    allPermissionGranted()
+                    gpsHandler.startLocationUpdates { intentSenderRequest ->
+                        locationSettingsLauncher.launch(intentSenderRequest)
+                    }
                 }
 
                 else -> {
@@ -90,7 +81,11 @@ fun HomeScreen(
         PermissionHandler(
             context = context,
             activity = activity,
-            allPermissionGranted = { allPermissionGranted() },
+            allPermissionGranted = {
+                gpsHandler.startLocationUpdates { intentSenderRequest ->
+                    locationSettingsLauncher.launch(intentSenderRequest)
+                }
+            },
             onRequestPermission = { deniedPermissions ->
                 requestPermissionLauncher.launch(deniedPermissions)
             },
@@ -175,6 +170,6 @@ fun NavigateContent(
 @Composable
 fun HomePreview() {
     NatureAlbumTheme {
-        HomeScreen({}, {})
+        //HomeScreen()
     }
 }

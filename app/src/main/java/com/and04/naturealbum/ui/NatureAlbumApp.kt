@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.album.AlbumScreen
+import com.and04.naturealbum.ui.home.GPSHandler
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
@@ -73,6 +74,15 @@ fun NatureAlbumNavHost(
         }
     }
 
+    val gpsHandler = remember {
+        GPSHandler(
+            context = context,
+            takePicture = {
+                takePicture()
+            }
+        )
+    }
+
 
     NavHost(
         navController = navController,
@@ -80,6 +90,7 @@ fun NatureAlbumNavHost(
     ) {
         composable(NavigateDestination.Home.route) {
             HomeScreen(
+                gpsHandler = gpsHandler,
                 takePicture = { takePicture() },
                 onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) }
             )
@@ -87,6 +98,7 @@ fun NatureAlbumNavHost(
 
         composable(NavigateDestination.SavePhoto.route) {
             SavePhotoScreen(
+                location = gpsHandler.getLocation(),
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = {
