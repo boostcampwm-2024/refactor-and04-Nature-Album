@@ -72,6 +72,6 @@ interface PhotoDetailDao {
     fun getPhotoDetailUriById(id: Int): String
 
     @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
-    suspend fun getAllPhotoDetailUriByLabelId(labelId: Int): PhotoDetail
+    suspend fun getAllPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
 
 }

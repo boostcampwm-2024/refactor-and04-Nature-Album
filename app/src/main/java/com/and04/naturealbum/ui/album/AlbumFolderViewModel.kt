@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.ui.savephoto.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,21 +17,33 @@ import javax.inject.Inject
 class AlbumFolderViewModel @Inject constructor(
     private val roomRepository: DataRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
+    val uiState: StateFlow<UiState> = _uiState
+
     private val _label = MutableStateFlow<Label>(Label.emptyLabel())
     val label: StateFlow<Label> = _label
 
-    private val _photoDetail = MutableStateFlow<PhotoDetail>(PhotoDetail.emptyPhotoDetail())
-    val photoDetail: StateFlow<PhotoDetail> = _photoDetail
+    private val _photoDetails = MutableStateFlow<List<PhotoDetail>>(emptyList())
+    val photoDetails: StateFlow<List<PhotoDetail>> = _photoDetails
 
 
-    fun loadFolderData(labelId: Int){
+    fun loadFolderData(labelId: Int) {
         viewModelScope.launch {
-            launch {
+            _uiState.emit(UiState.Loading)
+
+            val labelData = async {
                 _label.emit(roomRepository.getLabel(id = labelId))
             }
 
-            launch {
-                _photoDetail.emit(roomRepository.getPhotoDetailUriByLabelId(labelId = labelId))
+            val photoDetailsData = async {
+                _photoDetails.emit(roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId))
+            }
+
+            labelData.await()
+            photoDetailsData.await()
+
+            if (labelData.isCompleted && photoDetailsData.isCompleted) {
+                _uiState.emit(UiState.Success)
             }
         }
     }
