@@ -4,12 +4,11 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.and04.naturealbum.data.dto.AlbumDto
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LabelDao {
     @Insert
-    fun insertLabel(label: Label)
+    fun insertLabel(label: Label): Long
 
     @Query("SELECT * FROM label")
     fun getAllLabel(): List<Label>
@@ -33,9 +32,10 @@ interface LabelDao {
 @Dao
 interface AlbumDao {
     @Insert
-    fun insertAlbum(album: Album)
+    fun insertAlbum(album: Album): Long
 
-    @Query("""
+    @Query(
+        """
         SELECT
             label.id AS labelId,
             label.name AS labelName,
@@ -46,17 +46,21 @@ interface AlbumDao {
         JOIN label ON album.label_id = label.id
         JOIN photo_detail ON album.label_id = photo_detail.label_id
             
-    """)
+    """
+    )
     fun getAllAlbum(): List<AlbumDto>
 
     @Query("SELECT * FROM album")
     fun getALLAlbum(): List<Album>
+
+    @Query("SELECT * FROM album WHERE label_id = :labelId")
+    fun getAlbumByLabelId(labelId: Int): List<Album>
 }
 
 @Dao
 interface PhotoDetailDao {
     @Insert
-    fun insertPhotoDetail(photoDetail: PhotoDetail)
+    fun insertPhotoDetail(photoDetail: PhotoDetail): Long
 
     @Query("SELECT * FROM photo_detail")
     fun getAllPhotoDetail(): List<PhotoDetail>

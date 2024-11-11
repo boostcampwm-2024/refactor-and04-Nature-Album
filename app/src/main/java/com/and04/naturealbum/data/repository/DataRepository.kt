@@ -12,16 +12,17 @@ import javax.inject.Inject
 interface DataRepository {
     suspend fun getLabels(): List<Label>
     suspend fun getIdByLabelName(label: Label): Int
-    suspend fun insertPhoto(photoDetail: PhotoDetail)
-    suspend fun insertPhotoInAlbum(album: Album)
+    suspend fun insertPhoto(photoDetail: PhotoDetail): Long
+    suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailUriByLabelId(labelId: Int): String
     suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
     suspend fun getLabelBackgroundColorById(id: Int): String
-    suspend fun insertLabel(label: Label)
+    suspend fun insertLabel(label: Label): Long
     suspend fun getAllAlbum(): List<AlbumDto>
+    suspend fun getAlbumByLabelId(labelId: Int): List<Album>
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -40,16 +41,16 @@ class DataRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun insertLabel(label: Label) {
-        labelDao.insertLabel(label)
+    override suspend fun insertLabel(label: Label): Long {
+        return labelDao.insertLabel(label)
     }
 
-    override suspend fun insertPhoto(photoDetail: PhotoDetail) {
-        photoDetailDao.insertPhotoDetail(photoDetail)
+    override suspend fun insertPhoto(photoDetail: PhotoDetail): Long {
+        return photoDetailDao.insertPhotoDetail(photoDetail)
     }
 
-    override suspend fun insertPhotoInAlbum(album: Album) {
-        albumDao.insertAlbum(album)
+    override suspend fun insertPhotoInAlbum(album: Album): Long {
+        return albumDao.insertAlbum(album)
     }
 
     override suspend fun getAllPhotoDetail(): List<PhotoDetail> {
@@ -62,6 +63,10 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getALLAlbum(): List<Album> {
         return albumDao.getALLAlbum()
+    }
+
+    override suspend fun getAlbumByLabelId(labelId: Int): List<Album> {
+        return albumDao.getAlbumByLabelId(labelId)
     }
 
     override suspend fun getLabelNameById(id: Int): String {
