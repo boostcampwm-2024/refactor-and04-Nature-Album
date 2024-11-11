@@ -11,11 +11,12 @@ import javax.inject.Inject
 
 interface DataRepository {
     suspend fun getLabels(): List<Label>
+    suspend fun getLabel(id: Int): Label
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
-    suspend fun getPhotoDetailUriByLabelId(labelId: Int): String
+    suspend fun getPhotoDetailUriByLabelId(labelId: Int): PhotoDetail
     suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
@@ -32,6 +33,10 @@ class DataRepositoryImpl @Inject constructor(
 ) : DataRepository {
     override suspend fun getLabels(): List<Label> {
         return labelDao.getAllLabel()
+    }
+
+    override suspend fun getLabel(id: Int): Label {
+        return labelDao.getLabelById(id)
     }
 
     override suspend fun getIdByLabelName(label: Label): Int {
@@ -57,7 +62,7 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetail()
     }
 
-    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): String {
+    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): PhotoDetail {
         return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
     }
 
