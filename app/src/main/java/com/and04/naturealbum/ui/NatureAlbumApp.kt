@@ -73,6 +73,15 @@ fun NatureAlbumNavHost(
         }
     }
 
+    val locationHandler = remember {
+        LocationHandler(
+            context = context,
+            takePicture = {
+                takePicture()
+            }
+        )
+    }
+
 
     NavHost(
         navController = navController,
@@ -80,6 +89,7 @@ fun NatureAlbumNavHost(
     ) {
         composable(NavigateDestination.Home.route) {
             HomeScreen(
+                locationHandler = locationHandler,
                 takePicture = { takePicture() },
                 onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) }
             )
@@ -87,6 +97,7 @@ fun NatureAlbumNavHost(
 
         composable(NavigateDestination.SavePhoto.route) {
             SavePhotoScreen(
+                location = locationHandler.getLocation(),
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = {

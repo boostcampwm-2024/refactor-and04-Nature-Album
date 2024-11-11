@@ -8,7 +8,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,22 +27,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.component.DialogData
-import com.and04.naturealbum.ui.component.MyDialog
+import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun HomeScreen(
+    locationHandler: LocationHandler,
     takePicture: () -> Unit,
-    onNavigateToAlbum: () -> Unit = {}
+    onNavigateToAlbum: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
 
-    var dialogPermissionGoToSettingsState by remember { mutableStateOf(false) }
-    val dialogPermissionExplainState = remember { mutableStateOf(false) }
+    var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
 
     val locationSettingsLauncher =
         rememberLauncherForActivityResult(
@@ -53,51 +51,47 @@ fun HomeScreen(
                 takePicture()
             }
         }
-    val isGrantedGPS = { intentSenderRequest: IntentSenderRequest ->
-        locationSettingsLauncher.launch(intentSenderRequest)
-    }
-    val allPermissionGranted = {
-        GPSHandler(
-            activity,
-            { intentSenderRequest ->
-                isGrantedGPS(intentSenderRequest)
-            },
-            {
-                takePicture()
-            }
-        ).startLocationUpdates()
-    }
+
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
             val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
-            if (deniedPermissions.isEmpty()) {
-                allPermissionGranted()
-            } else {
-                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
-                    ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+            when {
+                deniedPermissions.isEmpty() -> {
+                    locationHandler.checkLocationSettings { intentSenderRequest ->
+                        locationSettingsLauncher.launch(intentSenderRequest)
+                    }
                 }
-                if (hasPreviouslyDeniedPermission) {
-                    dialogPermissionExplainState.value = true
-                } else {
-                    dialogPermissionGoToSettingsState = true
+
+                else -> {
+                    val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
+                        ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+                    }
+
+                    permissionDialogState = if (hasPreviouslyDeniedPermission) {
+                        PermissionDialogState.Explain
+                    } else {
+                        PermissionDialogState.GoToSettings
+                    }
                 }
             }
         }
-
-    val onRequestPermission = { deniedPermissions: Array<String> ->
-        requestPermissionLauncher.launch(deniedPermissions)
-    }
 
     val permissionHandler = remember {
         PermissionHandler(
             context = context,
             activity = activity,
-            allPermissionGranted = { allPermissionGranted() },
-            onRequestPermission = onRequestPermission,
-            dialogPermissionExplainState = dialogPermissionExplainState
+            allPermissionGranted = {
+                locationHandler.checkLocationSettings { intentSenderRequest ->
+                    locationSettingsLauncher.launch(intentSenderRequest)
+                }
+            },
+            onRequestPermission = { deniedPermissions ->
+                requestPermissionLauncher.launch(deniedPermissions)
+            },
+            showPermissionExplainDialog = { permissionDialogState = PermissionDialogState.Explain }
         )
     }
 
@@ -124,60 +118,47 @@ fun HomeScreen(
         }
     }
 
-    if (dialogPermissionExplainState.value) {
-        MyDialog(
-            DialogData(
-                onConfirmation = {
-                    dialogPermissionExplainState.value = false
-                    permissionHandler.requestPermissions()
-                },
-                onDismissRequest = { dialogPermissionExplainState.value = false },
-                dialogText = R.string.Home_Screen_permission_explain,
-            )
-        )
-    }
-
-    if (dialogPermissionGoToSettingsState) {
-        MyDialog(
-            DialogData(
-                onConfirmation = {
-                    dialogPermissionGoToSettingsState = false
-                    val intent =
-                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.fromParts("package", context.packageName, null)
-                        }
-                    context.startActivity(intent)
-                },
-                onDismissRequest = { dialogPermissionGoToSettingsState = false },
-                dialogText = R.string.Home_Screen_permission_go_to_settings,
-            )
-        )
-    }
+    PermissionDialogs(
+        permissionDialogState = permissionDialogState,
+        onDismiss = { permissionDialogState = PermissionDialogState.None },
+        onRequestPermission = {
+            permissionHandler.requestPermissions()
+        },
+        onGoToSettings = {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+                context.startActivity(this)
+            }
+        }
+    )
 }
 
 @Composable
 fun InfoContent(modifier: Modifier) {
-    RoundedShapeButton("TODO", modifier) { /* TODO */ }
+    RoundedShapeButton(R.string.app_name, modifier) { /* TODO */ }
 }
 
 @Composable
 fun NavigateContent(
     permissionHandler: PermissionHandler,
     modifier: Modifier = Modifier,
-    onNavigateToAlbum: () -> Unit
+    onNavigateToAlbum: () -> Unit,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        RoundedShapeButton("TODO", modifier) { /* TODO */ }
+        RoundedShapeButton(R.string.Home_Screen_button_map, modifier) { /* TODO */ }
 
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
-            RoundedShapeButton("TODO", modifier) {
+            RoundedShapeButton(
+                R.string.Home_Screen_button_field_guide,
+                modifier
+            ) { onNavigateToAlbum() }
+            RoundedShapeButton(R.string.Home_Screen_button_camera, modifier) {
                 permissionHandler.onClickCamera()
             }
         }
@@ -191,6 +172,6 @@ fun NavigateContent(
 @Composable
 fun HomePreview() {
     NatureAlbumTheme {
-        HomeScreen({})
+        //HomeScreen()
     }
 }

@@ -67,6 +67,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
+    location: Any,
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -74,7 +75,7 @@ fun SavePhotoScreen(
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier,
-    viewModel: SavePhotoViewModel = hiltViewModel()
+    viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsState() // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     var rememberDescription by rememberSaveable { mutableStateOf(description) }
@@ -166,7 +167,7 @@ private fun IconTextButton(
     imageVector: ImageVector,
     modifier: Modifier = Modifier,
     @StringRes stringRes: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Button(
         enabled = enabled,
@@ -223,7 +224,7 @@ private fun ToggleButton(
 private fun LabelSelection(
     label: Label?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     Column(modifier = modifier) {
@@ -293,7 +294,7 @@ private fun LabelSelection(
 private fun Description(
     description: String,
     modifier: Modifier,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
 ) {
     Column(modifier = modifier) {
         Text(
@@ -321,6 +322,7 @@ private fun Description(
 private fun ScreenPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
+            location = "",
             model = R.drawable.cat_dummy,
             label = Label(0, "0000FF", "cat"),
             onBack = { },
@@ -334,7 +336,12 @@ private fun ScreenPreview() {
 @Composable
 private fun ScreenEmptyPreview() {
     NatureAlbumTheme {
-        SavePhotoScreen(model = R.drawable.cat_dummy, onBack = { }, onSave = {}, onLabelSelect = {})
+        SavePhotoScreen(
+            location = "",
+            model = R.drawable.cat_dummy,
+            onBack = { },
+            onSave = {},
+            onLabelSelect = {})
     }
 }
 
@@ -344,6 +351,7 @@ private fun ScreenEmptyPreview() {
 private fun ScreenDescriptionPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
+            location = "",
             model = R.drawable.cat_dummy,
             description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
