@@ -1,5 +1,6 @@
 package com.and04.naturealbum.data.room
 
+import android.provider.ContactsContract.Contacts.Photo
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -10,7 +11,17 @@ data class Label(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "background_color") val backgroundColor: String,
     @ColumnInfo(name = "name") val name: String
-)
+){
+    companion object{
+        fun emptyLabel(): Label{
+            return Label(
+                id = 0,
+                backgroundColor = "",
+                name = ""
+            )
+        }
+    }
+}
 
 @Entity(
     tableName = "album",
@@ -53,4 +64,17 @@ data class PhotoDetail(
     @ColumnInfo(name = "location") val location: String,
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "datetime") val datetime: String
-)
+){
+    companion object{
+        fun emptyPhotoDetail(): PhotoDetail{
+            return PhotoDetail(
+                id = 0,
+                labelId = 0,
+                photoUri = "",
+                location = "",
+                description = "",
+                datetime = ""
+            )
+        }
+    }
+}

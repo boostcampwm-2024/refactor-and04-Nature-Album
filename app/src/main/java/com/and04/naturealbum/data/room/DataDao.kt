@@ -7,17 +7,14 @@ import com.and04.naturealbum.data.dto.AlbumDto
 
 @Dao
 interface LabelDao {
-    @Insert
-    fun insertLabel(label: Label): Long
-
     @Query("SELECT * FROM label")
     fun getAllLabel(): List<Label>
 
     @Query("SELECT name FROM label")
     fun getAllNameOfLabel(): List<String>
 
-    @Query("SELECT name FROM label WHERE id = :id")
-    fun getLabelById(id: Int): String
+    @Query("SELECT * FROM label WHERE id = :id")
+    suspend fun getLabelById(id: Int): Label
 
     @Query("SELECT id FROM label WHERE name = :name")
     fun getIdByName(name: String): Int?
@@ -27,6 +24,9 @@ interface LabelDao {
 
     @Query("SELECT name FROM label WHERE id = :id")
     fun getLabelNameById(id: Int): String
+
+    @Insert
+    fun insertLabel(label: Label): Long
 }
 
 @Dao
@@ -71,7 +71,7 @@ interface PhotoDetailDao {
     @Query("SELECT photo_uri FROM photo_detail WHERE id = :id")
     fun getPhotoDetailUriById(id: Int): String
 
-    @Query("SELECT photo_uri FROM photo_detail WHERE label_id = :labelId")
-    fun getAllPhotoDetailUriByLabelId(labelId: Int): String
+    @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
+    suspend fun getAllPhotoDetailUriByLabelId(labelId: Int): PhotoDetail
 
 }
