@@ -48,8 +48,8 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun AlbumFolderScreen() {
     val editMode = remember { mutableStateOf(false) }
-    val checkList = remember { mutableStateOf(mutableSetOf<TmpItem>()) }
-    if (!editMode.value) checkList.value.clear()
+    val checkList = remember { mutableStateOf(setOf<TmpItem>()) }
+    if (!editMode.value) checkList.value = setOf()
 
     BackHandler(enabled = editMode.value) {
         if (editMode.value) {
@@ -71,7 +71,7 @@ fun AlbumFolderScreen() {
 fun ItemContainer(
     items: List<TmpItem>,
     editMode: MutableState<Boolean>,
-    checkList: MutableState<MutableSet<TmpItem>>,
+    checkList: MutableState<Set<TmpItem>>,
     innerPaddingValues: PaddingValues,
 ) {
     Surface(
@@ -120,7 +120,7 @@ fun ItemContainer(
 fun Item(
     item: TmpItem,
     editMode: MutableState<Boolean>,
-    checkList: MutableState<MutableSet<TmpItem>>,
+    checkList: MutableState<Set<TmpItem>>,
 ) {
     var isSelected by remember { mutableStateOf(false) }
     if (!editMode.value && isSelected) {
@@ -142,9 +142,9 @@ fun Item(
                                 if (editMode.value) {
                                     isSelected = !isSelected
                                     if (isSelected) {
-                                        checkList.value.add(item)
+                                        checkList.value += item
                                     } else {
-                                        checkList.value.remove(item)
+                                        checkList.value -= item
                                     }
                                 }
                             })
