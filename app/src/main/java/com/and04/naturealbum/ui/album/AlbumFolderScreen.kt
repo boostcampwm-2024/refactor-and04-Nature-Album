@@ -52,11 +52,6 @@ fun AlbumFolderScreen() {
     val checkList = remember { mutableStateOf(setOf<TmpItem>()) }
     if (!editMode.value) checkList.value = setOf()
 
-    BackHandler(enabled = editMode.value) {
-        if (editMode.value) {
-            editMode.value = false
-        }
-    }
     Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
         ItemContainer(
             items = tmpItems,
@@ -65,7 +60,11 @@ fun AlbumFolderScreen() {
             innerPaddingValues = innerPadding,
         )
     }
-
+    BackHandler(enabled = editMode.value) {
+        if (editMode.value) {
+            editMode.value = false
+        }
+    }
 }
 
 @Composable
@@ -78,7 +77,7 @@ fun ItemContainer(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPaddingValues)
+            .padding(innerPaddingValues),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -99,7 +98,7 @@ fun ItemContainer(
                     Item(item, editMode, checkList)
                 }
             }
-            // 편집 모드가 활성화되었을 때, 오른쪽 아래에 버튼 표시
+
             if (editMode.value) {
                 Button(
                     onClick = {
@@ -110,7 +109,7 @@ fun ItemContainer(
                         .align(Alignment.BottomEnd)
                         .padding(16.dp) // 버튼 여백 설정
                 ) {
-                    Text("선택한 사진 저장")
+                    Text(stringResource(R.string.album_folder_screen_save_button))
                 }
             }
         }
@@ -157,6 +156,7 @@ fun Item(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                
                 if (editMode.value && isSelected) {
                     Box(
                         modifier = Modifier
