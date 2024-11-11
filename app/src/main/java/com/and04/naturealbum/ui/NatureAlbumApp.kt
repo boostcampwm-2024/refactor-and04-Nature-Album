@@ -20,6 +20,7 @@ import com.and04.naturealbum.ui.album.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -139,6 +140,10 @@ fun NatureAlbumNavHost(
                     navController.navigate(NavigateDestination.PhotoInfo.route)
                 }
             )
+        }
+
+        composable(NavigateDestination.PhotoInfo.route) {
+            PhotoInfo(selectedPhotoDetail)
         }
     }
 }
