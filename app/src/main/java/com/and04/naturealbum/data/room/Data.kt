@@ -1,16 +1,19 @@
 package com.and04.naturealbum.data.room
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "label")
 data class Label(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "background_color") val backgroundColor: String,
     @ColumnInfo(name = "name") val name: String
-)
+) : Parcelable
 
 @Entity(
     tableName = "album",

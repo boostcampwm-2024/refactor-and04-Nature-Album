@@ -8,7 +8,10 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
@@ -37,8 +40,8 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
-    var imageUri: Uri = remember { Uri.EMPTY }
-    var selectedLabel: Label? = remember { null }
+    var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
+    var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
