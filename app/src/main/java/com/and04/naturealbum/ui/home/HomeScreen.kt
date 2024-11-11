@@ -194,6 +194,8 @@ fun NavigateContent(
             textColor = Color.Black
         ) { /* TODO: Naviagation 추가*/ }
 
+        Spacer(modifier = Modifier.padding(12.dp))
+
         Row(
             modifier = contentModifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
@@ -213,7 +215,6 @@ fun NavigateContent(
             ) { permissionHandler.onClickCamera() }
         }
     }
-
     Spacer(modifier = Modifier.padding(bottom = 72.dp))
 }
 

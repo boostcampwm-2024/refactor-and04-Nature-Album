@@ -3,10 +3,10 @@ package com.and04.naturealbum.ui.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialogDefaults.shape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import com.and04.naturealbum.R
 
 @Composable
 fun RoundedShapeButton(text: String, modifier: Modifier, onClick: () -> Unit) {
@@ -43,11 +41,17 @@ fun NavigationImageButton(
     imageVector: ImageVector,
     onClick: () -> Unit
 ) {
-    Box(modifier = modifier.clickable { onClick() }) {
+
+    val svgAspectRatio = imageVector.viewportWidth / imageVector.viewportHeight
+
+    Box(modifier = modifier
+        .aspectRatio(svgAspectRatio)
+        .clickable { onClick() })
+    {
         Image(
             imageVector = imageVector,
             contentDescription = null,
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize()
         )
 
