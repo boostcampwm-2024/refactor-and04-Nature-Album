@@ -25,4 +25,8 @@
     <string name="save_photo_screen_select_label">라벨을 선택해주세요.</string>
     <string name="save_photo_screen_description">설명</string>
     <string name="save_photo_screen_description_about_photo">사진에 대한 설명을 추가할 수 있습니다.</string>
+
+    <!--Album Folder -->
+    <string name="album_folder_screen_item_select_icon_description">아이템 선택 아이콘</string>
+    <string name="album_folder_screen_item_image_description">아이템 이미지</string>
 </resources>

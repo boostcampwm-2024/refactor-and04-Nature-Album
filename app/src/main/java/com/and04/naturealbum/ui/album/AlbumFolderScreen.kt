@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -152,22 +153,21 @@ fun Item(
             ) {
                 AsyncImage(
                     model = item.img,
-                    contentDescription = "", // TODO:
+                    contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth()
-
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 if (editMode.value && isSelected) {
                     Box(
                         modifier = Modifier
                             .matchParentSize()
                             .background(color = Color.Black.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "", // TODO:
-                            tint = MaterialTheme.colorScheme.surface
+                            contentDescription = stringResource(R.string.album_folder_screen_item_select_icon_description),
+                            tint = MaterialTheme.colorScheme.surface,
                         )
                     }
                 }
