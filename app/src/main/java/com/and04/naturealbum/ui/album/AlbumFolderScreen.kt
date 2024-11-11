@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.album
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -47,6 +48,9 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun AlbumFolderScreen() {
     val editMode = remember { mutableStateOf(false) }
+    val checkList = remember { mutableStateOf(mutableSetOf<TmpItem>()) }
+    if (!editMode.value) checkList.value.clear()
+
     BackHandler(enabled = editMode.value) {
         if (editMode.value) {
             editMode.value = false
@@ -56,6 +60,7 @@ fun AlbumFolderScreen() {
         ItemContainer(
             items = tmpItems,
             editMode = editMode,
+            checkList = checkList,
             innerPaddingValues = innerPadding,
         )
     }
@@ -66,6 +71,7 @@ fun AlbumFolderScreen() {
 fun ItemContainer(
     items: List<TmpItem>,
     editMode: MutableState<Boolean>,
+    checkList: MutableState<MutableSet<TmpItem>>,
     innerPaddingValues: PaddingValues,
 ) {
     Surface(
@@ -87,15 +93,18 @@ fun ItemContainer(
             ) {
                 itemsIndexed(
                     items = items,
-                    key = { _: Int, item: TmpItem -> item.hashCode() }
+                    key = { _, item -> item.id }
                 ) { _, item ->
-                    Item(item, editMode)
+                    Item(item, editMode, checkList)
                 }
             }
             // 편집 모드가 활성화되었을 때, 오른쪽 아래에 버튼 표시
             if (editMode.value) {
                 Button(
-                    onClick = { /* TODO: 저장 동작 추가 */ },
+                    onClick = {
+                        Log.d("FFFF", "${checkList.value.joinToString(",")}")
+                        editMode.value = false
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(16.dp) // 버튼 여백 설정
@@ -108,8 +117,15 @@ fun ItemContainer(
 }
 
 @Composable
-fun Item(item: TmpItem, editMode: MutableState<Boolean>) {
-    var isClicked by remember { mutableStateOf(false) }
+fun Item(
+    item: TmpItem,
+    editMode: MutableState<Boolean>,
+    checkList: MutableState<MutableSet<TmpItem>>,
+) {
+    var isSelected by remember { mutableStateOf(false) }
+    if (!editMode.value && isSelected) {
+        isSelected = false
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -122,7 +138,16 @@ fun Item(item: TmpItem, editMode: MutableState<Boolean>) {
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onLongPress = { editMode.value = !editMode.value },
-                            onTap = { isClicked = !isClicked })
+                            onTap = {
+                                if (editMode.value) {
+                                    isSelected = !isSelected
+                                    if (isSelected) {
+                                        checkList.value.add(item)
+                                    } else {
+                                        checkList.value.remove(item)
+                                    }
+                                }
+                            })
                     }
             ) {
                 AsyncImage(
@@ -132,7 +157,7 @@ fun Item(item: TmpItem, editMode: MutableState<Boolean>) {
                     modifier = Modifier.fillMaxWidth()
 
                 )
-                if (editMode.value && isClicked) {
+                if (editMode.value && isSelected) {
                     Box(
                         modifier = Modifier
                             .matchParentSize()
@@ -169,69 +194,85 @@ fun ContentPreview() {
 }
 
 data class TmpItem(
+    val id: Int,
     val img: Int,
     val descroption: String,
 )
 
 val tmpItems = listOf(
     TmpItem(
+        id = 1,
         img = R.drawable.cat_dummy,
         descroption = "사진 11111111111111111111111111111111111111111111",
     ),
     TmpItem(
+        id = 2,
         img = R.drawable.sample_image_01,
         descroption = "사진 22222",
     ),
     TmpItem(
-        img = R.drawable.sample_image_02,
+        id = 3,
+        img = R.drawable.sample_image_06,
         descroption = "사진 3333",
     ),
     TmpItem(
+        id = 4,
         img = R.drawable.sample_image_03,
         descroption = "사진 4444",
     ),
     TmpItem(
-        img = R.drawable.sample_image_04,
+        id = 5,
+        img = R.drawable.sample_image_06,
         descroption = "사진 5555",
     ),
     TmpItem(
+        id = 6,
         img = R.drawable.sample_image_05,
         descroption = "6",
     ),
     TmpItem(
+        id = 7,
         img = R.drawable.sample_image_06,
         descroption = "7",
     ),
     TmpItem(
+        id = 8,
         img = R.drawable.sample_image_07,
         descroption = "8",
     ),
     TmpItem(
-        img = R.drawable.sample_image_07,
+        id = 9,
+        img = R.drawable.sample_image_06,
         descroption = "9",
     ),
     TmpItem(
+        id = 10,
         img = R.drawable.sample_image_07,
         descroption = "10",
     ),
     TmpItem(
-        img = R.drawable.sample_image_07,
+        id = 11,
+        img = R.drawable.sample_image_06,
         descroption = "11",
     ),
     TmpItem(
+        id = 12,
         img = R.drawable.sample_image_07,
         descroption = "12",
     ),
     TmpItem(
-        img = R.drawable.sample_image_07,
+        id = 13,
+        img = R.drawable.sample_image_06,
         descroption = "13",
     ),
     TmpItem(
+        id = 14,
         img = R.drawable.sample_image_07,
         descroption = "14",
     ),
     TmpItem(
-        img = R.drawable.sample_image_07,
+        id = 15,
+        img = R.drawable.sample_image_06,
         descroption = "15",
     ),
 )
