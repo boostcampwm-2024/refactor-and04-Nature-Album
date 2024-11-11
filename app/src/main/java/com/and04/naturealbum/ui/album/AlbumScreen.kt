@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.album
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,7 +38,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
 
 @Composable
-fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
+fun AlbumItem(album: AlbumDto, onLabelClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(8.dp),
@@ -49,7 +50,8 @@ fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
                     color = album.labelBackgroundColor.toColor(),
                     shape = CircleShape
                 )
-                .fillMaxWidth(0.8f),
+                .fillMaxWidth(0.8f)
+                .clickable { onLabelClick() },
             text = album.labelName,
             backgroundColor = album.labelBackgroundColor.toColor()
         )
@@ -60,14 +62,15 @@ fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .wrapContentSize(Alignment.Center)
                 .aspectRatio(1f)
-                .clip(MaterialTheme.shapes.medium),
-            contentScale = ContentScale.Crop
+                .clip(MaterialTheme.shapes.medium)
+                .clickable { onLabelClick() },
+            contentScale = ContentScale.Crop,
         )
     }
 }
 
 @Composable
-fun AlbumGrid(albums: List<AlbumDto>) {
+fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: () -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
@@ -78,7 +81,11 @@ fun AlbumGrid(albums: List<AlbumDto>) {
                 horizontalArrangement = Arrangement.spacedBy(40.dp)
             ) {
                 for (album in rowItems) {
-                    AlbumItem(album = album, modifier = Modifier.weight(1f))
+                    AlbumItem(
+                        album = album,
+                        onLabelClick = onLabelClick,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
                 if (rowItems.size < 2) {
                     Spacer(modifier = Modifier.weight(1f))
@@ -89,13 +96,13 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 }
 
 @Composable
-fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
+fun AlbumScreen(onLabelClick: () -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        albumList?.let { albumList -> AlbumGrid(albums = albumList) }
+        albumList?.let { albumList -> AlbumGrid(albums = albumList, onLabelClick = onLabelClick) }
     }
 }
 
@@ -123,8 +130,8 @@ fun AlbumLabelPreview() {
             ) {
                 AlbumLabel(
                     modifier = Modifier
-                    .background(color = Color(0xFFE57373), shape = CircleShape)
-                    .fillMaxWidth(0.8f),
+                        .background(color = Color(0xFFE57373), shape = CircleShape)
+                        .fillMaxWidth(0.8f),
                     text = "고양이",
                     backgroundColor = Color(0xFFE57373)
                 )
@@ -162,7 +169,7 @@ fun AlbumLabelPreview() {
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
-            AlbumScreen()
+            AlbumScreen(onLabelClick = {})
         }
     }
 }

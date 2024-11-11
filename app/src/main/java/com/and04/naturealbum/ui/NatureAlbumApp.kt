@@ -120,9 +120,9 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.Album.route) {
-            selectedLabel = null
-            imageUri = Uri.EMPTY
-            AlbumScreen()
+            AlbumScreen(
+                onLabelClick = { navController.navigate(NavigateDestination.AlbumFolder.route) }
+            )
         }
     }
 }
