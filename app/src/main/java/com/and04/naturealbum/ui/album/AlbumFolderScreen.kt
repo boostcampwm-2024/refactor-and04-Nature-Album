@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -75,13 +76,17 @@ fun ItemContainer(
 @Composable
 fun Item(item: TmpItem) {
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
         Column {
             AsyncImage(
                 model = item.img,
-                contentDescription = "",
-                modifier = Modifier.clip(RoundedCornerShape(28.dp))
+                contentDescription = "", // TODO:
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(28.dp))
+                    .fillMaxWidth()
             )
             Text(
                 text = item.descroption,
@@ -112,34 +117,34 @@ data class TmpItem(
 val tmpItems = listOf(
     TmpItem(
         img = R.drawable.cat_dummy,
-        descroption = "사진 11111111111111111111111111111111111111111111"
+        descroption = "사진 11111111111111111111111111111111111111111111",
     ),
     TmpItem(
         img = R.drawable.sample_image_01,
-        descroption = "사진 22222"
+        descroption = "사진 22222",
     ),
     TmpItem(
         img = R.drawable.sample_image_02,
-        descroption = "사진 3333"
+        descroption = "사진 3333",
     ),
     TmpItem(
         img = R.drawable.sample_image_03,
-        descroption = "사진 4444"
+        descroption = "사진 4444",
     ),
     TmpItem(
         img = R.drawable.sample_image_04,
-        descroption = "사진 5555"
+        descroption = "사진 5555",
     ),
     TmpItem(
         img = R.drawable.sample_image_05,
-        descroption = "사진 6666"
+        descroption = "사진 6666",
     ),
     TmpItem(
         img = R.drawable.sample_image_06,
-        descroption = "사진 6666"
+        descroption = "사진 6666",
     ),
     TmpItem(
         img = R.drawable.sample_image_07,
-        descroption = "사진 6666"
+        descroption = "사진 6666",
     ),
 )
