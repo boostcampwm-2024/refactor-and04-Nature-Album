@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.home
 
+import HomeMapButton
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -13,24 +14,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -45,7 +40,6 @@ import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.NavigationImageButton
-import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
@@ -193,10 +187,12 @@ fun NavigateContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         val contentModifier = Modifier.weight(1f)
-        RoundedShapeButton(
-            stringResource(R.string.home_navigate_to_album),
-            contentModifier.fillMaxSize()
-        ) { TODO() }
+
+        HomeMapButton(
+            modifier = contentModifier.fillMaxSize(),
+            text = stringResource(R.string.home_navigate_to_map),
+            textColor = Color.Black
+        ) { /* TODO: Naviagation 추가*/ }
 
         Row(
             modifier = contentModifier,
