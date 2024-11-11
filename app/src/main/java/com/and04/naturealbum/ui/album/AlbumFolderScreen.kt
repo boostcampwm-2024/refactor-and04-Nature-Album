@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.album
 
 import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,12 +41,14 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
+    onPhotoClick: (Int) -> Unit = {},
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel()
 ) {
     albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
         ItemContainer(
-            innerPaddingValues = innerPadding
+            innerPaddingValues = innerPadding,
+            onPhotoClick
         )
     }
 }
@@ -53,6 +56,7 @@ fun AlbumFolderScreen(
 @Composable
 private fun ItemContainer(
     innerPaddingValues: PaddingValues,
+    onPhotoClick: (Int) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel()
 ) {
     val uiState = albumFolderViewModel.uiState.collectAsState()
@@ -97,7 +101,7 @@ private fun ItemContainer(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(photoDetails.value) { photoDetail ->
-                                Item(photoDetail)
+                                Item(item = photoDetail, onPhotoClick = onPhotoClick)
                             }
                         }
                     }
@@ -108,10 +112,14 @@ private fun ItemContainer(
 }
 
 @Composable
-private fun Item(item: PhotoDetail) {
+private fun Item(
+    item: PhotoDetail,
+    onPhotoClick: (Int) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onPhotoClick(item.id) }
     ) {
         Column {
             AsyncImage(

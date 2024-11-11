@@ -41,6 +41,7 @@ fun NatureAlbumNavHost(
     var imageUri: Uri = remember { Uri.EMPTY }
     var selectedLabel: Label? = remember { null }
     var selectedAlbumLabel: Int = remember { 0 }
+    var selectedPhotoDetail: Int = remember { 0 }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -131,7 +132,13 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.AlbumFolder.route) {
-            AlbumFolderScreen(selectedAlbumLabel)
+            AlbumFolderScreen(
+                selectedAlbumLabel,
+                onPhotoClick = {
+                    selectedPhotoDetail = it
+                    navController.navigate(NavigateDestination.PhotoInfo.route)
+                }
+            )
         }
     }
 }
