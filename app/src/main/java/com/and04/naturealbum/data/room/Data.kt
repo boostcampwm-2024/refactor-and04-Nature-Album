@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
+import java.time.LocalDateTime
 
 @Parcelize
 @Entity(tableName = "label")
@@ -55,5 +56,5 @@ data class PhotoDetail(
     @ColumnInfo(name = "photo_uri") val photoUri: String,
     @ColumnInfo(name = "location") val location: String,
     @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "datetime") val datetime: String
+    @ColumnInfo(name = "datetime") val datetime: LocalDateTime
 )

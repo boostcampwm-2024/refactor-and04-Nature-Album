@@ -12,6 +12,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 sealed class UiState {
@@ -43,7 +45,7 @@ class SavePhotoViewModel @Inject constructor(
                         photoUri = uri,
                         location = "", // TODO
                         description = description,
-                        datetime = System.currentTimeMillis().toString(), // TODO : DB Converter 적용후 Long으로 저장
+                        datetime = LocalDateTime.now(ZoneId.of("UTC")),
                     )
                 )
             }

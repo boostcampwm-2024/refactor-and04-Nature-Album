@@ -36,6 +36,8 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -101,6 +103,9 @@ dependencies {
 
     //location
     implementation(libs.play.services.location)
+
+    //for use Java 8+ under sdk26
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
 kapt {
