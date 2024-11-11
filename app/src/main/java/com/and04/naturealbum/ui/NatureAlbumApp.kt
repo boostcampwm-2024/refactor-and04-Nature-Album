@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.album.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
@@ -123,6 +124,10 @@ fun NatureAlbumNavHost(
             AlbumScreen(
                 onLabelClick = { navController.navigate(NavigateDestination.AlbumFolder.route) }
             )
+        }
+
+        composable(NavigateDestination.AlbumFolder.route) {
+            AlbumFolderScreen()
         }
     }
 }
