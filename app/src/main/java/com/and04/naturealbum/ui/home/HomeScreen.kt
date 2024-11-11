@@ -10,20 +10,33 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -31,6 +44,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.NavigationImageButton
 import com.and04.naturealbum.ui.component.RoundedShapeButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -105,18 +119,20 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             InfoContent(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                { TODO() }
             )
+
             NavigateContent(
                 permissionHandler = permissionHandler,
                 modifier = Modifier
+                    .padding(horizontal = 16.dp)
                     .weight(2f)
                     .fillMaxSize(),
                 onNavigateToAlbum = onNavigateToAlbum
@@ -156,8 +172,14 @@ fun HomeScreen(
 }
 
 @Composable
-fun InfoContent(modifier: Modifier) {
-    RoundedShapeButton("TODO", modifier) { /* TODO */ }
+fun InfoContent(modifier: Modifier, onClick: () -> Unit) {
+    Image(
+        modifier = modifier
+            .clickable { onClick() },
+        contentScale = ContentScale.FillBounds,
+        imageVector = ImageVector.vectorResource(id = R.drawable.drawable_home_main_background),
+        contentDescription = null
+    )
 }
 
 @Composable
@@ -170,16 +192,29 @@ fun NavigateContent(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        RoundedShapeButton("TODO", modifier) { /* TODO */ }
+        val contentModifier = Modifier.weight(1f)
+        RoundedShapeButton(
+            stringResource(R.string.home_navigate_to_album),
+            contentModifier.fillMaxSize()
+        ) { TODO() }
 
         Row(
-            modifier = modifier,
+            modifier = contentModifier,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
-            RoundedShapeButton("TODO", modifier) {
-                permissionHandler.onClickCamera()
-            }
+            NavigationImageButton(
+                stringResource(R.string.home_navigate_to_album),
+                contentModifier,
+                Color.White,
+                ImageVector.vectorResource(id = R.drawable.btn_album_background)
+            ) { onNavigateToAlbum() }
+
+            NavigationImageButton(
+                stringResource(R.string.home_navigate_to_camera),
+                contentModifier,
+                Color.Black,
+                ImageVector.vectorResource(id = R.drawable.btn_camera_background)
+            ) { permissionHandler.onClickCamera() }
         }
     }
 
