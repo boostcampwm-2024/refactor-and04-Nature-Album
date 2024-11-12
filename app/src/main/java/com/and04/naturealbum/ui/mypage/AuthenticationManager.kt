@@ -21,8 +21,6 @@ class AuthenticationManager(private val context: Context) {
 
     fun signInWithGoogle(): Flow<AuthResponse> = callbackFlow {
         try {
-
-
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(BuildConfig.google_web_key) //Web client td
@@ -51,12 +49,16 @@ class AuthenticationManager(private val context: Context) {
                         )
 
                         auth.signInWithCredential(firebaseCredential)
-                            .addOnCompleteListener {
-                                if (it.isSuccessful) {
+                            .addOnCompleteListener { authResult ->
+                                if (authResult.isSuccessful) {
                                     trySend(AuthResponse.Success)
-                                    Log.d("AuthenticationManager", "success")
+                                    val user = authResult.result.user
+                                    user?.let { user ->
+                                        Log.d("AuthenticationManager", "${user.email}")
+                                    }
+
                                 } else {
-                                    Log.d("AuthenticationManager", "fail")
+                                    Log.d("AuthenticationManager", "${authResult.exception}")
                                 }
                             }
 

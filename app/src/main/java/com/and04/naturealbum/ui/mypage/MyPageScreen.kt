@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.util.Log
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,9 +22,8 @@ fun MyPageScreen() {
         authenticationManager.signInWithGoogle()
             .onEach { response ->
                 if (response is AuthResponse.Success) {
-
+                    TODO()
                 }
-
             }
             .launchIn(coroutineScope)
     }) { }
