@@ -20,4 +20,7 @@ sealed class NavigateDestination(val route: String) : Destination {
 
     @Serializable
     data object AlbumFolder : NavigateDestination("album_folder")
+
+    @Serializable
+    data object PhotoInfo : NavigateDestination("photo_info")
 }

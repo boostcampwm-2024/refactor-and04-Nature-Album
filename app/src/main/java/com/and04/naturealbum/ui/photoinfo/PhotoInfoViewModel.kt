@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.album
+package com.and04.naturealbum.ui.photoinfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,44 +7,34 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.savephoto.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumFolderViewModel @Inject constructor(
+class PhotoInfoViewModel @Inject constructor(
     private val roomRepository: DataRepository
-) : ViewModel() {
+): ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
     private val _label = MutableStateFlow<Label>(Label.emptyLabel())
     val label: StateFlow<Label> = _label
 
-    private val _photoDetails = MutableStateFlow<List<PhotoDetail>>(emptyList())
-    val photoDetails: StateFlow<List<PhotoDetail>> = _photoDetails
+    private val _photoDetail = MutableStateFlow<PhotoDetail>(PhotoDetail.emptyPhotoDetail())
+    val photoDetail: StateFlow<PhotoDetail> = _photoDetail
 
-
-    fun loadFolderData(labelId: Int) {
+    fun loadPhotoDetail(id: Int){
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
 
-            val labelData = async {
-                _label.emit(roomRepository.getLabel(id = labelId))
-            }
+            val photoDetailData = roomRepository.getPhotoDetailById(id)
+            _photoDetail.emit(photoDetailData)
 
-            val photoDetailsData = async {
-                _photoDetails.emit(roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId))
-            }
+            _label.emit(roomRepository.getLabel(photoDetailData.labelId))
 
-            labelData.await()
-            photoDetailsData.await()
-
-            if (labelData.isCompleted && photoDetailsData.isCompleted) {
-                _uiState.emit(UiState.Success)
-            }
+            _uiState.emit(UiState.Success)
         }
     }
 }

@@ -38,7 +38,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
 
 @Composable
-fun AlbumItem(album: AlbumDto, onLabelClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(8.dp),
@@ -51,7 +51,7 @@ fun AlbumItem(album: AlbumDto, onLabelClick: () -> Unit, modifier: Modifier = Mo
                     shape = CircleShape
                 )
                 .fillMaxWidth(0.8f)
-                .clickable { onLabelClick() },
+                .clickable { onLabelClick(album.labelId) },
             text = album.labelName,
             backgroundColor = album.labelBackgroundColor.toColor()
         )
@@ -63,14 +63,14 @@ fun AlbumItem(album: AlbumDto, onLabelClick: () -> Unit, modifier: Modifier = Mo
                 .wrapContentSize(Alignment.Center)
                 .aspectRatio(1f)
                 .clip(MaterialTheme.shapes.medium)
-                .clickable { onLabelClick() },
+                .clickable { onLabelClick(album.labelId) },
             contentScale = ContentScale.Crop,
         )
     }
 }
 
 @Composable
-fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: () -> Unit) {
+fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
@@ -96,7 +96,7 @@ fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: () -> Unit) {
 }
 
 @Composable
-fun AlbumScreen(onLabelClick: () -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
+fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
     val albumList by viewModel.albumList.observeAsState()
     Column(
         modifier = Modifier

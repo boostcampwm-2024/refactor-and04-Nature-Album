@@ -20,6 +20,7 @@ import com.and04.naturealbum.ui.album.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -40,6 +41,8 @@ fun NatureAlbumNavHost(
     val context = LocalContext.current
     var imageUri: Uri = remember { Uri.EMPTY }
     var selectedLabel: Label? = remember { null }
+    var selectedAlbumLabel: Int = remember { 0 }
+    var selectedPhotoDetail: Int = remember { 0 }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -122,12 +125,25 @@ fun NatureAlbumNavHost(
 
         composable(NavigateDestination.Album.route) {
             AlbumScreen(
-                onLabelClick = { navController.navigate(NavigateDestination.AlbumFolder.route) }
+                onLabelClick = {
+                    selectedAlbumLabel = it
+                    navController.navigate(NavigateDestination.AlbumFolder.route)
+                }
             )
         }
 
         composable(NavigateDestination.AlbumFolder.route) {
-            AlbumFolderScreen()
+            AlbumFolderScreen(
+                selectedAlbumLabel,
+                onPhotoClick = {
+                    selectedPhotoDetail = it
+                    navController.navigate(NavigateDestination.PhotoInfo.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.PhotoInfo.route) {
+            PhotoInfo(selectedPhotoDetail)
         }
     }
 }
