@@ -27,11 +27,6 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
-//        val properties = Properties()
-//        properties.load(project.rootProject.file("local.properties").inputStream())
-//
-//        buildConfigField("String", "google_web_key", properties.getProperty("google_web_key"))
     }
 
     buildTypes {
