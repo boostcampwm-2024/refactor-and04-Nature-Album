@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.home
 
-import HomeMapButton
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -36,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.component.ClippingButtonWithFile
 import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
@@ -187,12 +187,17 @@ fun NavigateContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         val contentModifier = Modifier.weight(1f)
+        val context = LocalContext.current
 
-        HomeMapButton(
-            modifier = contentModifier.fillMaxSize(),
+        ClippingButtonWithFile(
+            context = context,
+            isFromAssets = true,
+            fileNameOrResId = stringResource(R.string.btn_home_menu_map_background_outline_svg),
             text = stringResource(R.string.home_navigate_to_map),
-            textColor = Color.Black
-        ) { /* TODO: Naviagation 추가*/ }
+            textColor = Color.Black,
+            imageResId = R.drawable.btn_home_menu_map_background,
+            onClick = { /* TODO: Navigation 연결 */ }
+        )
 
         Spacer(modifier = Modifier.padding(12.dp))
 
