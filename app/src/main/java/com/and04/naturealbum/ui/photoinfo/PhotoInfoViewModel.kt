@@ -14,18 +14,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PhotoInfoViewModel @Inject constructor(
-    private val roomRepository: DataRepository
-): ViewModel() {
+    private val roomRepository: DataRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    private val _label = MutableStateFlow<Label>(Label.emptyLabel())
+    private val _label = MutableStateFlow(Label.emptyLabel())
     val label: StateFlow<Label> = _label
 
-    private val _photoDetail = MutableStateFlow<PhotoDetail>(PhotoDetail.emptyPhotoDetail())
+    private val _photoDetail = MutableStateFlow(PhotoDetail.emptyPhotoDetail())
     val photoDetail: StateFlow<PhotoDetail> = _photoDetail
 
-    fun loadPhotoDetail(id: Int){
+    fun loadPhotoDetail(id: Int) {
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
 

@@ -21,9 +21,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.album.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -43,6 +45,8 @@ fun NatureAlbumNavHost(
 ) {
     val context = LocalContext.current
     var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
+    var selectedAlbumLabel: Int = remember { 0 }
+    var selectedPhotoDetail: Int = remember { 0 }
     val locationHandler = remember {
         LocationHandler(
             context = context

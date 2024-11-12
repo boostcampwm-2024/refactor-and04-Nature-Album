@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -44,7 +44,7 @@ import com.and04.naturealbum.ui.savephoto.UiState
 @Composable
 fun PhotoInfo(
     selectedPhotoDetail: Int = 0,
-    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel()
+    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     photoInfoViewModel.loadPhotoDetail(selectedPhotoDetail)
     Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
@@ -55,7 +55,7 @@ fun PhotoInfo(
 @Composable
 private fun Content(
     innerPadding: PaddingValues,
-    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel()
+    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val uiState = photoInfoViewModel.uiState.collectAsState()
     val photoDetail = photoInfoViewModel.photoDetail.collectAsState()
@@ -76,7 +76,7 @@ private fun Content(
 private fun PhotoDetailInfo(
     innerPadding: PaddingValues,
     photoDetail: State<PhotoDetail>,
-    label: State<Label>
+    label: State<Label>,
 ) {
     Column(
         modifier = Modifier
@@ -108,19 +108,19 @@ private fun PhotoDetailInfo(
         )
 
         RowInfo(
-            imgVector = Icons.Default.CalendarToday,
+            imgVector = Icons.Default.DateRange,
             contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-            text = photoDetail.value.datetime //TODO date format
+            text = photoDetail.value.datetime.toString() //TODO date format
         )
 
         RowInfo(
             imgVector = Icons.Default.LocationOn,
             contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = photoDetail.value.location //TODO 좌표 >> 주소로 변경
+            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}"//TODO 좌표 >> 주소로 변경
         )
 
         RowInfo(
-            imgVector = Icons.Default.ChatBubbleOutline,
+            imgVector = Icons.Default.Edit,
             contentDescription = stringResource(R.string.photo_info_screen_description_icon),
             text = photoDetail.value.description
         )
@@ -131,7 +131,7 @@ private fun PhotoDetailInfo(
 private fun RowInfo(
     imgVector: ImageVector,
     contentDescription: String,
-    text: String
+    text: String,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)

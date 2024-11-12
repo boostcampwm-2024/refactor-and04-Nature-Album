@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.net.toUri
 import com.and04.naturealbum.data.room.PhotoDetail
 import java.io.InputStream
@@ -32,10 +33,13 @@ fun saveImageToGallery(context: Context, photoDetail: PhotoDetail) {
                 resolver.openOutputStream(externalUri).use { outputStream ->
                     if (inputStream != null && outputStream != null) {
                         copyStream(inputStream, outputStream)
+                    } else {
+                        Log.d("FFFF", "h")
                     }
                 }
             }
         } catch (e: Exception) {
+            Log.d("FFFF", "fail")
             e.printStackTrace()
             resolver.delete(externalUri, null, null) // 오류 발생 시 생성된 항목 삭제
         }
@@ -48,4 +52,5 @@ private fun copyStream(input: InputStream, output: OutputStream) {
     while (input.read(buffer).also { bytesRead = it } != -1) {
         output.write(buffer, 0, bytesRead)
     }
+    Log.d("FFFF", "suc")
 }

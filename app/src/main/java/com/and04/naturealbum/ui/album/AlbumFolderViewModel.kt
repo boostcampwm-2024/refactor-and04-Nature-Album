@@ -20,7 +20,7 @@ class AlbumFolderViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    private val _label = MutableStateFlow<Label>(Label.emptyLabel())
+    private val _label = MutableStateFlow(Label.emptyLabel())
     val label: StateFlow<Label> = _label
 
     private val _photoDetails = MutableStateFlow<List<PhotoDetail>>(emptyList())

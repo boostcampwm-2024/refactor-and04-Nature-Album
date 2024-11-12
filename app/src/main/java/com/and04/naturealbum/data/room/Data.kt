@@ -13,8 +13,18 @@ import java.time.LocalDateTime
 data class Label(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "background_color") val backgroundColor: String,
-    @ColumnInfo(name = "name") val name: String
-) : Parcelable
+    @ColumnInfo(name = "name") val name: String,
+) : Parcelable {
+    companion object {
+        fun emptyLabel(): Label {
+            return Label(
+                id = 0,
+                backgroundColor = "",
+                name = ""
+            )
+        }
+    }
+}
 
 @Entity(
     tableName = "album",
@@ -36,7 +46,7 @@ data class Label(
 data class Album(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "label_id") val labelId: Int,
-    @ColumnInfo(name = "photo_detail_id") val photoDetailId: Int
+    @ColumnInfo(name = "photo_detail_id") val photoDetailId: Int,
 )
 
 @Entity(
@@ -57,5 +67,19 @@ data class PhotoDetail(
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "datetime") val datetime: LocalDateTime
-)
+    @ColumnInfo(name = "datetime") val datetime: LocalDateTime,
+) {
+    companion object {
+        fun emptyPhotoDetail(): PhotoDetail {
+            return PhotoDetail(
+                id = 0,
+                labelId = 0,
+                photoUri = "",
+                longitude = 0.0,
+                latitude = 0.0,
+                description = "",
+                datetime = LocalDateTime.now()
+            )
+        }
+    }
+}

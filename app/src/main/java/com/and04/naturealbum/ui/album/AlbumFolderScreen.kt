@@ -62,7 +62,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
-    onPhotoClick: (Int) -> Unit = {},
+    onPhotoClick: (Int) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(selectedAlbumLabel) {
