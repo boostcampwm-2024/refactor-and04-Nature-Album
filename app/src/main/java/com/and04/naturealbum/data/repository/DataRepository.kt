@@ -23,6 +23,7 @@ interface DataRepository {
     suspend fun insertLabel(label: Label): Long
     suspend fun getAllAlbum(): List<AlbumDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
+    suspend fun updateAlbum(album: Album)
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -83,5 +84,9 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getAllAlbum(): List<AlbumDto> {
         return albumDao.getAllAlbum()
+    }
+
+    override suspend fun updateAlbum(album: Album) {
+        return albumDao.updateAlbum(album)
     }
 }
