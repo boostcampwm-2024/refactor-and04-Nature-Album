@@ -13,9 +13,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             val auth = Firebase.auth
-            auth.signInAnonymously()
+            auth.currentUser ?: auth.signInAnonymously()
         }
 
         setContent {
