@@ -48,7 +48,7 @@ interface AlbumDao {
         FROM
             album
         JOIN label ON album.label_id = label.id
-        JOIN photo_detail ON album.label_id = photo_detail.label_id
+        JOIN photo_detail ON album.photo_detail_id = photo_detail.id
             
     """
     )
