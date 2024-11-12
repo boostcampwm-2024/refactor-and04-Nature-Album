@@ -1,6 +1,5 @@
-package com.and04.naturealbum.ui.album
+package com.and04.naturealbum.ui.albumfolder
 
-import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
 import android.content.Intent
@@ -28,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,7 +39,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,10 +61,6 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.home.PermissionDialogState
 import com.and04.naturealbum.ui.home.PermissionDialogs
 import com.and04.naturealbum.ui.savephoto.UiState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun AlbumFolderScreen(
@@ -132,7 +125,6 @@ private fun ItemContainer(
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
@@ -154,7 +146,21 @@ private fun ItemContainer(
     val uiState = albumFolderViewModel.uiState.collectAsState()
     val label = albumFolderViewModel.label.collectAsState()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
+    val selectAll = { b: Boolean ->
+        if (b) checkList.value = photoDetails.value.toSet()
+        else checkList.value = emptySet()
+    }
 
+    val a: () -> Boolean = {
+        if (checkList.value.isEmpty()) false else true
+    }
+    val savePhotos = {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+            requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
+        } else {
+            saveImagesWithLoading()
+        }
+    }
 
 
     when (uiState.value) {
@@ -183,6 +189,7 @@ private fun ItemContainer(
                         text = label.value.name,
                         backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
                     )
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -202,25 +209,20 @@ private fun ItemContainer(
                                     switchEditMode = switchEditMode,
                                     isEditMode = isEditMode,
                                     checkList = checkList,
+                                    sellectAll = a,
                                 )
                             }
                         }
-                        if (isEditMode()) {
-                            Button(
-                                onClick = {
-                                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-                                        requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
-                                    } else {
-                                        saveImagesWithLoading()
-                                    }
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(16.dp)
-                            ) {
-                                Text(stringResource(R.string.album_folder_screen_save_button))
-                            }
-                        }
+
+                        ButtonWithAnimation(
+                            selectAll = selectAll,
+                            savePhotos = savePhotos,
+                            label = label.value,
+                            isEditMode = isEditMode(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomEnd)
+                        )
                     }
                 }
             }
@@ -246,9 +248,11 @@ private fun Item(
     switchEditMode: (Boolean) -> Unit,
     isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
+    sellectAll: () -> Boolean,
 ) {
     var isSelected by remember { mutableStateOf(false) }
     if (!isEditMode() && isSelected) isSelected = false
+    isSelected = sellectAll()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -311,5 +315,3 @@ private fun Item(
         }
     }
 }
-
-const val WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE

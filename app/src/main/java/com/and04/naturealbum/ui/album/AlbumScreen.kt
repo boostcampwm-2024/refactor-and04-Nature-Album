@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
 
@@ -98,11 +100,14 @@ fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
 @Composable
 fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
     val albumList by viewModel.albumList.observeAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        albumList?.let { albumList -> AlbumGrid(albums = albumList, onLabelClick = onLabelClick) }
+    Scaffold(topBar = { MyTopAppBar() }){ paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            albumList?.let { albumList -> AlbumGrid(albums = albumList, onLabelClick = onLabelClick) }
+        }
     }
 }
 

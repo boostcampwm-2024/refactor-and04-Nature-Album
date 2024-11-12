@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.album
+package com.and04.naturealbum.ui.albumfolder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

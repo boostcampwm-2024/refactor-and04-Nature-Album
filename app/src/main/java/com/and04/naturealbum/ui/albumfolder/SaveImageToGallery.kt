@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.album
+package com.and04.naturealbum.ui.albumfolder
 
 import android.content.ContentResolver
 import android.content.ContentValues
