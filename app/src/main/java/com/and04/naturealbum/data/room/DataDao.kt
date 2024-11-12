@@ -3,6 +3,7 @@ package com.and04.naturealbum.data.room
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
 
 @Dao
@@ -33,6 +34,9 @@ interface LabelDao {
 interface AlbumDao {
     @Insert
     fun insertAlbum(album: Album): Long
+
+    @Update
+    fun updateAlbum(album: Album)
 
     @Query(
         """

@@ -31,7 +31,13 @@ class SavePhotoViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    fun savePhoto(uri: String, label: Label, location: Location, description: String) {
+    fun savePhoto(
+        uri: String,
+        label: Label,
+        location: Location,
+        description: String,
+        isRepresented: Boolean
+    ) {
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val labelId =
@@ -52,14 +58,20 @@ class SavePhotoViewModel @Inject constructor(
                 )
             }
             album.await().run {
-                val t = toString()
                 if (isEmpty()) repository.insertPhotoInAlbum(
                     Album(
                         labelId = labelId,
                         photoDetailId = photoDetailId.await().toInt()
                     )
                 )
-                // TODO: 대표 이미지 수정
+                else if (isRepresented)
+                    repository.updateAlbum(
+                        first().copy(
+                            photoDetailId = photoDetailId.await().toInt()
+                        )
+                    )
+                else {
+                }
             }
             _uiState.emit(UiState.Success)
         }

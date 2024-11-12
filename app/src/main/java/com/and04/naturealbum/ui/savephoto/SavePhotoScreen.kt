@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -53,7 +52,6 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -161,7 +159,8 @@ fun SavePhotoScreen(
                             uri = model.toString(),
                             label = label!!,
                             description = rememberDescription,
-                            location = location!! // TODO : Null 처리 필요
+                            location = location!!, // TODO : Null 처리 필요
+                            isRepresented = isRepresented
                         )
                     })
             }
@@ -223,7 +222,8 @@ private fun ToggleButton(
             selected = selected,
             onClick = { onClick() },
             modifier = modifier
-                .size(24.dp).focusable(false),
+                .size(24.dp)
+                .focusable(false),
         )
         Text(stringResource(R.string.save_photo_screen_set_represent))
     }
