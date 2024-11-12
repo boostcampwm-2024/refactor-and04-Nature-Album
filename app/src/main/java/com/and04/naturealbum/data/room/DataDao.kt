@@ -3,6 +3,7 @@ package com.and04.naturealbum.data.room
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
 
 @Dao
@@ -34,6 +35,9 @@ interface AlbumDao {
     @Insert
     fun insertAlbum(album: Album): Long
 
+    @Update
+    fun updateAlbum(album: Album)
+
     @Query(
         """
         SELECT
@@ -44,7 +48,7 @@ interface AlbumDao {
         FROM
             album
         JOIN label ON album.label_id = label.id
-        JOIN photo_detail ON album.label_id = photo_detail.label_id
+        JOIN photo_detail ON album.photo_detail_id = photo_detail.id
             
     """
     )
