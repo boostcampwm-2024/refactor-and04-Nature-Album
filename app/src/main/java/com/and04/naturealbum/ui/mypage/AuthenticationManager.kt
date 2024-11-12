@@ -48,8 +48,8 @@ class AuthenticationManager(private val context: Context) {
                             null
                         )
 
-                        auth.signInWithCredential(firebaseCredential)
-                            .addOnCompleteListener { authResult ->
+                        auth.currentUser?.linkWithCredential(firebaseCredential)
+                            ?.addOnCompleteListener { authResult ->
                                 if (authResult.isSuccessful) {
                                     trySend(AuthResponse.Success)
                                     val user = authResult.result.user
@@ -61,7 +61,6 @@ class AuthenticationManager(private val context: Context) {
                                     Log.d("AuthenticationManager", "${authResult.exception}")
                                 }
                             }
-
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.d("AuthenticationManager", "error")
                     }
