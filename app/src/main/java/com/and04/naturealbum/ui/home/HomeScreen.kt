@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.home
 
 import android.app.Activity
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -11,12 +12,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -114,21 +116,39 @@ fun HomeScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            InfoContent(
+            MainBackground(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxSize(),
-                { TODO() }
+                    .fillMaxWidth()
+            )
+
+            ClippingButtonWithFile(
+                context = context,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                isFromAssets = true,
+                fileNameOrResId = stringResource(R.string.btn_home_menu_map_background_outline_svg),
+                text = stringResource(R.string.home_navigate_to_map),
+                textColor = Color.Black,
+                imageResId = R.drawable.btn_home_menu_map_background,
+                onClick = { /* TODO: Navigation 연결 */ }
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
             )
 
             NavigateContent(
-                permissionHandler = permissionHandler,
                 modifier = Modifier
+                    .weight(1.17f)
                     .padding(horizontal = 16.dp)
-                    .weight(2f)
-                    .fillMaxSize(),
+                    .fillMaxWidth(),
+                permissionHandler = permissionHandler,
                 onNavigateToAlbum = onNavigateToAlbum
             )
         }
@@ -166,10 +186,9 @@ fun HomeScreen(
 }
 
 @Composable
-fun InfoContent(modifier: Modifier, onClick: () -> Unit) {
+fun MainBackground(modifier: Modifier) {
     Image(
-        modifier = modifier
-            .clickable { onClick() },
+        modifier = modifier,
         contentScale = ContentScale.FillBounds,
         imageVector = ImageVector.vectorResource(id = R.drawable.drawable_home_main_background),
         contentDescription = null
@@ -178,49 +197,31 @@ fun InfoContent(modifier: Modifier, onClick: () -> Unit) {
 
 @Composable
 fun NavigateContent(
-    permissionHandler: PermissionHandler,
     modifier: Modifier = Modifier,
+    permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit
 ) {
-    Column(
+    Row(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        val contentModifier = Modifier.weight(1f)
-        val context = LocalContext.current
+        val contentModifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+        NavigationImageButton(
+            stringResource(R.string.home_navigate_to_album),
+            contentModifier,
+            Color.White,
+            ImageVector.vectorResource(id = R.drawable.btn_album_background)
+        ) { onNavigateToAlbum() }
 
-        ClippingButtonWithFile(
-            context = context,
-            isFromAssets = true,
-            fileNameOrResId = stringResource(R.string.btn_home_menu_map_background_outline_svg),
-            text = stringResource(R.string.home_navigate_to_map),
-            textColor = Color.Black,
-            imageResId = R.drawable.btn_home_menu_map_background,
-            onClick = { /* TODO: Navigation 연결 */ }
-        )
-
-        Spacer(modifier = Modifier.padding(12.dp))
-
-        Row(
-            modifier = contentModifier,
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            NavigationImageButton(
-                stringResource(R.string.home_navigate_to_album),
-                contentModifier,
-                Color.White,
-                ImageVector.vectorResource(id = R.drawable.btn_album_background)
-            ) { onNavigateToAlbum() }
-
-            NavigationImageButton(
-                stringResource(R.string.home_navigate_to_camera),
-                contentModifier,
-                Color.Black,
-                ImageVector.vectorResource(id = R.drawable.btn_camera_background)
-            ) { permissionHandler.onClickCamera() }
-        }
+        NavigationImageButton(
+            stringResource(R.string.home_navigate_to_camera),
+            contentModifier,
+            Color.Black,
+            ImageVector.vectorResource(id = R.drawable.btn_camera_background)
+        ) { permissionHandler.onClickCamera() }
     }
-    Spacer(modifier = Modifier.padding(bottom = 72.dp))
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)

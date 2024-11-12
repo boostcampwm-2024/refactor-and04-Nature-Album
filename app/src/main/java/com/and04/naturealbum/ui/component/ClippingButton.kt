@@ -134,7 +134,6 @@ fun ClippingButton(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
             .aspectRatio(viewportWidth / viewportHeight)
             .clip(CustomShape(path, viewportWidth, viewportHeight))
             .clickable { onClick() }
