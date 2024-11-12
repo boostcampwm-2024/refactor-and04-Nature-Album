@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.home
 
 import android.app.Activity
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -10,11 +11,14 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -23,16 +27,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.component.ClippingButtonWithFile
 import com.and04.naturealbum.ui.component.DialogData
 import com.and04.naturealbum.ui.component.MyDialog
 import com.and04.naturealbum.ui.component.MyTopAppBar
-import com.and04.naturealbum.ui.component.RoundedShapeButton
+import com.and04.naturealbum.ui.component.NavigationImageButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+
+const val MAP_BUTTON_BACKGROUND_OUTLINE_SVG = "btn_home_menu_map_background_outline.svg"
 
 @Composable
 fun HomeScreen(
@@ -105,20 +117,40 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .fillMaxSize(),
         ) {
-            InfoContent(
+            MainBackground(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxSize()
+                    .fillMaxWidth()
             )
-            NavigateContent(
-                permissionHandler = permissionHandler,
+
+            ClippingButtonWithFile(
+                context = context,
                 modifier = Modifier
-                    .weight(2f)
-                    .fillMaxSize(),
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                isFromAssets = true,
+                fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
+                text = stringResource(R.string.home_navigate_to_map),
+                textColor = Color.Black,
+                imageResId = R.drawable.btn_home_menu_map_background,
+                onClick = { /* TODO: Navigation 연결 */ }
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
+            )
+
+            NavigateContent(
+                modifier = Modifier
+                    .weight(1.17f)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                permissionHandler = permissionHandler,
                 onNavigateToAlbum = onNavigateToAlbum
             )
         }
@@ -156,40 +188,48 @@ fun HomeScreen(
 }
 
 @Composable
-fun InfoContent(modifier: Modifier) {
-    RoundedShapeButton("TODO", modifier) { /* TODO */ }
+private fun MainBackground(modifier: Modifier) {
+    Image(
+        modifier = modifier,
+        contentScale = ContentScale.FillBounds,
+        imageVector = ImageVector.vectorResource(id = R.drawable.drawable_home_main_background),
+        contentDescription = null
+    )
 }
 
 @Composable
-fun NavigateContent(
-    permissionHandler: PermissionHandler,
+private fun NavigateContent(
     modifier: Modifier = Modifier,
+    permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit
 ) {
-    Column(
+    Row(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        RoundedShapeButton("TODO", modifier) { /* TODO */ }
+        val contentModifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+        NavigationImageButton(
+            text = stringResource(R.string.home_navigate_to_album),
+            modifier = contentModifier,
+            textColor = Color.White,
+            imageVector = ImageVector.vectorResource(id = R.drawable.btn_album_background)
+        ) { onNavigateToAlbum() }
 
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            RoundedShapeButton("TODO", modifier) { onNavigateToAlbum() }
-            RoundedShapeButton("TODO", modifier) {
-                permissionHandler.onClickCamera()
-            }
-        }
+        NavigationImageButton(
+            text = stringResource(R.string.home_navigate_to_camera),
+            modifier = contentModifier,
+            textColor = Color.Black,
+            imageVector = ImageVector.vectorResource(id = R.drawable.btn_camera_background)
+        ) { permissionHandler.onClickCamera() }
     }
-
-    Spacer(modifier = Modifier.padding(bottom = 72.dp))
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
-fun HomePreview() {
+private fun HomePreview() {
     NatureAlbumTheme {
         HomeScreen({})
     }
