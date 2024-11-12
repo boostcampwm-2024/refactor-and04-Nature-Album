@@ -1,7 +1,6 @@
 package com.and04.naturealbum.ui.album
 
 import android.graphics.Color.parseColor
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,7 +65,6 @@ fun AlbumFolderScreen(
     onPhotoClick: (Int) -> Unit = {},
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    Log.d("FFFF", "AlbumFolderScreen")
     LaunchedEffect(selectedAlbumLabel) {
         albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     }
@@ -114,23 +112,20 @@ private fun ItemContainer(
     setLoading: (Boolean) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    Log.d("FFFF", "itemContainer")
     val context = LocalContext.current
     val uiState = albumFolderViewModel.uiState.collectAsState()
     val label = albumFolderViewModel.label.collectAsState()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
-    val coroutinScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
 
     when (uiState.value) {
         is UiState.Loading, UiState.Idle -> {
-            Log.d("FFFF", "now loading")
-            //setLoading(true)
+            setLoading(true)
         }
 
         is UiState.Success -> {
-            Log.d("FFFF", "loading_suc")
-            //setLoading(false)
+            setLoading(false)
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -151,7 +146,8 @@ private fun ItemContainer(
                         backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
                     )
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
                     ) {
                         LazyVerticalStaggeredGrid(
                             columns = StaggeredGridCells.Fixed(2),
@@ -174,15 +170,15 @@ private fun ItemContainer(
                         if (isEditMode()) {
                             Button(
                                 onClick = {
-                                    coroutinScope.launch {
-                                        val job = coroutinScope.async(Dispatchers.IO) {
+                                    coroutineScope.launch {
+                                        val job = coroutineScope.async(Dispatchers.IO) {
                                             setLoading(true)
+                                            delay(1_000)
                                             checkList.value.forEach { photoDetail ->
                                                 saveImageToGallery(
                                                     context = context,
                                                     photoDetail = photoDetail
                                                 )
-                                                delay(1_00)
                                             }
                                         }
                                         job.await()
@@ -226,7 +222,10 @@ private fun Item(
                     .fillMaxWidth()
                     .pointerInput(Unit) {
                         detectTapGestures(
-                            onLongPress = { switchEditMode(true) },
+                            onLongPress = {
+                                isSelected = true
+                                switchEditMode(true)
+                            },
                             onTap = {
                                 if (isEditMode()) {
                                     isSelected = !isSelected
@@ -235,6 +234,8 @@ private fun Item(
                                     } else {
                                         checkList.value -= item
                                     }
+                                } else {
+                                    onPhotoClick(item.id)
                                 }
                             })
                     }
@@ -242,7 +243,7 @@ private fun Item(
                 AsyncImage(
                     model = item.photoUri,
                     contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 if (isSelected) {
