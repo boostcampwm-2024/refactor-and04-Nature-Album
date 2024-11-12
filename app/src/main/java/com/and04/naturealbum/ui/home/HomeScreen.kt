@@ -37,7 +37,8 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @Composable
 fun HomeScreen(
     takePicture: () -> Unit,
-    onNavigateToAlbum: () -> Unit = {}
+    onNavigateToAlbum: () -> Unit,
+    onNavigateToMyPage: () -> Unit
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -101,7 +102,7 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+    Scaffold(topBar = { MyTopAppBar(onNavigateToMyPage) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -191,6 +192,6 @@ fun NavigateContent(
 @Composable
 fun HomePreview() {
     NatureAlbumTheme {
-        HomeScreen({})
+        HomeScreen({}, {}, {})
     }
 }
