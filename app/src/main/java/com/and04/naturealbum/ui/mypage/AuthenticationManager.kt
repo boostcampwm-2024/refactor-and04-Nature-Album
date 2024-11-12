@@ -1,7 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
 import android.content.Context
-import android.graphics.Bitmap.Config
 import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -21,15 +20,18 @@ class AuthenticationManager(private val context: Context) {
     private val auth = Firebase.auth
 
     fun signInWithGoogle(): Flow<AuthResponse> = callbackFlow {
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(BuildConfig.google_web_key) //Web client td
-            .setAutoSelectEnabled(true)
-            .build()
+        try {
 
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
+
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(BuildConfig.google_web_key) //Web client td
+                .setAutoSelectEnabled(true)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
 
             val credentialManager = CredentialManager.create(context)
             val result = credentialManager.getCredential(
@@ -63,12 +65,14 @@ class AuthenticationManager(private val context: Context) {
                     }
                 }
             }
-
+        } catch (e: Exception) {
+            trySend(AuthResponse.Error(e.message.toString()))
+        }
         awaitClose()
     }
 }
 
-interface AuthResponse{
-    data object Success: AuthResponse
-    data class Error(val message: String): AuthResponse
+interface AuthResponse {
+    data object Success : AuthResponse
+    data class Error(val message: String) : AuthResponse
 }
