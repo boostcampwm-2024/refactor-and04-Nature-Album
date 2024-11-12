@@ -4,12 +4,10 @@ import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +38,6 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.utils.parseDrawableSvgFile
 import com.and04.naturealbum.utils.parseSvgFile
 
-
 private fun Path.scale(scaleX: Float, scaleY: Float) {
     val matrix = Matrix().apply {
         reset()
@@ -49,8 +46,7 @@ private fun Path.scale(scaleX: Float, scaleY: Float) {
     transform(matrix)
 }
 
-
-class CustomShape(
+private class SvgOutlineShape(
     private val path: Path,
     private val viewportWidth: Float,
     private val viewportHeight: Float
@@ -74,52 +70,8 @@ class CustomShape(
     }
 }
 
-
 @Composable
-fun HomeMapButton(
-    modifier: Modifier = Modifier,
-    text: String,
-    textColor: Color,
-    onClick: () -> Unit
-) {
-    val pathData =
-        "M341.33,88.24C356.06,80.33 366.08,64.79 366.08,46.9C366.08,21 345.08,0 319.18,0C303.29,0 289.24,7.91 280.76,20H10C4.48,20 0,24.48 0,30V197C0,202.52 4.48,207 10,207H210.59L204.45,218.71H216.76L213.81,224.33H356.96L373,91.36L362.82,92.5L363.64,85.74L341.33,88.24Z"
-    val path = PathParser().parsePathString(pathData).toPath()
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(373f / 225f)
-            .clip(CustomShape(path, 373f, 225f))
-            .clickable { onClick() }
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.btn_home_menu_map_background),
-            contentDescription = stringResource(R.string.home_btn_menu_map_description),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        Text(
-            text = text,
-            modifier = Modifier
-                .padding(start = 16.dp, top = 36.dp),
-            color = textColor
-        )
-    }
-}
-
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Composable
-fun HomeMapButtonPreview() {
-    HomeMapButton(modifier = Modifier.background(Color.Blue), "테스트", Color.Red) {}
-}
-
-
-@Composable
-fun ClippingButton(
+private fun ClippingButton(
     modifier: Modifier = Modifier,
     text: String,
     textColor: Color,
@@ -135,7 +87,7 @@ fun ClippingButton(
     Box(
         modifier = modifier
             .aspectRatio(viewportWidth / viewportHeight)
-            .clip(CustomShape(path, viewportWidth, viewportHeight))
+            .clip(SvgOutlineShape(path, viewportWidth, viewportHeight))
             .clickable { onClick() }
     ) {
         Image(
@@ -211,7 +163,7 @@ fun ClippingButtonWithFile(
     name = "ClippingButtonWithFile Preview (Light Mode)"
 )
 @Composable
-fun ClippingButtonWithFilePreview() {
+private fun ClippingButtonWithFilePreview() {
     val context = LocalContext.current
     ClippingButtonWithFile(
         context = context,

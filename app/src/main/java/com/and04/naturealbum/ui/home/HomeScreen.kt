@@ -188,7 +188,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun MainBackground(modifier: Modifier) {
+private fun MainBackground(modifier: Modifier) {
     Image(
         modifier = modifier,
         contentScale = ContentScale.FillBounds,
@@ -198,7 +198,7 @@ fun MainBackground(modifier: Modifier) {
 }
 
 @Composable
-fun NavigateContent(
+private fun NavigateContent(
     modifier: Modifier = Modifier,
     permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit
@@ -229,7 +229,7 @@ fun NavigateContent(
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
-fun HomePreview() {
+private fun HomePreview() {
     NatureAlbumTheme {
         HomeScreen({})
     }
