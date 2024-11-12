@@ -71,9 +71,12 @@ fun HomeScreen(
             val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
             when {
                 deniedPermissions.isEmpty() -> {
-                    locationHandler.checkLocationSettings { intentSenderRequest ->
-                        locationSettingsLauncher.launch(intentSenderRequest)
-                    }
+                    locationHandler.checkLocationSettings(
+                        takePicture = takePicture,
+                        showGPSActivationDialog = { intentSenderRequest ->
+                            locationSettingsLauncher.launch(intentSenderRequest)
+                        }
+                    )
                 }
 
                 else -> {
@@ -95,9 +98,12 @@ fun HomeScreen(
             context = context,
             activity = activity,
             allPermissionGranted = {
-                locationHandler.checkLocationSettings { intentSenderRequest ->
-                    locationSettingsLauncher.launch(intentSenderRequest)
-                }
+                locationHandler.checkLocationSettings(
+                    takePicture = takePicture,
+                    showGPSActivationDialog = { intentSenderRequest ->
+                        locationSettingsLauncher.launch(intentSenderRequest)
+                    }
+                )
             },
             onRequestPermission = { deniedPermissions ->
                 requestPermissionLauncher.launch(deniedPermissions)

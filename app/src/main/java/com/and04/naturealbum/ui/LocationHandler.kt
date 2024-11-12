@@ -16,7 +16,6 @@ import com.google.android.gms.location.Priority
 
 class LocationHandler(
     private val context: Context,
-    private val takePicture: () -> Unit,
 ) {
 
     private val client by lazy { LocationServices.getSettingsClient(context) }
@@ -34,7 +33,10 @@ class LocationHandler(
         )
     }
 
-    fun checkLocationSettings(showGPSActivationDialog: (IntentSenderRequest) -> Unit) {
+    fun checkLocationSettings(
+        showGPSActivationDialog: (IntentSenderRequest) -> Unit,
+        takePicture: () -> Unit,
+    ) {
         client.checkLocationSettings(builder.build())
             .addOnSuccessListener {
                 takePicture()

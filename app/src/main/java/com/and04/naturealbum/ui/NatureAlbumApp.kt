@@ -42,6 +42,12 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
+    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
+    val locationHandler = remember {
+        LocationHandler(
+            context = context
+        )
+    }
     var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
     var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
@@ -49,6 +55,7 @@ fun NatureAlbumNavHost(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
+                locationHandler.getLocation { location -> lastLocation = location }
                 navController.navigate(NavigateDestination.SavePhoto.route) {
                     launchSingleTop = true
                 }
@@ -78,16 +85,6 @@ fun NatureAlbumNavHost(
         }
     }
 
-    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
-    val locationHandler = remember {
-        LocationHandler(
-            context = context,
-            takePicture = {
-                takePicture()
-            }
-        )
-    }
-
     NavHost(
         navController = navController,
         startDestination = NavigateDestination.Home.route
@@ -101,7 +98,6 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SavePhoto.route) {
-            locationHandler.getLocation { location -> lastLocation = location }
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
