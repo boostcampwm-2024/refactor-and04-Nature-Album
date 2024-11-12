@@ -3,12 +3,17 @@ package com.and04.naturealbum.ui
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
@@ -16,11 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.album.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
-import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -39,15 +42,20 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
-    var imageUri: Uri = remember { Uri.EMPTY }
-    var selectedLabel: Label? = remember { null }
-    var selectedAlbumLabel: Int = remember { 0 }
-    var selectedPhotoDetail: Int = remember { 0 }
+    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
+    val locationHandler = remember {
+        LocationHandler(
+            context = context
+        )
+    }
+    var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
+    var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
+                locationHandler.getLocation { location -> lastLocation = location }
                 navController.navigate(NavigateDestination.SavePhoto.route) {
                     launchSingleTop = true
                 }
@@ -77,16 +85,6 @@ fun NatureAlbumNavHost(
         }
     }
 
-    val locationHandler = remember {
-        LocationHandler(
-            context = context,
-            takePicture = {
-                takePicture()
-            }
-        )
-    }
-
-
     NavHost(
         navController = navController,
         startDestination = NavigateDestination.Home.route
@@ -101,7 +99,7 @@ fun NatureAlbumNavHost(
 
         composable(NavigateDestination.SavePhoto.route) {
             SavePhotoScreen(
-                location = locationHandler.getLocation(),
+                location = lastLocation,
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = {

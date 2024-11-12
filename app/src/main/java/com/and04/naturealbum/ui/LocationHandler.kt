@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Location
 import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
@@ -15,7 +16,6 @@ import com.google.android.gms.location.Priority
 
 class LocationHandler(
     private val context: Context,
-    private val takePicture: () -> Unit,
 ) {
 
     private val client by lazy { LocationServices.getSettingsClient(context) }
@@ -33,7 +33,10 @@ class LocationHandler(
         )
     }
 
-    fun checkLocationSettings(showGPSActivationDialog: (IntentSenderRequest) -> Unit) {
+    fun checkLocationSettings(
+        showGPSActivationDialog: (IntentSenderRequest) -> Unit,
+        takePicture: () -> Unit,
+    ) {
         client.checkLocationSettings(builder.build())
             .addOnSuccessListener {
                 takePicture()
@@ -57,7 +60,7 @@ class LocationHandler(
         }
     }
 
-    fun getLocation() {
+    fun getLocation(onSuccess: (Location) -> Unit) {
         if (!checkPermission()) return
         fusedLocationClient.getCurrentLocation(
             Priority.PRIORITY_BALANCED_POWER_ACCURACY,
@@ -65,6 +68,7 @@ class LocationHandler(
         ).addOnSuccessListener { location ->
             // TODO: location이 null로 오면?
             Log.d("FFFF", "${location.latitude}, ${location.longitude}")
+            onSuccess(location)
         }
     }
 
@@ -72,10 +76,10 @@ class LocationHandler(
         return listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
-        ).all {
+        ).all { permission ->
             ActivityCompat.checkSelfPermission(
                 context,
-                it
+                permission
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
