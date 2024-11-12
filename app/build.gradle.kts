@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -7,6 +9,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlinx-serialization")
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -24,6 +27,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+//        val properties = Properties()
+//        properties.load(project.rootProject.file("local.properties").inputStream())
+//
+//        buildConfigField("String", "google_web_key", properties.getProperty("google_web_key"))
     }
 
     buildTypes {
@@ -44,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -65,6 +74,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -105,6 +115,15 @@ dependencies {
     //firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+
+    //firebase google login
+    implementation(libs.firebase.auth.ktx)
+//    implementation(libs.play.services.auth)
+
+    //Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 }
 
 kapt {
