@@ -12,8 +12,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val auth = Firebase.auth
-        auth.signInAnonymously()
+
+        if(savedInstanceState == null) {
+            val auth = Firebase.auth
+            auth.signInAnonymously()
+        }
 
         setContent {
             NatureAlbumApp()
