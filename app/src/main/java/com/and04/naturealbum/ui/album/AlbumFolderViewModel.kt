@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumFolderViewModel @Inject constructor(
-    private val roomRepository: DataRepository
+    private val roomRepository: DataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState

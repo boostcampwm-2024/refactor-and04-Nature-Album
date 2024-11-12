@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.album
 
 import android.graphics.Color.parseColor
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
@@ -51,10 +52,11 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.savephoto.UiState
-import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -64,10 +66,17 @@ fun AlbumFolderScreen(
     onPhotoClick: (Int) -> Unit = {},
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    albumFolderViewModel.loadFolderData(selectedAlbumLabel)
+    Log.d("FFFF", "AlbumFolderScreen")
+    LaunchedEffect(selectedAlbumLabel) {
+        albumFolderViewModel.loadFolderData(selectedAlbumLabel)
+    }
+
+    var loading by remember { mutableStateOf(false) }
+    val setLoading: (Boolean) -> Unit = { b -> loading = b }
 
     var editMode by remember { mutableStateOf(false) }
     val isEditMode = { editMode }
+
     val switchEditMode = { b: Boolean -> editMode = b }
 
     val checkList = remember { mutableStateOf(setOf<PhotoDetail>()) }
@@ -80,6 +89,14 @@ fun AlbumFolderScreen(
             switchEditMode = switchEditMode,
             isEditMode = isEditMode,
             checkList = checkList,
+            setLoading = setLoading,
+            albumFolderViewModel = albumFolderViewModel,
+        )
+    }
+    if (loading) {
+        RotatingImageLoading(
+            drawalbeRes = R.drawable.fish_loading_image,
+            stringRes = R.string.album_folder_screen_save_text
         )
     }
     BackHandler(enabled = editMode) {
@@ -94,20 +111,26 @@ private fun ItemContainer(
     switchEditMode: (Boolean) -> Unit,
     isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
+    setLoading: (Boolean) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
+    Log.d("FFFF", "itemContainer")
     val context = LocalContext.current
     val uiState = albumFolderViewModel.uiState.collectAsState()
     val label = albumFolderViewModel.label.collectAsState()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
     val coroutinScope = rememberCoroutineScope()
 
+
     when (uiState.value) {
         is UiState.Loading, UiState.Idle -> {
-            //TODO Loading
+            Log.d("FFFF", "now loading")
+            //setLoading(true)
         }
 
         is UiState.Success -> {
+            Log.d("FFFF", "loading_suc")
+            //setLoading(false)
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -153,20 +176,23 @@ private fun ItemContainer(
                                 onClick = {
                                     coroutinScope.launch {
                                         val job = coroutinScope.async(Dispatchers.IO) {
+                                            setLoading(true)
                                             checkList.value.forEach { photoDetail ->
                                                 saveImageToGallery(
                                                     context = context,
                                                     photoDetail = photoDetail
                                                 )
+                                                delay(1_00)
                                             }
                                         }
                                         job.await()
+                                        setLoading(false)
                                         withContext(Dispatchers.Main) { switchEditMode(false) }
                                     }
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(16.dp) // 버튼 여백 설정
+                                    .padding(16.dp)
                             ) {
                                 Text(stringResource(R.string.album_folder_screen_save_button))
                             }
@@ -242,13 +268,5 @@ private fun Item(
                 overflow = TextOverflow.Ellipsis
             )
         }
-    }
-}
-
-@Composable
-@Preview
-private fun ContentPreview() {
-    NatureAlbumTheme {
-        AlbumFolderScreen()
     }
 }
