@@ -6,11 +6,13 @@ import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.savephoto.UiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 class PhotoInfoViewModel @Inject constructor(
     private val roomRepository: DataRepository
 ): ViewModel() {
@@ -35,5 +37,4 @@ class PhotoInfoViewModel @Inject constructor(
             _uiState.emit(UiState.Success)
         }
     }
-
 }
