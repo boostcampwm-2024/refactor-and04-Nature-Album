@@ -34,6 +34,7 @@ class SavePhotoViewModel @Inject constructor(
             val labelId =
                 if (label.id == 0) repository.insertLabel(label).toInt()
                 else label.id
+
             val album = async { repository.getAlbumByLabelId(labelId) }
             val photoDetailId = async {
                 repository.insertPhoto(
@@ -42,11 +43,12 @@ class SavePhotoViewModel @Inject constructor(
                         photoUri = uri,
                         location = "", // TODO
                         description = description,
-                        datetime = System.currentTimeMillis().toString(), // 밀리초?? 아니면 다른형태?
+                        datetime = System.currentTimeMillis().toString(), // TODO : DB Converter 적용후 Long으로 저장
                     )
                 )
             }
             album.await().run {
+                val t = toString()
                 if (isEmpty()) repository.insertPhotoInAlbum(
                     Album(
                         labelId = labelId,

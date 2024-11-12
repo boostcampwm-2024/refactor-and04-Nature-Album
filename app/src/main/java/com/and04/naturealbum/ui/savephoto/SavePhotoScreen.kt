@@ -77,13 +77,12 @@ fun SavePhotoScreen(
     modifier: Modifier = Modifier,
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState.collectAsState() // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     var rememberDescription by rememberSaveable { mutableStateOf(description) }
-    var saveEnable = remember { false }
     if (uiState.value == UiState.Success) {
         onSave()
     }
-    saveEnable = (label != null) && (uiState.value != UiState.Loading)
+
     BackHandler(onBack = onBack)
     Scaffold(
         topBar = {
@@ -145,7 +144,7 @@ fun SavePhotoScreen(
                     stringRes = R.string.save_photo_screen_cancel,
                     onClick = { onBack() })
                 IconTextButton(
-                    enabled = saveEnable,
+                    enabled = (label != null) && (uiState.value != UiState.Loading) && (rememberDescription.isNotBlank()),
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
@@ -307,7 +306,7 @@ private fun Description(
         Spacer(modifier = modifier.size(8.dp))
         TextField(
             value = description,
-            onValueChange = { onValueChange(it) },
+            onValueChange = { text -> onValueChange(text) },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
                 .fillMaxWidth()
