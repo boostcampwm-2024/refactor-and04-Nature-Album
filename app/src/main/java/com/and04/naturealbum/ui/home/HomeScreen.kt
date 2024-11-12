@@ -49,7 +49,6 @@ fun HomeScreen(
     takePicture: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
-    onNavigateToAlbum: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
