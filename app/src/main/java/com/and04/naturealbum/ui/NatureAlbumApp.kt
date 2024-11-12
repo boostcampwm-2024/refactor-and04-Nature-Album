@@ -19,6 +19,7 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -81,7 +82,8 @@ fun NatureAlbumNavHost(
         composable(NavigateDestination.Home.route) {
             HomeScreen(
                 takePicture = { takePicture() },
-                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) }
+                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) }
             )
         }
 
@@ -112,6 +114,10 @@ fun NatureAlbumNavHost(
             selectedLabel = null
             imageUri = Uri.EMPTY
             AlbumScreen()
+        }
+
+        composable(NavigateDestination.MyPage.route) {
+            MyPageScreen()
         }
     }
 }
