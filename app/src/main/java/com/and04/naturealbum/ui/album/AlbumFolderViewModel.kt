@@ -36,7 +36,9 @@ class AlbumFolderViewModel @Inject constructor(
             }
 
             val photoDetailsData = async {
-                _photoDetails.emit(roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId))
+                _photoDetails.emit(
+                    roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
+                )
             }
 
             labelData.await()

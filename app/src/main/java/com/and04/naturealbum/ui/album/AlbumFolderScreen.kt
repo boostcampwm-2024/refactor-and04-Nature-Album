@@ -1,7 +1,15 @@
 package com.and04.naturealbum.ui.album
 
+import android.Manifest
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Color.parseColor
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -45,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
@@ -52,9 +61,10 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.RotatingImageLoading
+import com.and04.naturealbum.ui.home.PermissionDialogState
+import com.and04.naturealbum.ui.home.PermissionDialogs
 import com.and04.naturealbum.ui.savephoto.UiState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -113,10 +123,35 @@ private fun ItemContainer(
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
+    val requestPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { permissionAllow ->
+            if (permissionAllow) {
+                coroutineScope.launch {
+                    setLoading(true)
+                    delay(1_000)
+                    saveImageToGallery(context = context, photoDetails = checkList.value.toList())
+                    setLoading(false)
+                    withContext(Dispatchers.Main) { switchEditMode(false) }
+                }
+            } else {
+                val activity = context as? Activity ?: return@rememberLauncherForActivityResult
+                val hasPreviouslyDeniedPermission =
+                    ActivityCompat.shouldShowRequestPermissionRationale(
+                        activity,
+                        WRITE_EXTERNAL_STORAGE
+                    )
+                if (!hasPreviouslyDeniedPermission)
+                    permissionDialogState = PermissionDialogState.GoToSettings
+            }
+        }
     val uiState = albumFolderViewModel.uiState.collectAsState()
     val label = albumFolderViewModel.label.collectAsState()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
+
 
 
     when (uiState.value) {
@@ -170,21 +205,7 @@ private fun ItemContainer(
                         if (isEditMode()) {
                             Button(
                                 onClick = {
-                                    coroutineScope.launch {
-                                        val job = coroutineScope.async(Dispatchers.IO) {
-                                            setLoading(true)
-                                            delay(1_000)
-                                            checkList.value.forEach { photoDetail ->
-                                                saveImageToGallery(
-                                                    context = context,
-                                                    photoDetail = photoDetail
-                                                )
-                                            }
-                                        }
-                                        job.await()
-                                        setLoading(false)
-                                        withContext(Dispatchers.Main) { switchEditMode(false) }
-                                    }
+                                    requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -198,6 +219,17 @@ private fun ItemContainer(
             }
         }
     }
+
+    PermissionDialogs(
+        permissionDialogState = permissionDialogState,
+        onDismiss = { permissionDialogState = PermissionDialogState.None },
+        onGoToSettings = {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+                context.startActivity(this)
+            }
+        }
+    )
 }
 
 @Composable
@@ -225,6 +257,7 @@ private fun Item(
                             onLongPress = {
                                 isSelected = true
                                 switchEditMode(true)
+                                checkList.value += item
                             },
                             onTap = {
                                 if (isEditMode()) {
@@ -271,3 +304,5 @@ private fun Item(
         }
     }
 }
+
+const val WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE
