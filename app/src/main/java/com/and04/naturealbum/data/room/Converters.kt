@@ -13,7 +13,7 @@ class Converters {
         return dateTime?.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 
-    // UTC -> Local 매핑되는지 확인 필요
+    // TODO: UTC -> Local 매핑되는지 확인 필요
     @TypeConverter
     fun stringToLocalDateTime(dateTimeString: String?): LocalDateTime? {
         return dateTimeString?.let { timeString ->

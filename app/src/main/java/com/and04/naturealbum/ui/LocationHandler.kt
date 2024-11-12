@@ -74,10 +74,10 @@ class LocationHandler(
         return listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
-        ).all {
+        ).all { permission ->
             ActivityCompat.checkSelfPermission(
                 context,
-                it
+                permission
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
