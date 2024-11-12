@@ -61,22 +61,24 @@ fun AlbumFolderScreen(
 ) {
     albumFolderViewModel.loadFolderData(selectedAlbumLabel)
 
-    val editMode = remember { mutableStateOf(false) }
+    var editMode by remember { mutableStateOf(false) }
+    val isEditMode = { editMode }
+    val switchEditMode = { b: Boolean -> editMode = b }
+
     val checkList = remember { mutableStateOf(setOf<PhotoDetail>()) }
-    if (!editMode.value) checkList.value = setOf()
+    if (!editMode) checkList.value = setOf()
 
     Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
             onPhotoClick = onPhotoClick,
-            editMode = editMode,
+            switchEditMode = switchEditMode,
+            isEditMode = isEditMode,
             checkList = checkList,
         )
     }
-    BackHandler(enabled = editMode.value) {
-        if (editMode.value) {
-            editMode.value = false
-        }
+    BackHandler(enabled = editMode) {
+        if (editMode) editMode = false
     }
 }
 
@@ -84,7 +86,8 @@ fun AlbumFolderScreen(
 private fun ItemContainer(
     innerPaddingValues: PaddingValues,
     onPhotoClick: (Int) -> Unit,
-    editMode: MutableState<Boolean>,
+    switchEditMode: (Boolean) -> Unit,
+    isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
@@ -128,20 +131,21 @@ private fun ItemContainer(
                             horizontalArrangement = Arrangement.spacedBy(28.dp),
                             verticalItemSpacing = 16.dp
                         ) {
-                            items(photoDetails.value) { photoDetail ->
+                            items(photoDetails.value, key = { item -> item.id }) { photoDetail ->
                                 Item(
                                     item = photoDetail,
                                     onPhotoClick = onPhotoClick,
-                                    editMode = editMode,
+                                    switchEditMode = switchEditMode,
+                                    isEditMode = isEditMode,
                                     checkList = checkList,
                                 )
                             }
                         }
-                        if (editMode.value) {
+                        if (isEditMode()) {
                             Button(
                                 onClick = {
                                     Log.d("FFFF", "${checkList.value.joinToString(",")}")
-                                    editMode.value = false
+                                    switchEditMode(false)
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -161,13 +165,12 @@ private fun ItemContainer(
 private fun Item(
     item: PhotoDetail,
     onPhotoClick: (Int) -> Unit,
-    editMode: MutableState<Boolean>,
+    switchEditMode: (Boolean) -> Unit,
+    isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     var isSelected by remember { mutableStateOf(false) }
-    if (!editMode.value && isSelected) {
-        isSelected = false
-    }
+    if (!isEditMode() && isSelected) isSelected = false
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,9 +183,9 @@ private fun Item(
                     .fillMaxWidth()
                     .pointerInput(Unit) {
                         detectTapGestures(
-                            onLongPress = { editMode.value = !editMode.value },
+                            onLongPress = { switchEditMode(true) },
                             onTap = {
-                                if (editMode.value) {
+                                if (isEditMode()) {
                                     isSelected = !isSelected
                                     if (isSelected) {
                                         checkList.value += item
@@ -199,7 +202,7 @@ private fun Item(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                if (editMode.value && isSelected) {
+                if (isSelected) {
                     Box(
                         modifier = Modifier
                             .matchParentSize()
@@ -232,87 +235,3 @@ private fun ContentPreview() {
         AlbumFolderScreen()
     }
 }
-
-data class TmpItem(
-    val id: Int,
-    val img: Int,
-    val descroption: String,
-)
-
-val tmpItems = listOf(
-    TmpItem(
-        id = 1,
-        img = R.drawable.cat_dummy,
-        descroption = "사진 11111111111111111111111111111111111111111111",
-    ),
-    TmpItem(
-        id = 2,
-        img = R.drawable.sample_image_01,
-        descroption = "사진 22222",
-    ),
-    TmpItem(
-        id = 3,
-        img = R.drawable.sample_image_06,
-        descroption = "사진 3333",
-    ),
-    TmpItem(
-        id = 4,
-        img = R.drawable.sample_image_03,
-        descroption = "사진 4444",
-    ),
-    TmpItem(
-        id = 5,
-        img = R.drawable.sample_image_06,
-        descroption = "사진 5555",
-    ),
-    TmpItem(
-        id = 6,
-        img = R.drawable.sample_image_05,
-        descroption = "6",
-    ),
-    TmpItem(
-        id = 7,
-        img = R.drawable.sample_image_06,
-        descroption = "7",
-    ),
-    TmpItem(
-        id = 8,
-        img = R.drawable.sample_image_07,
-        descroption = "8",
-    ),
-    TmpItem(
-        id = 9,
-        img = R.drawable.sample_image_06,
-        descroption = "9",
-    ),
-    TmpItem(
-        id = 10,
-        img = R.drawable.sample_image_07,
-        descroption = "10",
-    ),
-    TmpItem(
-        id = 11,
-        img = R.drawable.sample_image_06,
-        descroption = "11",
-    ),
-    TmpItem(
-        id = 12,
-        img = R.drawable.sample_image_07,
-        descroption = "12",
-    ),
-    TmpItem(
-        id = 13,
-        img = R.drawable.sample_image_06,
-        descroption = "13",
-    ),
-    TmpItem(
-        id = 14,
-        img = R.drawable.sample_image_07,
-        descroption = "14",
-    ),
-    TmpItem(
-        id = 15,
-        img = R.drawable.sample_image_06,
-        descroption = "15",
-    ),
-)
