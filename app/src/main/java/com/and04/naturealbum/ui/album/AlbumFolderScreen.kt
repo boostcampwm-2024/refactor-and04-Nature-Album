@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -197,7 +196,6 @@ private fun Item(
                 AsyncImage(
                     model = item.photoUri,
                     contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
-                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
