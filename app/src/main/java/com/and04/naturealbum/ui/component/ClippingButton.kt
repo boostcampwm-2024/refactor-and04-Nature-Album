@@ -95,7 +95,7 @@ fun HomeMapButton(
     ) {
         Image(
             painter = painterResource(id = R.drawable.btn_home_menu_map_background),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.home_btn_menu_map_description),
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
@@ -195,7 +195,7 @@ fun ClippingButtonWithFile(
             onClick = onClick
         )
     } ?: run {
-        Text(text = stringResource(R.string.text_loading))
+        Text(text = stringResource(R.string.home_text_loading))
     }
 }
 
@@ -216,7 +216,7 @@ fun ClippingButtonWithFilePreview() {
     ClippingButtonWithFile(
         context = context,
         isFromAssets = true,
-        fileNameOrResId = stringResource(R.string.btn_home_menu_map_background_outline_svg),
+        fileNameOrResId = "btn_home_menu_map_background_outline.svg",
         text = stringResource(R.string.home_navigate_to_map),
         textColor = Color.Black,
         imageResId = R.drawable.btn_home_menu_map_background,

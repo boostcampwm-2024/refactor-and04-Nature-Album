@@ -44,6 +44,8 @@ import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.component.NavigationImageButton
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
+const val MAP_BUTTON_BACKGROUND_OUTLINE_SVG = "btn_home_menu_map_background_outline.svg"
+
 @Composable
 fun HomeScreen(
     takePicture: () -> Unit,
@@ -130,7 +132,7 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 isFromAssets = true,
-                fileNameOrResId = stringResource(R.string.btn_home_menu_map_background_outline_svg),
+                fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
                 text = stringResource(R.string.home_navigate_to_map),
                 textColor = Color.Black,
                 imageResId = R.drawable.btn_home_menu_map_background,
@@ -209,17 +211,17 @@ fun NavigateContent(
             .weight(1f)
             .fillMaxWidth()
         NavigationImageButton(
-            stringResource(R.string.home_navigate_to_album),
-            contentModifier,
-            Color.White,
-            ImageVector.vectorResource(id = R.drawable.btn_album_background)
+            text = stringResource(R.string.home_navigate_to_album),
+            modifier = contentModifier,
+            textColor = Color.White,
+            imageVector = ImageVector.vectorResource(id = R.drawable.btn_album_background)
         ) { onNavigateToAlbum() }
 
         NavigationImageButton(
-            stringResource(R.string.home_navigate_to_camera),
-            contentModifier,
-            Color.Black,
-            ImageVector.vectorResource(id = R.drawable.btn_camera_background)
+            text = stringResource(R.string.home_navigate_to_camera),
+            modifier = contentModifier,
+            textColor = Color.Black,
+            imageVector = ImageVector.vectorResource(id = R.drawable.btn_camera_background)
         ) { permissionHandler.onClickCamera() }
     }
 }
