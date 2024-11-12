@@ -78,7 +78,7 @@ fun AlbumFolderScreen(
     LaunchedEffect(selectedAlbumLabel) {
         albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     }
-
+    val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
     val setLoading: (Boolean) -> Unit = { b -> loading = b }
 
@@ -98,6 +98,14 @@ fun AlbumFolderScreen(
             isEditMode = isEditMode,
             checkList = checkList,
             setLoading = setLoading,
+            saveImagesWithLoading = {
+                saveImagesWithLoading(
+                    context = context,
+                    checkList.value.toList(),
+                    setLoading,
+                    switchEditMode
+                )
+            },
             albumFolderViewModel = albumFolderViewModel,
         )
     }
@@ -120,6 +128,7 @@ private fun ItemContainer(
     isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
     setLoading: (Boolean) -> Unit,
+    saveImagesWithLoading: () -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -130,13 +139,7 @@ private fun ItemContainer(
             contract = ActivityResultContracts.RequestPermission()
         ) { permissionAllow ->
             if (permissionAllow) {
-                coroutineScope.launch {
-                    setLoading(true)
-                    delay(1_000)
-                    saveImageToGallery(context = context, photoDetails = checkList.value.toList())
-                    setLoading(false)
-                    withContext(Dispatchers.Main) { switchEditMode(false) }
-                }
+                saveImagesWithLoading()
             } else {
                 val activity = context as? Activity ?: return@rememberLauncherForActivityResult
                 val hasPreviouslyDeniedPermission =
@@ -205,7 +208,11 @@ private fun ItemContainer(
                         if (isEditMode()) {
                             Button(
                                 onClick = {
-                                    requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
+                                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+                                        requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
+                                    } else {
+                                        saveImagesWithLoading()
+                                    }
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)

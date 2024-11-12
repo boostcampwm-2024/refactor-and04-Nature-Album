@@ -10,12 +10,31 @@ import androidx.core.net.toUri
 import com.and04.naturealbum.data.room.PhotoDetail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
-fun saveImageToGallery(context: Context, photoDetails: List<PhotoDetail>) {
+
+fun saveImagesWithLoading(
+    context: Context,
+    photoDetails: List<PhotoDetail>,
+    setLoading: (Boolean) -> Unit,
+    switchEditMode: (Boolean) -> Unit,
+) {
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
+    coroutineScope.launch {
+        setLoading(true)
+        delay(1_000)
+        saveImage(context, photoDetails)
+        setLoading(false)
+        withContext(Dispatchers.Main) { switchEditMode(false) }
+    }
+}
+
+fun saveImage(context: Context, photoDetails: List<PhotoDetail>) {
     val resolver = context.contentResolver
     CoroutineScope(Dispatchers.IO).launch {
         photoDetails.forEach { photoDetail ->
