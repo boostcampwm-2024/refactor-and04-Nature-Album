@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
@@ -12,6 +13,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 sealed class UiState {
@@ -28,7 +31,13 @@ class SavePhotoViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    fun savePhoto(uri: String, label: Label, description: String) {
+    fun savePhoto(
+        uri: String,
+        label: Label,
+        location: Location,
+        description: String,
+        isRepresented: Boolean
+    ) {
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val labelId =
@@ -41,21 +50,28 @@ class SavePhotoViewModel @Inject constructor(
                     PhotoDetail(
                         labelId = labelId,
                         photoUri = uri,
-                        location = "", // TODO
+                        latitude = location.latitude,
+                        longitude = location.longitude,
                         description = description,
-                        datetime = System.currentTimeMillis().toString(), // TODO : DB Converter 적용후 Long으로 저장
+                        datetime = LocalDateTime.now(ZoneId.of("UTC")),
                     )
                 )
             }
             album.await().run {
-                val t = toString()
                 if (isEmpty()) repository.insertPhotoInAlbum(
                     Album(
                         labelId = labelId,
                         photoDetailId = photoDetailId.await().toInt()
                     )
                 )
-                // TODO: 대표 이미지 수정
+                else if (isRepresented)
+                    repository.updateAlbum(
+                        first().copy(
+                            photoDetailId = photoDetailId.await().toInt()
+                        )
+                    )
+                else {
+                }
             }
             _uiState.emit(UiState.Success)
         }

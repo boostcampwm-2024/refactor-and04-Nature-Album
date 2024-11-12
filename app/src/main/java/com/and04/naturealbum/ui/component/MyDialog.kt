@@ -14,30 +14,35 @@ import com.and04.naturealbum.R
 
 @Composable
 fun MyDialog(
-    dialogData: DialogData,
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    @StringRes dialogTitle: Int? = null,
+    @StringRes dialogText: Int? = null,
+    @DrawableRes icon: Int? = null,
+    @StringRes iconDescription: Int? = null,
 ) {
     AlertDialog(
         icon = {
-            if (dialogData.icon != null && dialogData.iconDescription != null) {
+            if (icon != null && iconDescription != null) {
                 Icon(
-                    painter = painterResource(dialogData.icon),
-                    contentDescription = stringResource(dialogData.iconDescription)
+                    painter = painterResource(icon),
+                    contentDescription = stringResource(iconDescription)
                 )
             }
         },
         title = {
-            dialogData.dialogTitle?.let { title -> Text(text = stringResource(title)) }
+            dialogTitle?.let { title -> Text(text = stringResource(title)) }
         },
         text = {
-            dialogData.dialogText?.let { text -> Text(text = stringResource(text)) }
+            dialogText?.let { text -> Text(text = stringResource(text)) }
         },
         onDismissRequest = {
-            dialogData.onDismissRequest()
+            onDismissRequest()
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    dialogData.onConfirmation()
+                    onConfirmation()
                 }
             ) {
                 Text(stringResource(R.string.dialog_confirm_button))
@@ -46,7 +51,7 @@ fun MyDialog(
         dismissButton = {
             TextButton(
                 onClick = {
-                    dialogData.onDismissRequest()
+                    onDismissRequest()
                 }
             ) {
                 Text(stringResource(R.string.dialog_dismiss_button))
@@ -54,12 +59,3 @@ fun MyDialog(
         }
     )
 }
-
-data class DialogData(
-    val onDismissRequest: () -> Unit = {},
-    val onConfirmation: () -> Unit = {},
-    @StringRes val dialogTitle: Int? = null,
-    @StringRes val dialogText: Int? = null,
-    @DrawableRes val icon: Int? = null,
-    @StringRes val iconDescription: Int? = null,
-)
