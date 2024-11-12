@@ -8,6 +8,9 @@ pluginManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://repository.map.naver.com/archive/maven")
+        }
         gradlePluginPortal()
     }
 }
@@ -16,6 +19,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://repository.map.naver.com/archive/maven")
+        }
     }
 }
 

@@ -22,4 +22,6 @@
     <string name="save_photo_screen_select_label">라벨을 선택해주세요.</string>
     <string name="save_photo_screen_description">설명</string>
     <string name="save_photo_screen_description_about_photo">사진에 대한 설명을 추가할 수 있습니다.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
