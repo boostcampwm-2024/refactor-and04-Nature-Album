@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
@@ -30,7 +31,7 @@ class SavePhotoViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
-    fun savePhoto(uri: String, label: Label, description: String) {
+    fun savePhoto(uri: String, label: Label, location: Location, description: String) {
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val labelId =
@@ -43,7 +44,8 @@ class SavePhotoViewModel @Inject constructor(
                     PhotoDetail(
                         labelId = labelId,
                         photoUri = uri,
-                        location = "", // TODO
+                        latitude = location.latitude,
+                        longitude = location.longitude,
                         description = description,
                         datetime = LocalDateTime.now(ZoneId.of("UTC")),
                     )

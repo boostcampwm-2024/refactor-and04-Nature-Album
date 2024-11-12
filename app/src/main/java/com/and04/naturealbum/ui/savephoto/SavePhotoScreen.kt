@@ -2,6 +2,8 @@ package com.and04.naturealbum.ui.savephoto
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.location.Location
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -67,7 +69,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
-    location: Any,
+    location: Location?,
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -152,7 +154,8 @@ fun SavePhotoScreen(
                         viewModel.savePhoto(
                             uri = model.toString(),
                             label = label!!,
-                            description = rememberDescription
+                            description = rememberDescription,
+                            location = location!! // TODO : Null 처리 필요
                         )
                     })
             }
@@ -322,7 +325,7 @@ private fun Description(
 private fun ScreenPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            location = "",
+            location = null,
             model = R.drawable.cat_dummy,
             label = Label(0, "0000FF", "cat"),
             onBack = { },
@@ -337,7 +340,7 @@ private fun ScreenPreview() {
 private fun ScreenEmptyPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            location = "",
+            location = null,
             model = R.drawable.cat_dummy,
             onBack = { },
             onSave = {},
@@ -351,7 +354,7 @@ private fun ScreenEmptyPreview() {
 private fun ScreenDescriptionPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            location = "",
+            location = null,
             model = R.drawable.cat_dummy,
             description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +

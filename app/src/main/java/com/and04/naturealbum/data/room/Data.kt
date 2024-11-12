@@ -54,7 +54,8 @@ data class PhotoDetail(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "label_id") val labelId: Int,
     @ColumnInfo(name = "photo_uri") val photoUri: String,
-    @ColumnInfo(name = "location") val location: String,
+    @ColumnInfo(name = "latitude") val latitude: Double,
+    @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "datetime") val datetime: LocalDateTime
 )

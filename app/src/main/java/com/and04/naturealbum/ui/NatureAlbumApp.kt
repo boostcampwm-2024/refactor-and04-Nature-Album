@@ -3,6 +3,7 @@ package com.and04.naturealbum.ui
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +78,7 @@ fun NatureAlbumNavHost(
         }
     }
 
+    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
     val locationHandler = remember {
         LocationHandler(
             context = context,
@@ -84,7 +87,6 @@ fun NatureAlbumNavHost(
             }
         )
     }
-
 
     NavHost(
         navController = navController,
@@ -99,8 +101,9 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SavePhoto.route) {
+            locationHandler.getLocation { location -> lastLocation = location }
             SavePhotoScreen(
-                location = locationHandler.getLocation(),
+                location = lastLocation,
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = {
