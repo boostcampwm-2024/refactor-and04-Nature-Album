@@ -3,6 +3,7 @@ package com.and04.naturealbum.ui.albumfolder
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color.parseColor
 import android.net.Uri
 import android.provider.Settings
@@ -34,16 +35,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
@@ -67,16 +70,23 @@ fun AlbumFolderScreen(
     onPhotoClick: (Int) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(selectedAlbumLabel) { albumFolderViewModel.loadFolderData(selectedAlbumLabel) }
+    val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(selectedAlbumLabel) {
+        if (!isDataLoaded.value) {
+            albumFolderViewModel.loadFolderData(selectedAlbumLabel)
+            isDataLoaded.value = true
+        }
+    }
+
     val context = LocalContext.current
-    var imgDownLoading by remember { mutableStateOf(false) }
+    var imgDownLoading by rememberSaveable { mutableStateOf(false) }
     val setLoading = { isImgDownLoading: Boolean -> imgDownLoading = isImgDownLoading }
 
-    var editMode by remember { mutableStateOf(false) }
+    var editMode by rememberSaveable { mutableStateOf(false) }
     val isEditMode = { editMode }
     val switchEditMode = { isEditModeEnabled: Boolean -> editMode = isEditModeEnabled }
 
-    val checkList = remember { mutableStateOf(setOf<PhotoDetail>()) }
+    val checkList = rememberSaveable { mutableStateOf(setOf<PhotoDetail>()) }
     if (!editMode) checkList.value = setOf()
 
     val saveImagesWithLoading = {
@@ -157,11 +167,14 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    val uiState = albumFolderViewModel.uiState.collectAsState()
-    val label = albumFolderViewModel.label.collectAsState()
-    val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
+    val configuration = LocalConfiguration.current
+    val gridColumnCount =
+        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 4
+    val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
+    val label = albumFolderViewModel.label.collectAsStateWithLifecycle()
+    val photoDetails = albumFolderViewModel.photoDetails.collectAsStateWithLifecycle()
 
-    var selectAll by remember { mutableStateOf(false) }
+    var selectAll by rememberSaveable { mutableStateOf(false) }
     val onClickAllBtn = { isAllSelected: Boolean ->
         selectAll = isAllSelected
         if (isAllSelected) checkList.value = photoDetails.value.toSet()
@@ -199,7 +212,7 @@ private fun ItemContainer(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(2),
+                            columns = StaggeredGridCells.Fixed(gridColumnCount),
                             state = rememberLazyStaggeredGridState(),
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(24.dp),
@@ -246,7 +259,7 @@ private fun PhotoDetailItem(
     checkList: MutableState<Set<PhotoDetail>>,
     selectAll: Boolean,
 ) {
-    var isSelected by remember { mutableStateOf(selectAll) }
+    var isSelected by rememberSaveable { mutableStateOf(selectAll) }
     LaunchedEffect(selectAll) { isSelected = selectAll }
     if (!isEditMode()) isSelected = false
 
@@ -302,7 +315,7 @@ private fun PhotoDetailItem(
 
 @Composable
 fun PhotoDetailImage(photoDetail: PhotoDetail) {
-    val rememberedImage = remember(photoDetail.photoUri) { photoDetail.photoUri }
+    val rememberedImage = rememberSaveable(photoDetail.photoUri) { photoDetail.photoUri }
     AsyncImage(
         model = rememberedImage,
         contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
