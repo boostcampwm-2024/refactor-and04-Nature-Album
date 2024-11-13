@@ -22,7 +22,7 @@ fun MyPageScreen() {
         authenticationManager.signInWithGoogle()
             .onEach { response ->
                 if (response is AuthResponse.Success) {
-                    TODO()
+                    // TODO()
                 }
             }
             .launchIn(coroutineScope)

@@ -21,6 +21,14 @@ class AuthenticationManager(private val context: Context) {
 
     fun signInWithGoogle(): Flow<AuthResponse> = callbackFlow {
         try {
+            val currentUser = auth.currentUser
+
+            if (currentUser?.isAnonymous == false) { // 이미 로그인한 사용자
+                trySend(AuthResponse.Success) // or Error
+                awaitClose() // TODO 필요성 확인
+                return@callbackFlow
+            }
+
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(BuildConfig.google_web_key) //Web client td
@@ -48,19 +56,27 @@ class AuthenticationManager(private val context: Context) {
                             null
                         )
 
-                        auth.signInWithCredential(firebaseCredential)
-                            .addOnCompleteListener { authResult ->
-                                if (authResult.isSuccessful) {
-                                    trySend(AuthResponse.Success)
-                                    val user = authResult.result.user
-                                    user?.let { user ->
-                                        Log.d("AuthenticationManager", "${user.email}")
-                                    }
-
-                                } else {
-                                    Log.d("AuthenticationManager", "${authResult.exception}")
+                        currentUser?.let { anonymousUser ->
+                            anonymousUser.linkWithCredential(firebaseCredential) // 익명회원 -> 구글 전환 시도
+                                .addOnSuccessListener { trySend(AuthResponse.Success) }
+                                .addOnFailureListener { // 구글계정이 이미 가입되어있을때 : 익명계정 삭제후 로그인
+                                    currentUser.delete()
+                                    auth.signInWithCredential(firebaseCredential)
+                                        .addOnSuccessListener { trySend(AuthResponse.Success) }
+                                        .addOnFailureListener { failureResult ->
+                                            trySend(
+                                                AuthResponse.Error(
+                                                    failureResult.message.toString()
+                                                )
+                                            )
+                                        }
                                 }
-                            }
+                        }
+                            ?: auth.signInWithCredential(firebaseCredential) // 앱시작시 네트워크 문제등 익명 로그인 실패시
+                                .addOnSuccessListener { trySend(AuthResponse.Success) }
+                                .addOnFailureListener { failureResult ->
+                                    trySend(AuthResponse.Error(failureResult.message.toString()))
+                                }
 
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.d("AuthenticationManager", "error")
