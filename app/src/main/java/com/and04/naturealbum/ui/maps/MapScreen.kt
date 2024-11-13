@@ -11,13 +11,22 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.overlay.Marker
 
 @Composable
-fun MapScreen(modifier: Modifier = Modifier) {
+fun MapScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MapScreenViewModel = hiltViewModel(),
+) {
+    val photos = viewModel.photos.collectAsStateWithLifecycle()
     // 현재 Context를 가져와 MapView 초기화
     val context = LocalContext.current
     // 현재 LifecycleOwner를 가져와 생명주기 관리에 사용
-    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner: LifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     // MapView를 Compose에서 사용할 수 있도록 rememberSaveable을 사용하여 상태를 관리
     // 구성 변경 시에도 MapView가 재생성되지 않고 유지
@@ -63,6 +72,12 @@ fun MapScreen(modifier: Modifier = Modifier) {
             // TODO: 지도가 준비된 후 추가 설정을 수행
             naverMap.minZoom = 10.0
             naverMap.maxZoom = 18.0
+            photos.value.map { photoDetail ->
+                Marker().apply {
+                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
+                    map = naverMap
+                } }
         }
+
     }
 }
