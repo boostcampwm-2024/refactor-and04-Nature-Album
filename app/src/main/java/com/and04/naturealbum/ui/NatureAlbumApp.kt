@@ -3,12 +3,17 @@ package com.and04.naturealbum.ui
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
@@ -17,8 +22,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.album.AlbumScreen
+import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.mypage.MyPageScreen
+import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -37,13 +45,22 @@ fun NatureAlbumNavHost(
     navController: NavHostController,
 ) {
     val context = LocalContext.current
-    var imageUri: Uri = remember { Uri.EMPTY }
-    var selectedLabel: Label? = remember { null }
+    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
+    var selectedAlbumLabel: Int = remember { 0 }
+    var selectedPhotoDetail: Int = remember { 0 }
+    val locationHandler = remember {
+        LocationHandler(
+            context = context
+        )
+    }
+    var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
+    var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
+                locationHandler.getLocation { location -> lastLocation = location }
                 navController.navigate(NavigateDestination.SavePhoto.route) {
                     launchSingleTop = true
                 }
@@ -73,20 +90,22 @@ fun NatureAlbumNavHost(
         }
     }
 
-
     NavHost(
         navController = navController,
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
             HomeScreen(
+                locationHandler = locationHandler,
                 takePicture = { takePicture() },
-                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) }
+                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) }
             )
         }
 
         composable(NavigateDestination.SavePhoto.route) {
             SavePhotoScreen(
+                location = lastLocation,
                 model = imageUri,
                 onBack = { takePicture() },
                 onSave = {
@@ -102,16 +121,37 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen {
-                selectedLabel = it
+            LabelSearchScreen { label ->
+                selectedLabel = label
                 navController.popBackStack()
             }
         }
 
         composable(NavigateDestination.Album.route) {
-            selectedLabel = null
-            imageUri = Uri.EMPTY
-            AlbumScreen()
+            AlbumScreen(
+                onLabelClick = { labelId ->
+                    selectedAlbumLabel = labelId
+                    navController.navigate(NavigateDestination.AlbumFolder.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.AlbumFolder.route) {
+            AlbumFolderScreen(
+                selectedAlbumLabel,
+                onPhotoClick = { labelId ->
+                    selectedPhotoDetail = labelId
+                    navController.navigate(NavigateDestination.PhotoInfo.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.PhotoInfo.route) {
+            PhotoInfo(selectedPhotoDetail)
+        }
+
+        composable(NavigateDestination.MyPage.route) {
+            MyPageScreen()
         }
     }
 }

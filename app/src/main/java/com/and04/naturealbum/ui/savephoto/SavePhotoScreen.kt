@@ -2,8 +2,11 @@ package com.and04.naturealbum.ui.savephoto
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.location.Location
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -40,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,6 +68,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
+    location: Location?,
     model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -74,10 +76,11 @@ fun SavePhotoScreen(
     description: String = "",
     label: Label? = null,
     modifier: Modifier = Modifier,
-    viewModel: SavePhotoViewModel = hiltViewModel()
+    viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsState() // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     var rememberDescription by rememberSaveable { mutableStateOf(description) }
+    var isRepresented by rememberSaveable { mutableStateOf(false) }
     if (uiState.value == UiState.Success) {
         onSave()
     }
@@ -127,7 +130,11 @@ fun SavePhotoScreen(
                 onValueChange = { newDescription -> rememberDescription = newDescription }
             )
 
-            ToggleButton(selected = false, modifier = modifier)
+            ToggleButton(
+                selected = isRepresented,
+                onClick = { isRepresented = !isRepresented },
+                modifier = modifier
+            )
 
             Spacer(modifier = modifier.size(36.dp))
             Row(
@@ -143,7 +150,7 @@ fun SavePhotoScreen(
                     stringRes = R.string.save_photo_screen_cancel,
                     onClick = { onBack() })
                 IconTextButton(
-                    enabled = (label != null) && (uiState.value != UiState.Loading) && (rememberDescription.isNotBlank()),
+                    enabled = (label != null) && (uiState.value != UiState.Loading),
                     modifier = modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
@@ -151,7 +158,9 @@ fun SavePhotoScreen(
                         viewModel.savePhoto(
                             uri = model.toString(),
                             label = label!!,
-                            description = rememberDescription
+                            description = rememberDescription,
+                            location = location!!, // TODO : Null 처리 필요
+                            isRepresented = isRepresented
                         )
                     })
             }
@@ -166,7 +175,7 @@ private fun IconTextButton(
     imageVector: ImageVector,
     modifier: Modifier = Modifier,
     @StringRes stringRes: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Button(
         enabled = enabled,
@@ -196,24 +205,25 @@ private fun IconTextButton(
 @Composable
 private fun ToggleButton(
     selected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Spacer(modifier = modifier.size(24.dp))
     Row(
         modifier = modifier
             .padding(vertical = 8.dp)
-            .selectable(
-                selected = selected,
-                onClick = { /*TODO()*/ }
+            .clickable(
+                onClick = { onClick() }
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RadioButton(
             selected = selected,
-            {},
+            onClick = { onClick() },
             modifier = modifier
                 .size(24.dp)
+                .focusable(false),
         )
         Text(stringResource(R.string.save_photo_screen_set_represent))
     }
@@ -223,7 +233,7 @@ private fun ToggleButton(
 private fun LabelSelection(
     label: Label?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     Column(modifier = modifier) {
@@ -265,7 +275,7 @@ private fun LabelSelection(
                     label?.let {
                         val backgroundColor = Color(label.backgroundColor.toLong(16))
                         SuggestionChip(
-                            onClick = {},
+                            onClick = { onClick() },
                             label = {
                                 Text(text = label.name)
                             },
@@ -293,7 +303,7 @@ private fun LabelSelection(
 private fun Description(
     description: String,
     modifier: Modifier,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
 ) {
     Column(modifier = modifier) {
         Text(
@@ -321,7 +331,8 @@ private fun Description(
 private fun ScreenPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            model = R.drawable.cat_dummy,
+            location = null,
+            model = R.drawable.fish_loading_image,
             label = Label(0, "0000FF", "cat"),
             onBack = { },
             onSave = {},
@@ -334,7 +345,12 @@ private fun ScreenPreview() {
 @Composable
 private fun ScreenEmptyPreview() {
     NatureAlbumTheme {
-        SavePhotoScreen(model = R.drawable.cat_dummy, onBack = { }, onSave = {}, onLabelSelect = {})
+        SavePhotoScreen(
+            location = null,
+            model = R.drawable.fish_loading_image,
+            onBack = { },
+            onSave = {},
+            onLabelSelect = {})
     }
 }
 
@@ -344,7 +360,8 @@ private fun ScreenEmptyPreview() {
 private fun ScreenDescriptionPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
-            model = R.drawable.cat_dummy,
+            location = null,
+            model = R.drawable.fish_loading_image,
             description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
                     "그 아래는 스크롤이 되도록 해보아요\n" +
