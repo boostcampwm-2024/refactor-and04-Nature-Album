@@ -151,7 +151,7 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen()
+            MyPageScreen(navigateToHome = { navController.navigate(NavigateDestination.Home.route) })
         }
     }
 }
