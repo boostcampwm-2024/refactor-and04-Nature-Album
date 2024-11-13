@@ -126,7 +126,6 @@ dependencies {
 
     // Naver Maps
     implementation(libs.map.sdk)
-    implementation("androidx.fragment:fragment-ktx:1.8.5")
 }
 
 kapt {
