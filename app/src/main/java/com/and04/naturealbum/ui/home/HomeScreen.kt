@@ -48,6 +48,7 @@ fun HomeScreen(
     locationHandler: LocationHandler,
     takePicture: () -> Unit,
     onNavigateToAlbum: () -> Unit,
+    onNavigateToMap: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -135,7 +136,7 @@ fun HomeScreen(
                 text = stringResource(R.string.home_navigate_to_map),
                 textColor = Color.Black,
                 imageResId = R.drawable.btn_home_menu_map_background,
-                onClick = { /* TODO: Navigation 연결 */ }
+                onClick = { onNavigateToMap() }
             )
 
             Spacer(
