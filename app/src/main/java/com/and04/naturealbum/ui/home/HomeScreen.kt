@@ -113,7 +113,7 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(topBar = { MyTopAppBar(onNavigateToMyPage) }) { innerPadding ->
+    Scaffold(topBar = { MyTopAppBar(onClick = onNavigateToMyPage) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
