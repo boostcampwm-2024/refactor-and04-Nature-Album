@@ -1,22 +1,21 @@
 package com.and04.naturealbum.ui.maps
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import com.naver.maps.map.MapView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.MapView
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.OverlayImage
 
 @Composable
 fun MapScreen(
@@ -73,9 +72,13 @@ fun MapScreen(
             photos.value.map { photoDetail ->
                 Marker().apply {
                     position = LatLng(photoDetail.latitude, photoDetail.longitude)
+                    icon = OverlayImage.fromView(ImageMarker(context, photoDetail.photoUri))
+                    width = 72
+                    height = 100
                     map = naverMap
                 }
             }
+
         }
 
     }

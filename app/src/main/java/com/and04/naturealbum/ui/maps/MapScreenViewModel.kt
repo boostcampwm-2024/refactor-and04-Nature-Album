@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
     private val repository: DataRepository
-): ViewModel(){
+) : ViewModel() {
     private val _photos = MutableStateFlow(emptyList<PhotoDetail>())
     val photos: StateFlow<List<PhotoDetail>> = _photos
 
@@ -22,7 +22,7 @@ class MapScreenViewModel @Inject constructor(
         fetchPhotos()
     }
 
-    private fun fetchPhotos(){
+    private fun fetchPhotos() {
         viewModelScope.launch(Dispatchers.IO) {
             _photos.emit(repository.getAllPhotoDetail())
         }
