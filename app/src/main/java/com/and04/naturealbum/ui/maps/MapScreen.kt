@@ -24,6 +24,68 @@ import com.naver.maps.map.MapView
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 
+@Composable
+fun MapScreenGood(
+    modifier: Modifier = Modifier,
+    viewModel: MapScreenViewModel = hiltViewModel(),
+) {
+    val photos = viewModel.photos.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val lifecycleOwner: LifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    val mapView = remember {
+        MapView(context).apply {
+            id = R.id.map_view_id
+        }
+    }
+
+    // MapView 생명주기 관리
+    DisposableEffect(lifecycleOwner) {
+        val lifecycle = lifecycleOwner.lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {
+                    Log.d("MapViewLifecycle", "Other Event: $event")
+                }
+            }
+        }
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+            mapView.onDestroy()
+        }
+    }
+
+    // AndroidView로 MapView를 표시
+    AndroidView(factory = { mapView }, modifier = modifier) {
+        it.getMapAsync { naverMap ->
+            naverMap.minZoom = 10.0
+            naverMap.maxZoom = 18.0
+
+            photos.value.map { photoDetail ->
+
+                // ImageMarker 사용
+                val imageMarker = ImageMarker(context, photoDetail.photoUri)
+                // imageMarker = ImageMarker(context, "https://cdn.travie.com/news/photo/first/201710/img_19975_1.jpg")
+                val marker = Marker().apply {
+                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
+                    icon = OverlayImage.fromView(imageMarker) // ImageMarker를 아이콘으로 설정
+                    width = 72
+                    height = 100
+                    map = naverMap
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun MapScreen(
@@ -109,50 +171,76 @@ fun MapScreen(
 
             photos.value.map { photoDetail ->
 
-                // Load the image into an ImageView using Coil
-                val imageView = ImageView(context).apply {
-                    val request = ImageRequest.Builder(context)
-                        .data(photoDetail.photoUri)
-                        .transformations(CircleCropTransformation()) // Optional: Circle crop for rounded images
-                        .target(this)
-                        .listener(
-                            onStart = {
-                                Log.e("Coil", "이미지 로드 시작: ${photoDetail.photoUri}")
-                            },
-                            onSuccess = { _, _ ->
-                                Log.d("Coil", "이미지 로드 성공: ${photoDetail.photoUri}")
-                            },
-                            onError = { _, throwable ->
-                                Log.e("Coil", "이미지 로드 실패: ${throwable}")
-                            }
-                        )
-                        .build()
+//                // Load the image into an ImageView using Coil
+//                val imageView = ImageView(context).apply {
+//                    val request = ImageRequest.Builder(context)
+//                        .data(photoDetail.photoUri)
+//                        .transformations(CircleCropTransformation()) // Optional: Circle crop for rounded images
+//                        .target(this)
+//                        .listener(
+//                            onStart = {
+//                                Log.e("Coil", "이미지 로드 시작: ${photoDetail.photoUri}")
+//                            },
+//                            onSuccess = { _, _ ->
+//                                Log.d("Coil", "이미지 로드 성공: ${photoDetail.photoUri}")
+//                            },
+//                            onError = { _, throwable ->
+//                                Log.e("Coil", "이미지 로드 실패: ${throwable}")
+//                            }
+//                        )
+//                        .build()
+//
+//                    ImageLoader(context).enqueue(request).apply {
+//                        Log.d("Coil", "Request added job: ${this.job}")
+//                        Log.d("Coil", "Request added isDisposed: ${this.isDisposed}")
+//                    }
+//                }
 
-                    ImageLoader(context).enqueue(request).apply {
-                        Log.d("Coil", "Request added job: ${this.job}")
-                        Log.d("Coil", "Request added isDisposed: ${this.isDisposed}")
-                    }
-                }
-
-                // Use the ImageView as an OverlayImage for the Marker
-                Marker().apply {
-                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
-                    icon =
-                        OverlayImage.fromView(imageView) // Set the ImageView with loaded image as icon
-                    icon = OverlayImage.fromResource(R.drawable.btn_camera_background)
-                    width = 72
-                    height = 100
-                    map = naverMap
-                }
-
-
+//                // Use the ImageView as an OverlayImage for the Marker
 //                Marker().apply {
 //                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
-//                    icon = OverlayImage.fromView(ImageMarker(context, photoDetail.photoUri))
+//                    icon =
+//                        OverlayImage.fromView(imageView) // Set the ImageView with loaded image as icon
+//                    icon = OverlayImage.fromResource(R.drawable.btn_camera_background)
 //                    width = 72
 //                    height = 100
 //                    map = naverMap
 //                }
+
+//
+//                Marker().apply {
+//                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
+//                    icon = OverlayImage.fromView(ImageMarkerCoil(context, photoDetail.photoUri))
+//                    width = 72
+//                    height = 100
+//                    map = naverMap
+//                }
+                val imageMarker = ImageMarkerCoil(context, photoDetail.photoUri)
+
+// MapView에 imageMarker를 부착하여 윈도우에 연결
+                mapView.addView(imageMarker)
+
+// 마커에 적용
+                imageMarker.post {
+                    val overlayImage = OverlayImage.fromView(imageMarker)
+
+                    Marker().apply {
+                        position = LatLng(photoDetail.latitude, photoDetail.longitude)
+                        //position = LatLng(35.2093663, 129.0444894)
+                        icon = overlayImage
+                        width = 72
+                        height = 100
+                        map = naverMap
+                    }
+                }
+
+// 필요시 나중에 mapView에서 imageMarker 제거 가능
+                imageMarker.postDelayed({
+                    mapView.removeView(imageMarker)
+                }, 2000)
+
+
+
             }
 
         }
