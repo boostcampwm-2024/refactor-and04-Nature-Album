@@ -1,158 +1,87 @@
 package com.and04.naturealbum.ui.home
 
-import android.app.Activity
-import android.app.Activity.RESULT_OK
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.component.ClippingButtonWithFile
-import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.LandscapeTopAppBar
 
 @Composable
 fun HomeScreenLandscape(
-    locationHandler: LocationHandler,
-    takePicture: () -> Unit,
+    context: Context,
+    permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val activity = context as? Activity ?: return
-
-    var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
-
-    val locationSettingsLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartIntentSenderForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                takePicture()
-            }
-        }
-
-
-    val requestPermissionLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
-            when {
-                deniedPermissions.isEmpty() -> {
-                    locationHandler.checkLocationSettings(
-                        takePicture = takePicture,
-                        showGPSActivationDialog = { intentSenderRequest ->
-                            locationSettingsLauncher.launch(intentSenderRequest)
-                        }
-                    )
-                }
-
-                else -> {
-                    val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
-                        ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
-                    }
-
-                    permissionDialogState = if (hasPreviouslyDeniedPermission) {
-                        PermissionDialogState.Explain
-                    } else {
-                        PermissionDialogState.GoToSettings
-                    }
-                }
-            }
-        }
-
-    val permissionHandler = remember {
-        PermissionHandler(
-            context = context,
-            activity = activity,
-            allPermissionGranted = {
-                locationHandler.checkLocationSettings(
-                    takePicture = takePicture,
-                    showGPSActivationDialog = { intentSenderRequest ->
-                        locationSettingsLauncher.launch(intentSenderRequest)
-                    }
-                )
-            },
-            onRequestPermission = { deniedPermissions ->
-                requestPermissionLauncher.launch(deniedPermissions)
-            },
-            showPermissionExplainDialog = { permissionDialogState = PermissionDialogState.Explain }
-        )
-    }
-
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+    Scaffold { innerPadding ->
+        MainBackground(Modifier.fillMaxSize())
+        Row(
+            modifier = Modifier.padding(innerPadding)
         ) {
-            MainBackground(
+            //왼쪽
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-            )
+                    .fillMaxSize()
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LandscapeTopAppBar()
+                }
+            }
 
-            ClippingButtonWithFile(
-                context = context,
+            //오른쪽
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                isFromAssets = true,
-                fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
-                text = stringResource(R.string.home_navigate_to_map),
-                textColor = Color.Black,
-                imageResId = R.drawable.btn_home_menu_map_background,
-                onClick = { /* TODO: Navigation 연결 */ }
-            )
+                    .weight(0.6f)
+                    .padding(horizontal = 4.dp)
+            ) {
+                Column {
+                    // 나의 생물지 도
+                    Box(
+                        modifier = Modifier
+                            .height(IntrinsicSize.Min)
+                            .align(Alignment.CenterHorizontally)
+                            .background(Color.Transparent)
+                    ) {
+                        ClippingButtonWithFile(
+                            context = context,
+                            isFromAssets = true,
+                            fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
+                            text = stringResource(R.string.home_navigate_to_map),
+                            textColor = Color.Black,
+                            imageResId = R.drawable.btn_home_menu_map_background,
+                            onClick = { /* TODO: Navigation 연결 */ }
+                        )
+                    }
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(24.dp)
-            )
+                    // 나의도감, 카메라
+                    Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                        NavigateContent(
+                            modifier = Modifier.fillMaxWidth(),
+                            permissionHandler = permissionHandler,
+                            onNavigateToAlbum = onNavigateToAlbum
+                        )
 
-            NavigateContent(
-                modifier = Modifier
-                    .weight(1.17f)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                permissionHandler = permissionHandler,
-                onNavigateToAlbum = onNavigateToAlbum
-            )
-        }
-    }
-
-    PermissionDialogs(
-        permissionDialogState = permissionDialogState,
-        onDismiss = { permissionDialogState = PermissionDialogState.None },
-        onRequestPermission = {
-            permissionHandler.requestPermissions()
-        },
-        onGoToSettings = {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-                context.startActivity(this)
+                    }
+                }
             }
         }
-    )
+    }
 }

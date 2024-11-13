@@ -58,7 +58,7 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.home.PermissionDialogState
 import com.and04.naturealbum.ui.home.PermissionDialogs
@@ -124,7 +124,7 @@ fun AlbumFolderScreen(
         }
     }
 
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+    Scaffold(topBar = { PortraitTopAppBar() }) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
             onPhotoClick = onPhotoClick,
