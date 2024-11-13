@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.albumfolder
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
@@ -29,7 +28,6 @@ class AlbumFolderViewModel @Inject constructor(
 
 
     fun loadFolderData(labelId: Int) {
-        Log.d("FFFF", "loadFolderData")
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
 

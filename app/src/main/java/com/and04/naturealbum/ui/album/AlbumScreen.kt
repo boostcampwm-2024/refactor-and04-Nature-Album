@@ -21,13 +21,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -36,6 +40,7 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
 
@@ -73,11 +78,15 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 
 @Composable
 fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
+    val configuration = LocalConfiguration.current
+    val columnCount =
+        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 4
+
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
-        itemsIndexed(albums.chunked(2)) { _, rowItems ->
+        itemsIndexed(albums.chunked(columnCount)) { _, rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(40.dp)
@@ -89,7 +98,7 @@ fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
                         modifier = Modifier.weight(1f)
                     )
                 }
-                if (rowItems.size < 2) {
+                if (rowItems.size < columnCount) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -99,14 +108,36 @@ fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
 
 @Composable
 fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
+    val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(onLabelClick) {
+        if (!isDataLoaded.value) {
+            viewModel.loadAlbums()
+            isDataLoaded.value = true
+        }
+    }
+    val uiState = viewModel.uiState.observeAsState()
     val albumList by viewModel.albumList.observeAsState()
-    Scaffold(topBar = { MyTopAppBar() }){ paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-        ) {
-            albumList?.let { albumList -> AlbumGrid(albums = albumList, onLabelClick = onLabelClick) }
+
+    when (uiState.value) {
+        is UiState.Loading, UiState.Idle, null -> {
+            // TODO: loading
+        }
+
+        UiState.Success -> {
+            Scaffold(topBar = { MyTopAppBar() }) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                ) {
+                    albumList?.let { albumList ->
+                        AlbumGrid(
+                            albums = albumList,
+                            onLabelClick = onLabelClick
+                        )
+                    }
+                }
+            }
         }
     }
 }
