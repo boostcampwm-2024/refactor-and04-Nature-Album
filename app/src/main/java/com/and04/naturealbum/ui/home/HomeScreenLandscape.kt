@@ -27,6 +27,7 @@ fun HomeScreenLandscape(
     context: Context,
     permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit,
+    onNavigateToMyPage: () -> Unit,
 ) {
     Scaffold { innerPadding ->
         MainBackground(Modifier.fillMaxSize())
@@ -42,7 +43,7 @@ fun HomeScreenLandscape(
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    LandscapeTopAppBar()
+                    LandscapeTopAppBar { onNavigateToMyPage() }
                 }
             }
 

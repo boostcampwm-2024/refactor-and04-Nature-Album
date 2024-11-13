@@ -20,8 +20,9 @@ fun HomeScreenPortrait(
     context: Context,
     permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit,
+    onNavigateToMyPage: () -> Unit,
 ) {
-    Scaffold(topBar = { PortraitTopAppBar() }) { innerPadding ->
+    Scaffold(topBar = { PortraitTopAppBar { onNavigateToMyPage() } }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)

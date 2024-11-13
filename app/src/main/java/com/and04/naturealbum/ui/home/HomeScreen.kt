@@ -37,6 +37,7 @@ fun HomeScreen(
     locationHandler: LocationHandler,
     takePicture: () -> Unit,
     onNavigateToAlbum: () -> Unit,
+    onNavigateToMyPage: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -110,12 +111,14 @@ fun HomeScreen(
             context = context,
             permissionHandler = permissionHandler,
             onNavigateToAlbum = onNavigateToAlbum,
+            onNavigateToMyPage = onNavigateToMyPage,
         )
     } else {
         HomeScreenLandscape(
             context = context,
             permissionHandler = permissionHandler,
             onNavigateToAlbum = onNavigateToAlbum,
+            onNavigateToMyPage = onNavigateToMyPage,
         )
     }
     PermissionDialogs(
