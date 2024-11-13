@@ -7,6 +7,7 @@ import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.AppDatabase
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.ui.mypage.AuthenticationManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,4 +50,8 @@ object RoomModule {
         albumDao: AlbumDao,
         photoDetailDao: PhotoDetailDao
     ): DataRepository = DataRepositoryImpl(labelDao, albumDao, photoDetailDao)
+
+    @Singleton
+    @Provides
+    fun providerAuthenticationManager(): AuthenticationManager = AuthenticationManager()
 }
