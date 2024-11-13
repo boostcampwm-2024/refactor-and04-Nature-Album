@@ -7,6 +7,8 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlinx-serialization")
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -46,6 +48,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -104,6 +107,19 @@ dependencies {
 
     //location
     implementation(libs.play.services.location)
+
+    //firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+    //firebase google login
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.auth)
+
+    //Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     //for use Java 8+ under sdk26
     coreLibraryDesugaring(libs.desugar.jdk.libs)

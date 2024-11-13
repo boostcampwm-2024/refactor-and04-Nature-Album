@@ -1,9 +1,5 @@
 package com.and04.naturealbum.ui.component
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,13 +17,13 @@ import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortraitTopAppBar() {
+fun MyTopAppBar(onClick: () -> Unit = { }) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.app_name))
         },
         actions = {
-            IconButton(onClick = { /* TODO */ }) {
+            IconButton(onClick = { onClick() }) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = null /* TODO */
@@ -38,7 +34,7 @@ fun PortraitTopAppBar() {
 }
 
 @Composable
-fun LandscapeTopAppBar() {
+fun LandscapeTopAppBar(onClick: () -> Unit = { }) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,7 +50,7 @@ fun LandscapeTopAppBar() {
             modifier = Modifier.weight(4f)
         ) {
             IconButton(
-                onClick = { /* TODO */ },
+                onClick = { onClick() },
             ) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
