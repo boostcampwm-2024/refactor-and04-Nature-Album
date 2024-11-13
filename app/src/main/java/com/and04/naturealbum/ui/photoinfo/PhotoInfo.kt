@@ -94,70 +94,52 @@ private fun PhotoDetailInfo(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     if (isLandscape) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(36.dp)
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(photoDetail.value.photoUri)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = photoDetail.value.description,
-                    modifier = Modifier.clip(RoundedCornerShape(10.dp))
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AlbumLabel(
-                    modifier = Modifier
-                        .background(
-                            color = Color(parseColor("#${label.value.backgroundColor}")),
-                            shape = CircleShape
-                        )
-                        .fillMaxWidth(0.6f),
-                    text = label.value.name,
-                    backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
-                )
-
-                RowInfo(
-                    imgVector = Icons.Default.DateRange,
-                    contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-                    text = photoDetail.value.datetime.toString() // TODO: date format
-                )
-
-                RowInfo(
-                    imgVector = Icons.Default.LocationOn,
-                    contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-                    text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
-                )
-
-                RowInfo(
-                    imgVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-                    text = photoDetail.value.description
-                )
-            }
-        }
+        PhotoInfoLandscape(
+            innerPadding = innerPadding,
+            photoDetail = photoDetail,
+            label = label,
+        )
     } else {
+        PhtoInfoPortrait(
+            innerPadding = innerPadding,
+            photoDetail = photoDetail,
+            label = label,
+        )
+    }
+}
+
+@Composable
+private fun PhotoInfoLandscape(
+    innerPadding: PaddingValues,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(36.dp)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(photoDetail.value.photoUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = photoDetail.value.description,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp))
+            )
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .weight(1f)
+                .padding(start = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AlbumLabel(
@@ -166,20 +148,9 @@ private fun PhotoDetailInfo(
                         color = Color(parseColor("#${label.value.backgroundColor}")),
                         shape = CircleShape
                     )
-                    .fillMaxWidth(0.4f),
+                    .fillMaxWidth(0.6f),
                 text = label.value.name,
                 backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
-            )
-
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoDetail.value.photoUri)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = photoDetail.value.description,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clip(RoundedCornerShape(10.dp))
             )
 
             RowInfo(
@@ -200,6 +171,61 @@ private fun PhotoDetailInfo(
                 text = photoDetail.value.description
             )
         }
+    }
+}
+
+@Composable
+private fun PhtoInfoPortrait(
+    innerPadding: PaddingValues,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        AlbumLabel(
+            modifier = Modifier
+                .background(
+                    color = Color(parseColor("#${label.value.backgroundColor}")),
+                    shape = CircleShape
+                )
+                .fillMaxWidth(0.4f),
+            text = label.value.name,
+            backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+        )
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(photoDetail.value.photoUri)
+                .crossfade(true)
+                .build(),
+            contentDescription = photoDetail.value.description,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .clip(RoundedCornerShape(10.dp))
+        )
+
+        RowInfo(
+            imgVector = Icons.Default.DateRange,
+            contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
+            text = photoDetail.value.datetime.toString() // TODO: date format
+        )
+
+        RowInfo(
+            imgVector = Icons.Default.LocationOn,
+            contentDescription = stringResource(R.string.photo_info_screen_location_icon),
+            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+        )
+
+        RowInfo(
+            imgVector = Icons.Default.Edit,
+            contentDescription = stringResource(R.string.photo_info_screen_description_icon),
+            text = photoDetail.value.description
+        )
     }
 }
 
