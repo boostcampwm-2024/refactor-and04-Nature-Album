@@ -32,7 +32,7 @@ class AlbumFolderViewModel @Inject constructor(
             _uiState.emit(UiState.Loading)
 
             val labelData = async {
-                _label.emit(roomRepository.getLabel(id = labelId))
+                _label.emit(roomRepository.getLabelById(id = labelId))
             }
 
             val photoDetailsData = async {

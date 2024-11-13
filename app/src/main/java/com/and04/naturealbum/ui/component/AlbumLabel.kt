@@ -1,9 +1,6 @@
 package com.and04.naturealbum.ui.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +14,7 @@ import com.and04.naturealbum.ui.theme.AppTypography
 fun AlbumLabel(
     modifier: Modifier = Modifier,
     text: String,
-    backgroundColor: Color
+    backgroundColor: Color,
 ) {
     val calculatedTextColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
 

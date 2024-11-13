@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 interface DataRepository {
     suspend fun getLabels(): List<Label>
-    suspend fun getLabel(id: Int): Label
+    suspend fun getLabelById(id: Int): Label
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
@@ -31,13 +31,13 @@ interface DataRepository {
 class DataRepositoryImpl @Inject constructor(
     private val labelDao: LabelDao,
     private val albumDao: AlbumDao,
-    private val photoDetailDao: PhotoDetailDao
+    private val photoDetailDao: PhotoDetailDao,
 ) : DataRepository {
     override suspend fun getLabels(): List<Label> {
         return labelDao.getAllLabel()
     }
 
-    override suspend fun getLabel(id: Int): Label {
+    override suspend fun getLabelById(id: Int): Label {
         return labelDao.getLabelById(id)
     }
 

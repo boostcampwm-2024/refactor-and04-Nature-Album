@@ -32,7 +32,7 @@ class PhotoInfoViewModel @Inject constructor(
             val photoDetailData = roomRepository.getPhotoDetailById(id)
             _photoDetail.emit(photoDetailData)
 
-            _label.emit(roomRepository.getLabel(photoDetailData.labelId))
+            _label.emit(roomRepository.getLabelById(photoDetailData.labelId))
 
             _uiState.emit(UiState.Success)
         }

@@ -17,6 +17,10 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
+private const val NATURE_ALBUM_DIR = "NatureAlbum"
+private const val IMAGE_PREFIX = "NatureAlbum_"
+private const val IMAGE_MIME_TYPE = "image/jpeg"
+private const val BUFFER_SIZE = 1024
 
 fun saveImagesWithLoading(
     context: Context,
@@ -62,19 +66,19 @@ private fun getContentValues(photoDetail: PhotoDetail): ContentValues {
     return ContentValues().apply {
         put(
             MediaStore.MediaColumns.DISPLAY_NAME,
-            "NatureAlbum_${photoDetail.description.replace("\n", "")}"
+            "$IMAGE_PREFIX${photoDetail.description.replace("\n", "")}"
         )
-        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+        put(MediaStore.MediaColumns.MIME_TYPE, IMAGE_MIME_TYPE)
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             put(
                 MediaStore.MediaColumns.RELATIVE_PATH,
-                "${Environment.DIRECTORY_DCIM}/NatureAlbum"
+                "${Environment.DIRECTORY_DCIM}/$NATURE_ALBUM_DIR"
             )
         } else {
             val directory =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-                    .toString() + "/NatureAlbum"
+                    .toString() + "/$NATURE_ALBUM_DIR"
             val file = File(directory)
             if (!file.exists()) file.mkdirs()
         }
@@ -90,15 +94,15 @@ private fun getExternalUri(
         resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     } else {
         val file = File(
-            "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}/NatureAlbum",
-            "NatureAlbum_${photoDetail.description.replace("\n", "")}.jpg"
+            "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}/$NATURE_ALBUM_DIR",
+            "$IMAGE_PREFIX${photoDetail.description.replace("\n", "")}.jpg"
         )
         file.toUri()
     }
 }
 
 private fun copyStream(input: InputStream, output: OutputStream) {
-    val buffer = ByteArray(1024)
+    val buffer = ByteArray(BUFFER_SIZE)
     var bytesRead: Int
     while (input.read(buffer).also { bytesRead = it } != -1) {
         output.write(buffer, 0, bytesRead)

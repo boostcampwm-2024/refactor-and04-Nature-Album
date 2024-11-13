@@ -67,68 +67,30 @@ fun AlbumFolderScreen(
     onPhotoClick: (Int) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(selectedAlbumLabel) {
-        albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-    }
+    LaunchedEffect(selectedAlbumLabel) { albumFolderViewModel.loadFolderData(selectedAlbumLabel) }
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false) }
-    val setLoading: (Boolean) -> Unit = { b -> loading = b }
+    var imgDownLoading by remember { mutableStateOf(false) }
+    val setLoading = { isImgDownLoading: Boolean -> imgDownLoading = isImgDownLoading }
 
     var editMode by remember { mutableStateOf(false) }
     val isEditMode = { editMode }
-
-    val switchEditMode = { b: Boolean -> editMode = b }
+    val switchEditMode = { isEditModeEnabled: Boolean -> editMode = isEditModeEnabled }
 
     val checkList = remember { mutableStateOf(setOf<PhotoDetail>()) }
     if (!editMode) checkList.value = setOf()
 
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
-        ItemContainer(
-            innerPaddingValues = innerPadding,
-            onPhotoClick = onPhotoClick,
-            switchEditMode = switchEditMode,
-            isEditMode = isEditMode,
-            checkList = checkList,
-            setLoading = setLoading,
-            saveImagesWithLoading = {
-                saveImagesWithLoading(
-                    context = context,
-                    checkList.value.toList(),
-                    setLoading,
-                    switchEditMode
-                )
-            },
-            albumFolderViewModel = albumFolderViewModel,
+    val saveImagesWithLoading = {
+        saveImagesWithLoading(
+            context = context,
+            checkList.value.toList(),
+            setLoading,
+            switchEditMode
         )
     }
-    if (loading) {
-        RotatingImageLoading(
-            drawalbeRes = R.drawable.fish_loading_image,
-            stringRes = R.string.album_folder_screen_save_text
-        )
-    }
-    BackHandler(enabled = editMode) {
-        if (editMode) editMode = false
-    }
-}
-
-@Composable
-private fun ItemContainer(
-    innerPaddingValues: PaddingValues,
-    onPhotoClick: (Int) -> Unit,
-    switchEditMode: (Boolean) -> Unit,
-    isEditMode: () -> Boolean,
-    checkList: MutableState<Set<PhotoDetail>>,
-    setLoading: (Boolean) -> Unit,
-    saveImagesWithLoading: () -> Unit,
-    albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
-) {
-    val context = LocalContext.current
     var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
     val requestPermissionLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { permissionAllow ->
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission())
+        { permissionAllow ->
             if (permissionAllow) {
                 saveImagesWithLoading()
             } else {
@@ -142,23 +104,69 @@ private fun ItemContainer(
                     permissionDialogState = PermissionDialogState.GoToSettings
             }
         }
-    val uiState = albumFolderViewModel.uiState.collectAsState()
-    val label = albumFolderViewModel.label.collectAsState()
-    val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
-    var selectAll by remember { mutableStateOf(false) }
-    val onAllClick = { b: Boolean ->
-        selectAll = b
-        if (b) checkList.value = photoDetails.value.toSet()
-        else checkList.value = emptySet()
-    }
+    val requestPermission = { requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE) }
+
     val savePhotos = {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-            requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
+            requestPermission()
         } else {
             saveImagesWithLoading()
         }
     }
 
+    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+        ItemContainer(
+            innerPaddingValues = innerPadding,
+            onPhotoClick = onPhotoClick,
+            switchEditMode = switchEditMode,
+            isEditMode = isEditMode,
+            checkList = checkList,
+            setLoading = setLoading,
+            savePhotos = savePhotos,
+        )
+    }
+    if (imgDownLoading) {
+        RotatingImageLoading(
+            drawalbeRes = R.drawable.fish_loading_image,
+            stringRes = R.string.album_folder_screen_save_text
+        )
+    }
+    PermissionDialogs(
+        permissionDialogState = permissionDialogState,
+        onDismiss = { permissionDialogState = PermissionDialogState.None },
+        onGoToSettings = {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+                context.startActivity(this)
+            }
+        }
+    )
+    BackHandler(enabled = editMode) {
+        if (editMode) editMode = false
+    }
+}
+
+@Composable
+private fun ItemContainer(
+    innerPaddingValues: PaddingValues,
+    onPhotoClick: (Int) -> Unit,
+    switchEditMode: (Boolean) -> Unit,
+    isEditMode: () -> Boolean,
+    checkList: MutableState<Set<PhotoDetail>>,
+    setLoading: (Boolean) -> Unit,
+    savePhotos: () -> Unit,
+    albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
+) {
+    val uiState = albumFolderViewModel.uiState.collectAsState()
+    val label = albumFolderViewModel.label.collectAsState()
+    val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
+
+    var selectAll by remember { mutableStateOf(false) }
+    val onClickAllBtn = { isAllSelected: Boolean ->
+        selectAll = isAllSelected
+        if (isAllSelected) checkList.value = photoDetails.value.toSet()
+        else checkList.value = emptySet()
+    }
 
     when (uiState.value) {
         is UiState.Loading, UiState.Idle -> {
@@ -184,12 +192,11 @@ private fun ItemContainer(
                             )
                             .fillMaxWidth(0.9f),
                         text = label.value.name,
-                        backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+                        backgroundColor = Color(parseColor("#${label.value.backgroundColor}")),
                     )
 
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         LazyVerticalStaggeredGrid(
                             columns = StaggeredGridCells.Fixed(2),
@@ -199,7 +206,10 @@ private fun ItemContainer(
                             horizontalArrangement = Arrangement.spacedBy(28.dp),
                             verticalItemSpacing = 16.dp
                         ) {
-                            items(photoDetails.value, key = { item -> item.id }) { photoDetail ->
+                            items(
+                                items = photoDetails.value,
+                                key = { item -> item.id }
+                            ) { photoDetail ->
                                 PhotoDetailItem(
                                     photoDetail = photoDetail,
                                     onPhotoClick = onPhotoClick,
@@ -212,7 +222,7 @@ private fun ItemContainer(
                         }
 
                         ButtonWithAnimation(
-                            selectAll = onAllClick,
+                            selectAll = onClickAllBtn,
                             savePhotos = savePhotos,
                             label = label.value,
                             isEditMode = isEditMode(),
@@ -225,17 +235,6 @@ private fun ItemContainer(
             }
         }
     }
-
-    PermissionDialogs(
-        permissionDialogState = permissionDialogState,
-        onDismiss = { permissionDialogState = PermissionDialogState.None },
-        onGoToSettings = {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-                context.startActivity(this)
-            }
-        }
-    )
 }
 
 @Composable
@@ -249,6 +248,7 @@ private fun PhotoDetailItem(
 ) {
     var isSelected by remember { mutableStateOf(selectAll) }
     LaunchedEffect(selectAll) { isSelected = selectAll }
+    if (!isEditMode()) isSelected = false
 
     Box(
         modifier = Modifier
@@ -281,13 +281,13 @@ private fun PhotoDetailItem(
                     .fillMaxWidth()
             ) {
                 PhotoDetailImage(photoDetail = photoDetail)
-                ImageOverlay(
-                    isSelected = isSelected,
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(if (isSelected) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                )
+                if (isSelected) {
+                    ImageOverlay(
+                        modifier = Modifier
+                            .matchParentSize()
 
+                    )
+                }
             }
             Text(
                 text = photoDetail.description,
@@ -311,17 +311,15 @@ fun PhotoDetailImage(photoDetail: PhotoDetail) {
 }
 
 @Composable
-fun ImageOverlay(isSelected: Boolean, modifier: Modifier = Modifier) {
+fun ImageOverlay(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier,
+        modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
         contentAlignment = Alignment.Center,
     ) {
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = stringResource(R.string.album_folder_screen_item_select_icon_description),
-                tint = MaterialTheme.colorScheme.surface,
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = stringResource(R.string.album_folder_screen_item_select_icon_description),
+            tint = MaterialTheme.colorScheme.surface,
+        )
     }
 }
