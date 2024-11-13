@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 
 @Composable
@@ -58,7 +60,7 @@ fun ButtonWithAnimation(
                 Button(
                     onClick = { savePhotos() }
                 ) {
-                    Text("선택한 사진 저장")
+                    Text(stringResource(R.string.album_folder_screen_save_button))
                 }
             }
         }
@@ -93,6 +95,6 @@ fun ToggleButton(
         ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary), // 테두리는 primary 색상 유지
     ) {
-        Text("전체")
+        Text(stringResource(R.string.album_folder_screen_select_all))
     }
 }

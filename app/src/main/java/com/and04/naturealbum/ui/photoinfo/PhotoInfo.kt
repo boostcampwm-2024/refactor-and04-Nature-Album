@@ -19,8 +19,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -46,7 +50,13 @@ fun PhotoInfo(
     selectedPhotoDetail: Int = 0,
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
-    photoInfoViewModel.loadPhotoDetail(selectedPhotoDetail)
+    val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(selectedPhotoDetail) {
+        if (!isDataLoaded.value) {
+            photoInfoViewModel.loadPhotoDetail(selectedPhotoDetail)
+            isDataLoaded.value = true
+        }
+    }
     Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
         Content(innerPadding = innerPadding)
     }
@@ -57,9 +67,9 @@ private fun Content(
     innerPadding: PaddingValues,
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
-    val uiState = photoInfoViewModel.uiState.collectAsState()
-    val photoDetail = photoInfoViewModel.photoDetail.collectAsState()
-    val label = photoInfoViewModel.label.collectAsState()
+    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
+    val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
+    val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
 
     when (uiState.value) {
         is UiState.Idle, UiState.Loading -> {
