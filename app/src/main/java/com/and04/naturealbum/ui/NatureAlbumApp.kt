@@ -21,8 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.album.AlbumScreen
+import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
@@ -119,16 +119,16 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen {
-                selectedLabel = it
+            LabelSearchScreen { label ->
+                selectedLabel = label
                 navController.popBackStack()
             }
         }
 
         composable(NavigateDestination.Album.route) {
             AlbumScreen(
-                onLabelClick = {
-                    selectedAlbumLabel = it
+                onLabelClick = { labelId ->
+                    selectedAlbumLabel = labelId
                     navController.navigate(NavigateDestination.AlbumFolder.route)
                 }
             )
@@ -137,8 +137,8 @@ fun NatureAlbumNavHost(
         composable(NavigateDestination.AlbumFolder.route) {
             AlbumFolderScreen(
                 selectedAlbumLabel,
-                onPhotoClick = {
-                    selectedPhotoDetail = it
+                onPhotoClick = { labelId ->
+                    selectedPhotoDetail = labelId
                     navController.navigate(NavigateDestination.PhotoInfo.route)
                 }
             )
