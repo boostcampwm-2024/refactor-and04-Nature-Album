@@ -11,11 +11,13 @@ import javax.inject.Inject
 
 interface DataRepository {
     suspend fun getLabels(): List<Label>
+    suspend fun getLabelById(id: Int): Label
     suspend fun getIdByLabelName(label: Label): Int
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
-    suspend fun getPhotoDetailUriByLabelId(labelId: Int): String
+    suspend fun getPhotoDetailById(id: Int): PhotoDetail
+    suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
     suspend fun getALLAlbum(): List<Album>
     suspend fun getLabelNameById(id: Int): String
     suspend fun getPhotoDetailUriById(id: Int): String
@@ -29,10 +31,14 @@ interface DataRepository {
 class DataRepositoryImpl @Inject constructor(
     private val labelDao: LabelDao,
     private val albumDao: AlbumDao,
-    private val photoDetailDao: PhotoDetailDao
+    private val photoDetailDao: PhotoDetailDao,
 ) : DataRepository {
     override suspend fun getLabels(): List<Label> {
         return labelDao.getAllLabel()
+    }
+
+    override suspend fun getLabelById(id: Int): Label {
+        return labelDao.getLabelById(id)
     }
 
     override suspend fun getIdByLabelName(label: Label): Int {
@@ -58,8 +64,12 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetail()
     }
 
-    override suspend fun getPhotoDetailUriByLabelId(labelId: Int): String {
-        return photoDetailDao.getAllPhotoDetailUriByLabelId(labelId)
+    override suspend fun getPhotoDetailById(id: Int): PhotoDetail {
+        return photoDetailDao.getPhotoDetailById(id)
+    }
+
+    override suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail> {
+        return photoDetailDao.getAllPhotoDetailsUriByLabelId(labelId)
     }
 
     override suspend fun getALLAlbum(): List<Album> {

@@ -22,9 +22,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.album.AlbumScreen
+import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
+import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import java.io.File
@@ -44,6 +46,8 @@ fun NatureAlbumNavHost(
 ) {
     val context = LocalContext.current
     var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
+    var selectedAlbumLabel: Int = remember { 0 }
+    var selectedPhotoDetail: Int = remember { 0 }
     val locationHandler = remember {
         LocationHandler(
             context = context
@@ -117,16 +121,33 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen {
-                selectedLabel = it
+            LabelSearchScreen { label ->
+                selectedLabel = label
                 navController.popBackStack()
             }
         }
 
         composable(NavigateDestination.Album.route) {
-            selectedLabel = null
-            imageUri = Uri.EMPTY
-            AlbumScreen()
+            AlbumScreen(
+                onLabelClick = { labelId ->
+                    selectedAlbumLabel = labelId
+                    navController.navigate(NavigateDestination.AlbumFolder.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.AlbumFolder.route) {
+            AlbumFolderScreen(
+                selectedAlbumLabel,
+                onPhotoClick = { labelId ->
+                    selectedPhotoDetail = labelId
+                    navController.navigate(NavigateDestination.PhotoInfo.route)
+                }
+            )
+        }
+
+        composable(NavigateDestination.PhotoInfo.route) {
+            PhotoInfo(selectedPhotoDetail)
         }
 
         composable(NavigateDestination.MyPage.route) {
