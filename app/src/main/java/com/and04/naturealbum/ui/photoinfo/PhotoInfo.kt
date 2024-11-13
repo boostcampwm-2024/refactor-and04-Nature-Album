@@ -1,8 +1,10 @@
 package com.and04.naturealbum.ui.photoinfo
 
+import android.content.res.Configuration
 import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,52 +90,116 @@ private fun PhotoDetailInfo(
     photoDetail: State<PhotoDetail>,
     label: State<Label>,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        AlbumLabel(
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    if (isLandscape) {
+        Row(
             modifier = Modifier
-                .background(
-                    color = Color(parseColor("#${label.value.backgroundColor}")),
-                    shape = CircleShape
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(36.dp)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(photoDetail.value.photoUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = photoDetail.value.description,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp))
                 )
-                .fillMaxWidth(0.4f),
-            text = label.value.name,
-            backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
-        )
+            }
 
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(photoDetail.value.photoUri)
-                .crossfade(true)
-                .build(),
-            contentDescription = photoDetail.value.description,
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(
+                            color = Color(parseColor("#${label.value.backgroundColor}")),
+                            shape = CircleShape
+                        )
+                        .fillMaxWidth(0.6f),
+                    text = label.value.name,
+                    backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+                )
+
+                RowInfo(
+                    imgVector = Icons.Default.DateRange,
+                    contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
+                    text = photoDetail.value.datetime.toString() // TODO: date format
+                )
+
+                RowInfo(
+                    imgVector = Icons.Default.LocationOn,
+                    contentDescription = stringResource(R.string.photo_info_screen_location_icon),
+                    text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+                )
+
+                RowInfo(
+                    imgVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.photo_info_screen_description_icon),
+                    text = photoDetail.value.description
+                )
+            }
+        }
+    } else {
+        Column(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clip(RoundedCornerShape(10.dp))
-        )
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            AlbumLabel(
+                modifier = Modifier
+                    .background(
+                        color = Color(parseColor("#${label.value.backgroundColor}")),
+                        shape = CircleShape
+                    )
+                    .fillMaxWidth(0.4f),
+                text = label.value.name,
+                backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+            )
 
-        RowInfo(
-            imgVector = Icons.Default.DateRange,
-            contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-            text = photoDetail.value.datetime.toString() //TODO date format
-        )
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(photoDetail.value.photoUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = photoDetail.value.description,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .clip(RoundedCornerShape(10.dp))
+            )
 
-        RowInfo(
-            imgVector = Icons.Default.LocationOn,
-            contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}"//TODO 좌표 >> 주소로 변경
-        )
+            RowInfo(
+                imgVector = Icons.Default.DateRange,
+                contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
+                text = photoDetail.value.datetime.toString() // TODO: date format
+            )
 
-        RowInfo(
-            imgVector = Icons.Default.Edit,
-            contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-            text = photoDetail.value.description
-        )
+            RowInfo(
+                imgVector = Icons.Default.LocationOn,
+                contentDescription = stringResource(R.string.photo_info_screen_location_icon),
+                text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+            )
+
+            RowInfo(
+                imgVector = Icons.Default.Edit,
+                contentDescription = stringResource(R.string.photo_info_screen_description_icon),
+                text = photoDetail.value.description
+            )
+        }
     }
 }
 
