@@ -10,7 +10,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -146,13 +145,11 @@ private fun ItemContainer(
     val uiState = albumFolderViewModel.uiState.collectAsState()
     val label = albumFolderViewModel.label.collectAsState()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsState()
-    val selectAll = { b: Boolean ->
+    var selectAll by remember { mutableStateOf(false) }
+    val onAllClick = { b: Boolean ->
+        selectAll = b
         if (b) checkList.value = photoDetails.value.toSet()
         else checkList.value = emptySet()
-    }
-
-    val a: () -> Boolean = {
-        if (checkList.value.isEmpty()) false else true
     }
     val savePhotos = {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
@@ -203,19 +200,19 @@ private fun ItemContainer(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(photoDetails.value, key = { item -> item.id }) { photoDetail ->
-                                Item(
-                                    item = photoDetail,
+                                PhotoDetailItem(
+                                    photoDetail = photoDetail,
                                     onPhotoClick = onPhotoClick,
                                     switchEditMode = switchEditMode,
                                     isEditMode = isEditMode,
                                     checkList = checkList,
-                                    sellectAll = a,
+                                    selectAll = selectAll,
                                 )
                             }
                         }
 
                         ButtonWithAnimation(
-                            selectAll = selectAll,
+                            selectAll = onAllClick,
                             savePhotos = savePhotos,
                             label = label.value,
                             isEditMode = isEditMode(),
@@ -242,75 +239,88 @@ private fun ItemContainer(
 }
 
 @Composable
-private fun Item(
-    item: PhotoDetail,
+private fun PhotoDetailItem(
+    photoDetail: PhotoDetail,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
     isEditMode: () -> Boolean,
     checkList: MutableState<Set<PhotoDetail>>,
-    sellectAll: () -> Boolean,
+    selectAll: Boolean,
 ) {
-    var isSelected by remember { mutableStateOf(false) }
-    if (!isEditMode() && isSelected) isSelected = false
-    isSelected = sellectAll()
+    var isSelected by remember { mutableStateOf(selectAll) }
+    LaunchedEffect(selectAll) { isSelected = selectAll }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onPhotoClick(item.id) }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        isSelected = true
+                        switchEditMode(true)
+                        checkList.value += photoDetail
+                    },
+                    onTap = {
+                        if (isEditMode()) {
+                            isSelected = !isSelected
+                            if (isSelected) {
+                                checkList.value += photoDetail
+                            } else {
+                                checkList.value -= photoDetail
+                            }
+                        } else {
+                            onPhotoClick(photoDetail.id)
+                        }
+                    })
+            }
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(28.dp))
                     .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onLongPress = {
-                                isSelected = true
-                                switchEditMode(true)
-                                checkList.value += item
-                            },
-                            onTap = {
-                                if (isEditMode()) {
-                                    isSelected = !isSelected
-                                    if (isSelected) {
-                                        checkList.value += item
-                                    } else {
-                                        checkList.value -= item
-                                    }
-                                } else {
-                                    onPhotoClick(item.id)
-                                }
-                            })
-                    }
             ) {
-                AsyncImage(
-                    model = item.photoUri,
-                    contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
-                    modifier = Modifier.fillMaxWidth()
+                PhotoDetailImage(photoDetail = photoDetail)
+                ImageOverlay(
+                    isSelected = isSelected,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(if (isSelected) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                 )
 
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(color = Color.Black.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = stringResource(R.string.album_folder_screen_item_select_icon_description),
-                            tint = MaterialTheme.colorScheme.surface,
-                        )
-                    }
-                }
             }
             Text(
-                text = item.description,
+                text = photoDetail.description,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun PhotoDetailImage(photoDetail: PhotoDetail) {
+    val rememberedImage = remember(photoDetail.photoUri) { photoDetail.photoUri }
+    AsyncImage(
+        model = rememberedImage,
+        contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun ImageOverlay(isSelected: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = stringResource(R.string.album_folder_screen_item_select_icon_description),
+                tint = MaterialTheme.colorScheme.surface,
             )
         }
     }
