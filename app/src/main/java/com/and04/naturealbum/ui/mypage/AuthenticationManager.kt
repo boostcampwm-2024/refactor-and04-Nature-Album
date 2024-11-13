@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 interface AuthResponse {
-    data class Success(val token: String) : AuthResponse
+    data object Success : AuthResponse
     data class Error(val message: String) : AuthResponse
 }
 
@@ -31,7 +31,7 @@ class AuthenticationManager {
             val currentUser = auth.currentUser
 
             if (currentUser?.isAnonymous == false) { // 이미 로그인한 사용자
-                getUserToken { authResponse -> trySend(authResponse) }
+                trySend(AuthResponse.Success)
                 return@callbackFlow
             }
 
@@ -105,13 +105,13 @@ class AuthenticationManager {
     ) {
         anonymousUser.linkWithCredential(firebaseCredential) // 익명회원 -> 구글 전환 시도
             .addOnSuccessListener {
-                getUserToken { authResponse -> trySend(authResponse) }
+                trySend(AuthResponse.Success)
             }
             .addOnFailureListener { // 구글계정이 이미 가입되어있을때 : 익명계정 삭제후 로그인
                 currentUser.delete()
                 auth.signInWithCredential(firebaseCredential)
                     .addOnSuccessListener {
-                        getUserToken { authResponse -> trySend(authResponse) }
+                        trySend(AuthResponse.Success)
                     }
                     .addOnFailureListener { failureResult ->
                         trySend(
@@ -129,19 +129,9 @@ class AuthenticationManager {
         trySend: (AuthResponse) -> Unit
     ) {
         auth.signInWithCredential(firebaseCredential) // 앱시작시 네트워크 문제등 익명 로그인 실패시
-            .addOnSuccessListener { getUserToken { authResponse -> trySend(authResponse) } }
+            .addOnSuccessListener { trySend(AuthResponse.Success) }
             .addOnFailureListener { failureResult ->
                 trySend(AuthResponse.Error(failureResult.message.toString()))
             }
-    }
-
-    private fun getUserToken(trySend: (AuthResponse) -> Unit) {
-        auth.currentUser?.getIdToken(true)?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                task.result.token?.let { token ->
-                    trySend(AuthResponse.Success(token))
-                }
-            }
-        }
     }
 }

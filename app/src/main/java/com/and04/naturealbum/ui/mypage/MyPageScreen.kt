@@ -30,21 +30,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun MyPageScreen(
-    myPageViewModel: MyPageViewModel = hiltViewModel()
+    myPageViewModel: MyPageViewModel = hiltViewModel(),
+    navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
+    val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(topBar = {
         MyTopAppBar(
             navigationIcon = {
-                IconButton(onClick = { /* TODO */ }) {
+                IconButton(onClick = { navigateToHome() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
@@ -61,42 +65,24 @@ fun MyPageScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            UserProfileContent("", "")
-            LoginContent({})
-        }
-    }
-}
+            when (uiState.value) {
+                is UiState.Success -> {
+                    val email = UserManager.getNotNullSignInUser().email
+                    UserProfileContent(email = email)
+                }
 
-@Composable
-fun MyPageScreen(dummyClick: () -> Unit) {
-    Scaffold(topBar = {
-        MyTopAppBar(
-            navigationIcon = {
-                IconButton(onClick = { /* TODO */ }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
-                    )
+                else -> {
+                    UserProfileContent()
                 }
             }
-        )
-    }) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(32.dp)
-        ) {
-            UserProfileContent("", "")
-            LoginContent({})
+
+            LoginContent({ myPageViewModel.signInWithGoogle(context) })
         }
     }
 }
 
 @Composable
-fun UserProfileContent(uri: String, email: String) {
+fun UserProfileContent(uri: String? = null, email: String? = null) {
     UserProfileImage(
         uri = uri,
         modifier = Modifier
@@ -105,27 +91,26 @@ fun UserProfileContent(uri: String, email: String) {
     )
 
     Text(
-        text = email.ifEmpty { stringResource(R.string.my_page_default_user_email) },
+        text = email ?: "",
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
 }
 
 @Composable
-fun UserProfileImage(uri: String, modifier: Modifier) {
-    if (uri.isEmpty()) {
-        Image(
-            imageVector = Icons.Default.AccountCircle,
-            contentDescription = stringResource(R.string.my_page_user_profile_image),
-            modifier = modifier
-        )
-    } else {
+fun UserProfileImage(uri: String?, modifier: Modifier) {
+    uri?.let {
         AsyncImage(
             model = uri,
             contentDescription = stringResource(R.string.my_page_user_profile_image),
             modifier = modifier.clip(CircleShape)
         )
-    }
+    } ?: Image(
+        imageVector = Icons.Default.AccountCircle,
+        contentDescription = stringResource(R.string.my_page_user_profile_image),
+        modifier = modifier
+    )
+
 }
 
 @Composable
@@ -154,6 +139,6 @@ fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun MyPageScreenPreview() {
     NatureAlbumTheme {
-        MyPageScreen({})
+//        MyPageScreen({})
     }
 }
