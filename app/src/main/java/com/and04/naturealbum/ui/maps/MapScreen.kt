@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.and04.naturealbum.R
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.overlay.Marker
 
@@ -30,12 +31,9 @@ fun MapScreen(
 
     // MapView를 Compose에서 사용할 수 있도록 rememberSaveable을 사용하여 상태를 관리
     // 구성 변경 시에도 MapView가 재생성되지 않고 유지
-    // TODO: ID는 ids 파일로 별도 관리할 예정
-    val MAP_VIEW_ID = 12345
-
     val mapView = remember {
         MapView(context).apply {
-            id = MAP_VIEW_ID // MapView에 고유한 ID를 설정
+            id = R.id.map_view_id
         }
     }
 
@@ -76,7 +74,8 @@ fun MapScreen(
                 Marker().apply {
                     position = LatLng(photoDetail.latitude, photoDetail.longitude)
                     map = naverMap
-                } }
+                }
+            }
         }
 
     }
