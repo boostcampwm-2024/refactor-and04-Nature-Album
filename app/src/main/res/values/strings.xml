@@ -44,4 +44,12 @@
     <string name="home_navigate_to_album">나의 도감</string>
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
+
+
+    <!-- My Page -->
+    <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>
+    <string name="my_page_user_profile_image">My Page User Profile Image</string>
+    <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
+    <string name="my_page_google_login_btn">구글</string>
+    <string name="my_page_login_txt">로그인</string>
 </resources>
