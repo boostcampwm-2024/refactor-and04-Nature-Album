@@ -50,8 +50,8 @@ import com.and04.naturealbum.utils.GetTopbar
 @Composable
 fun PhotoInfo(
     selectedPhotoDetail: Int = 0,
-    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
     onNavigateToMyPage: () -> Unit,
+    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(selectedPhotoDetail) {

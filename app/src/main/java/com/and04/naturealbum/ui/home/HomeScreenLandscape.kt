@@ -45,7 +45,7 @@ fun HomeScreenLandscape(
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // TODO:  
+                    // TODO:  나중에 새로운 컴포넌트 추가
                 }
             }
 
