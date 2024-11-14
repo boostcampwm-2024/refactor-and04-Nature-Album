@@ -40,8 +40,8 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun MyPageScreen(
+    navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
-    navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
