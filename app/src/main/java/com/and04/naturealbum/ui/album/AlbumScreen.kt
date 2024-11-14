@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -79,29 +79,23 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 @Composable
 fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
     val configuration = LocalConfiguration.current
-    val columnCount =
-        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 4
+    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+    val columnCount = if (isPortrait) 2 else 4
 
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columnCount),
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(24.dp),
+        horizontalArrangement = Arrangement.spacedBy(28.dp),
     ) {
-        itemsIndexed(albums.chunked(columnCount)) { _, rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(40.dp)
-            ) {
-                for (album in rowItems) {
-                    AlbumItem(
-                        album = album,
-                        onLabelClick = onLabelClick,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (rowItems.size < columnCount) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
+        items(
+            items = albums,
+            key = { albumDto -> albumDto.labelId }
+        ) { album ->
+            AlbumItem(
+                album = album,
+                onLabelClick = onLabelClick,
+            )
         }
     }
 }
