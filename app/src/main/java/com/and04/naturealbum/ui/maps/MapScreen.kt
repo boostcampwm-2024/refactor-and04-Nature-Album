@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.util.Log
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -160,6 +161,10 @@ fun MapScreen(
                             }
 
                             markersList.add(marker)
+
+                            imageMarker.postDelayed({
+                                mapView.removeView(imageMarker)
+                            }, 0)
 
 
                             if (loadedImagesCount == photos.value.size) {
