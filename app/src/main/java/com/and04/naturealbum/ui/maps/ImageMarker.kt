@@ -16,6 +16,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.RelativeLayout
+import coil3.request.allowHardware
 import java.io.IOException
 import java.io.InputStream
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +44,7 @@ class ImageMarkerCoilverson1 @JvmOverloads constructor(
 }
 
 
-
-
-
-
-class ImageMarkerCoil @JvmOverloads constructor(
+class ImageMarkerCoilverson2 @JvmOverloads constructor(
     context: Context,
     uri: String,
     attrs: AttributeSet? = null,
@@ -103,9 +100,57 @@ class ImageMarkerCoil @JvmOverloads constructor(
 }
 
 
+class ImageMarkerCoil @JvmOverloads constructor(
+    context: Context,
+    private val uri: String,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
+    private val imageView: ImageView
 
+    init {
+        Log.d("ImageMarkerCoil", "ImageMarkerCoil initialized with URI: $uri")
+        LayoutInflater.from(context).inflate(R.layout.image_marker, this, true)
+        imageView = findViewById(R.id.iv_marker_image)
+    }
 
+    fun loadImage(onImageLoaded: () -> Unit) {
+        imageView.load(Uri.parse(uri)) {
+            crossfade(true)
+            placeholder(R.drawable.cat_dummy)
+            error(R.drawable.ic_launcher_background)
+            allowHardware(false)
+            listener(
+                onStart = {
+                    Log.d("ImageMarkerCoil", "Coil image loading started.")
+                },
+                onSuccess = { _, _ ->
+                    Log.d("ImageMarkerCoil", "Coil image loading success.")
+                    onImageLoaded()  // 이미지 로딩 완료 후 콜백 호출
+                },
+                onError = { _, throwable ->
+                    Log.e("ImageMarkerCoil", "Coil image loading failed: ${throwable.throwable}")
+                }
+            )
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        Log.d("ImageMarkerCoil", "ImageMarkerCoil attached to window.")
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        Log.d("ImageMarkerCoil", "ImageMarkerCoil detached from window.")
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        Log.d("ImageMarkerCoil", "ImageMarkerCoil onMeasure called.")
+    }
+}
 
 
 class ImageMarker @JvmOverloads constructor(
