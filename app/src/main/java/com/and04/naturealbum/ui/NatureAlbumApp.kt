@@ -6,6 +6,7 @@ import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -104,6 +105,7 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SavePhoto.route) {
+            Log.d("FFFF", "navi")
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
