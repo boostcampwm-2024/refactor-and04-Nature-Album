@@ -1,6 +1,8 @@
 package com.and04.naturealbum.ui.maps
 
+import android.annotation.SuppressLint
 import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.naver.maps.geometry.LatLng
@@ -43,7 +46,7 @@ fun MapFromLocalFileScreen(
 ) {
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val lifecycleOwner: LifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
     val mapView = remember {
         MapView(context).apply {
@@ -92,50 +95,51 @@ fun MapFromLocalFileScreen(
     }
 }
 
+@SuppressLint("NewApi")
 @Composable
 fun MapScreen(
     modifier: Modifier = Modifier,
     viewModel: MapScreenViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsStateWithLifecycle()
-    // 현재 Context를 가져와 MapView 초기화
     val context = LocalContext.current
-    // 현재 LifecycleOwner를 가져와 생명주기 관리에 사용
-    val lifecycleOwner: LifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
-    // MapView를 Compose에서 사용할 수 있도록 rememberSaveable을 사용하여 상태를 관리
-    // 구성 변경 시에도 MapView가 재생성되지 않고 유지
     val mapView = remember {
         MapView(context).apply {
             id = R.id.map_view_id
         }
     }
 
-    // 상태 기반으로 imageMarkers 리스트 관리
-    val imageMarkers = remember { mutableStateListOf<ImageMarkerCoil>() }
-    val markersList = remember { mutableStateListOf<Marker>() }
-    var markersReady by remember { mutableStateOf(false) }
+    val imageMarkerList = remember { mutableStateListOf<ImageMarkerCoil>() }
+    val markerList = remember { mutableStateListOf<Marker>() }
+    var markersReady by remember { mutableStateOf(true) }
 
-    // photos가 비어 있지 않을 때만 LaunchedEffect 실행
-    if (photos.value.isNotEmpty()) {
-        LaunchedEffect(photos.value) {
-            markersReady = false  // 로딩 시작
-            imageMarkers.clear()
-            markersList.clear()
+    LaunchedEffect(photos.value) {
+        if (photos.value.isEmpty()) return@LaunchedEffect
 
-            Log.d("MapScreen", "Photos size: ${photos.value.size}")
-            var loadedImagesCount = 0
+        markersReady = false  // 로딩 시작
+        imageMarkerList.clear()
+        markerList.clear()
 
-            photos.value.forEach { photoDetail ->
-                val imageMarker = ImageMarkerCoil(context)
-                mapView.addView(imageMarker) // 객체를 생성하고 MapView에 추가
-                imageMarkers.add(imageMarker) // imageMarkers 리스트에 추가
+        Log.d("MapScreen", "Photos size: ${photos.value.size}")
+        var loadedImagesCount = 0
 
-                // 이미지 로딩 시작
-                imageMarker.loadImage(photoDetail.photoUri) {
-                    loadedImagesCount++
+        photos.value.forEach { photoDetail ->
+            val imageMarker = ImageMarkerCoil(context)
+            mapView.addView(imageMarker)
+            imageMarkerList.add(imageMarker)
 
-                    imageMarker.viewTreeObserver.addOnGlobalLayoutListener {
+            imageMarker.loadImage(photoDetail.photoUri) {
+                loadedImagesCount++
+
+                // 임시 뷰에서 뷰의 로드 및 measure가 끝나면 리스트에 추가
+                imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
+                    ViewTreeObserver.OnGlobalLayoutListener {
+
+                    override fun onGlobalLayout() {
+                        Log.d("ImageMarker", "${imageMarker.stateDescription}")
+
                         if (imageMarker.height > 0 && imageMarker.width > 0) {
                             val overlayImage = OverlayImage.fromView(imageMarker)
                             val marker = Marker().apply {
@@ -143,7 +147,7 @@ fun MapScreen(
                                 icon = overlayImage
                             }
 
-                            markersList.add(marker)
+                            markerList.add(marker)
 
                             imageMarker.postDelayed({
                                 mapView.removeView(imageMarker)
@@ -159,20 +163,18 @@ fun MapScreen(
                             }
                         }
 
+                        imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
                     }
-
-
-                }
+                })
             }
-
-            Log.d("MapScreen", "ImageMarkers size after adding: ${imageMarkers.size}")
-            //markersReady = imageMarkers.size == photos.value.size  // 준비 완료 상태 업데이트
-            Log.d(
-                "MapScreen",
-                "마커 준비 됐니?: ${markersReady} / imageMarkers.size : ${imageMarkers.size} / Photos size: ${photos.value.size}"
-            )
         }
+        Log.d("MapScreen", "ImageMarkers size after adding: ${imageMarkerList.size}")
+        Log.d(
+            "MapScreen",
+            "마커 준비 됐니?: ${markersReady} / imageMarkers.size : ${imageMarkerList.size} / Photos size: ${photos.value.size}"
+        )
     }
+
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
     DisposableEffect(lifecycleOwner) {
@@ -225,7 +227,7 @@ fun MapScreen(
             Log.d("MapViewLifecycle", "onDispose - MapView onDestroy")
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
             // MapView에서 모든 imageMarkers 제거
-            imageMarkers.forEach { mapView.removeView(it) }
+            imageMarkerList.forEach { mapView.removeView(it) }
         }
     }
 
@@ -237,7 +239,7 @@ fun MapScreen(
             LaunchedEffect(markersReady) {
                 delay(100) // 모든 뷰가 준비될 시간을 주기 위해 약간의 지연을 추가
                 mapView.getMapAsync { naverMap ->
-                    markersList.forEach { marker -> marker.map = naverMap }
+                    markerList.forEach { marker -> marker.map = naverMap }
                 }
             }
         }
