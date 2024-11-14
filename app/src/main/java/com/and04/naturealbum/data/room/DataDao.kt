@@ -8,35 +8,35 @@ import com.and04.naturealbum.data.dto.AlbumDto
 
 @Dao
 interface LabelDao {
-    @Insert
-    fun insertLabel(label: Label): Long
-
     @Query("SELECT * FROM label")
-    fun getAllLabel(): List<Label>
+    suspend fun getAllLabel(): List<Label>
 
     @Query("SELECT name FROM label")
-    fun getAllNameOfLabel(): List<String>
+    suspend fun getAllNameOfLabel(): List<String>
 
-    @Query("SELECT name FROM label WHERE id = :id")
-    fun getLabelById(id: Int): String
+    @Query("SELECT * FROM label WHERE id = :id")
+    suspend fun getLabelById(id: Int): Label
 
     @Query("SELECT id FROM label WHERE name = :name")
-    fun getIdByName(name: String): Int?
+    suspend fun getIdByName(name: String): Int?
 
     @Query("SELECT background_color FROM label WHERE id = :id")
-    fun getLabelBackgroundColorById(id: Int): String
+    suspend fun getLabelBackgroundColorById(id: Int): String
 
     @Query("SELECT name FROM label WHERE id = :id")
-    fun getLabelNameById(id: Int): String
+    suspend fun getLabelNameById(id: Int): String
+
+    @Insert
+    suspend fun insertLabel(label: Label): Long
 }
 
 @Dao
 interface AlbumDao {
     @Insert
-    fun insertAlbum(album: Album): Long
+    suspend fun insertAlbum(album: Album): Long
 
     @Update
-    fun updateAlbum(album: Album)
+    suspend fun updateAlbum(album: Album)
 
     @Query(
         """
@@ -52,30 +52,30 @@ interface AlbumDao {
             
     """
     )
-    fun getAllAlbum(): List<AlbumDto>
+    suspend fun getAllAlbum(): List<AlbumDto>
 
     @Query("SELECT * FROM album")
-    fun getALLAlbum(): List<Album>
+    suspend fun getALLAlbum(): List<Album>
 
     @Query("SELECT * FROM album WHERE label_id = :labelId")
-    fun getAlbumByLabelId(labelId: Int): List<Album>
+    suspend fun getAlbumByLabelId(labelId: Int): List<Album>
 }
 
 @Dao
 interface PhotoDetailDao {
     @Insert
-    fun insertPhotoDetail(photoDetail: PhotoDetail): Long
+    suspend fun insertPhotoDetail(photoDetail: PhotoDetail): Long
 
     @Query("SELECT * FROM photo_detail")
-    fun getAllPhotoDetail(): List<PhotoDetail>
+    suspend fun getAllPhotoDetail(): List<PhotoDetail>
 
     @Query("SELECT * FROM photo_detail WHERE id = :id")
-    fun getPhotoDetailById(id: Int): PhotoDetail
+    suspend fun getPhotoDetailById(id: Int): PhotoDetail
 
     @Query("SELECT photo_uri FROM photo_detail WHERE id = :id")
-    fun getPhotoDetailUriById(id: Int): String
+    suspend fun getPhotoDetailUriById(id: Int): String
 
-    @Query("SELECT photo_uri FROM photo_detail WHERE label_id = :labelId")
-    fun getAllPhotoDetailUriByLabelId(labelId: Int): String
+    @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
+    suspend fun getAllPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
 
 }

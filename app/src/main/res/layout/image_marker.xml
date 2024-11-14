@@ -8,10 +8,11 @@
 
     <ImageView
         android:id="@+id/iv_marker_image"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/cat_dummy" />
+        tools:src="@drawable/ic_launcher_background" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -332,7 +332,7 @@ private fun ScreenPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
             location = null,
-            model = R.drawable.cat_dummy,
+            model = R.drawable.fish_loading_image,
             label = Label(0, "0000FF", "cat"),
             onBack = { },
             onSave = {},
@@ -347,7 +347,7 @@ private fun ScreenEmptyPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
             location = null,
-            model = R.drawable.cat_dummy,
+            model = R.drawable.fish_loading_image,
             onBack = { },
             onSave = {},
             onLabelSelect = {})
@@ -361,7 +361,7 @@ private fun ScreenDescriptionPreview() {
     NatureAlbumTheme {
         SavePhotoScreen(
             location = null,
-            model = R.drawable.cat_dummy,
+            model = R.drawable.fish_loading_image,
             description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
                     "그 아래는 스크롤이 되도록 해보아요\n" +

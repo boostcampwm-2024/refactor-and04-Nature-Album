@@ -49,6 +49,7 @@ fun HomeScreen(
     takePicture: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMap: () -> Unit,
+    onNavigateToMyPage: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
@@ -113,7 +114,7 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+    Scaffold(topBar = { MyTopAppBar(onNavigateToMyPage) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)

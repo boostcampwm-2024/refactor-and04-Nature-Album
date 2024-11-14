@@ -1,8 +1,9 @@
 package com.and04.naturealbum.ui.album
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,67 +13,55 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import android.content.res.Configuration
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
-import com.and04.naturealbum.ui.theme.AppTypography
+import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
 
 @Composable
-fun CustomLabel(
-    text: String,
-    backgroundColor: Color,
-    modifier: Modifier = Modifier
-) {
-    val calculatedTextColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .background(color = backgroundColor, shape = CircleShape)
-            .fillMaxWidth(0.8f)
-    ) {
-        Text(
-            text = text,
-            color = calculatedTextColor,
-            style = AppTypography.labelMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-
-@Composable
-fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
+fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CustomLabel(text = album.labelName, backgroundColor = album.labelBackgroundColor.toColor())
+        AlbumLabel(
+            modifier = Modifier
+                .background(
+                    color = album.labelBackgroundColor.toColor(),
+                    shape = CircleShape
+                )
+                .fillMaxWidth(0.8f)
+                .clickable { onLabelClick(album.labelId) },
+            text = album.labelName,
+            backgroundColor = album.labelBackgroundColor.toColor()
+        )
         Spacer(modifier = Modifier.height(10.dp))
         AsyncImage(
             model = album.photoDetailUri.toUri(),
@@ -80,27 +69,36 @@ fun AlbumItem(album: AlbumDto, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .wrapContentSize(Alignment.Center)
                 .aspectRatio(1f)
-                .clip(MaterialTheme.shapes.medium),
-            contentScale = ContentScale.Crop
+                .clip(MaterialTheme.shapes.medium)
+                .clickable { onLabelClick(album.labelId) },
+            contentScale = ContentScale.Crop,
         )
     }
 }
 
 @Composable
-fun AlbumGrid(albums: List<AlbumDto>) {
+fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
+    val configuration = LocalConfiguration.current
+    val columnCount =
+        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 4
+
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 36.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
-        itemsIndexed(albums.chunked(2)) { _, rowItems ->
+        itemsIndexed(albums.chunked(columnCount)) { _, rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(40.dp)
             ) {
                 for (album in rowItems) {
-                    AlbumItem(album = album, modifier = Modifier.weight(1f))
+                    AlbumItem(
+                        album = album,
+                        onLabelClick = onLabelClick,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-                if (rowItems.size < 2) {
+                if (rowItems.size < columnCount) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -109,28 +107,54 @@ fun AlbumGrid(albums: List<AlbumDto>) {
 }
 
 @Composable
-fun AlbumScreen(viewModel: AlbumViewModel = hiltViewModel()) {
+fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
+    val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(onLabelClick) {
+        if (!isDataLoaded.value) {
+            viewModel.loadAlbums()
+            isDataLoaded.value = true
+        }
+    }
+    val uiState = viewModel.uiState.observeAsState()
     val albumList by viewModel.albumList.observeAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        albumList?.let { albumList -> AlbumGrid(albums = albumList) }
+
+    when (uiState.value) {
+        is UiState.Loading, UiState.Idle, null -> {
+            // TODO: loading
+        }
+
+        UiState.Success -> {
+            Scaffold(topBar = { MyTopAppBar() }) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                ) {
+                    albumList?.let { albumList ->
+                        AlbumGrid(
+                            albums = albumList,
+                            onLabelClick = onLabelClick
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
 @Preview(
-    name = "CustomLabel Light Mode",
+    name = "AlbumLabel Light Mode",
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_NO
 )
 @Preview(
-    name = "CustomLabel Dark Mode",
+    name = "AlbumLabel Dark Mode",
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
+
 @Composable
-fun CustomLabelPreview() {
+fun AlbumLabelPreview() {
     NatureAlbumTheme() {
         Surface {
             Column(
@@ -140,9 +164,27 @@ fun CustomLabelPreview() {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CustomLabel(text = "고양이", backgroundColor = Color(0xFFE57373))
-                CustomLabel(text = "강아지", backgroundColor = Color(0xFFD1C4E9))
-                CustomLabel(text = "해오라기", backgroundColor = Color(0xFFC5E1A5))
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(color = Color(0xFFE57373), shape = CircleShape)
+                        .fillMaxWidth(0.8f),
+                    text = "고양이",
+                    backgroundColor = Color(0xFFE57373)
+                )
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(color = Color(0xFFD1C4E9), shape = CircleShape)
+                        .fillMaxWidth(0.8f),
+                    text = "강아지",
+                    backgroundColor = Color(0xFFD1C4E9)
+                )
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(color = Color(0xFFC5E1A5), shape = CircleShape)
+                        .fillMaxWidth(0.8f),
+                    text = "해오라기",
+                    backgroundColor = Color(0xFFC5E1A5)
+                )
             }
         }
     }
@@ -163,7 +205,7 @@ fun CustomLabelPreview() {
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
-            AlbumScreen()
+            AlbumScreen(onLabelClick = {})
         }
     }
 }

@@ -14,8 +14,8 @@ enum class PermissionDialogState {
 fun PermissionDialogs(
     permissionDialogState: PermissionDialogState,
     onDismiss: () -> Unit,
-    onRequestPermission: () -> Unit,
-    onGoToSettings: () -> Unit,
+    onRequestPermission: () -> Unit = {},
+    onGoToSettings: () -> Unit = {},
 ) {
     when (permissionDialogState) {
         PermissionDialogState.Explain -> {

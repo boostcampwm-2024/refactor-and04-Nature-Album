@@ -12,9 +12,7 @@ import android.widget.RelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil3.load
 import coil3.request.allowHardware
-import coil3.request.crossfade
 import coil3.request.error
-import coil3.request.placeholder
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import com.and04.naturealbum.R
@@ -39,9 +37,7 @@ class ImageMarkerCoil @JvmOverloads constructor(
 
     fun loadImage(uri: String, onImageLoaded: () -> Unit) {
         imageView.load(Uri.parse(uri)) {
-            crossfade(true)
             transformations(CircleCropTransformation())
-            placeholder(R.drawable.cat_dummy)
             error(R.drawable.ic_launcher_background)
             allowHardware(false)
             listener(
@@ -103,7 +99,7 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
             imageView.setImageBitmap(it)
         } ?: run {
             // 에러 처리: 이미지가 없으면 기본 이미지 사용
-            imageView.setImageResource(R.drawable.cat_dummy)
+            imageView.setImageResource(R.drawable.ic_launcher_background)
         }
     }
 
