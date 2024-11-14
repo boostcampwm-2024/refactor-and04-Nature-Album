@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -111,6 +113,8 @@ dependencies {
     //firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
 
     //firebase google login
     implementation(libs.firebase.auth.ktx)
@@ -123,7 +127,6 @@ dependencies {
 
     //for use Java 8+ under sdk26
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    implementation(libs.firebase.firestore)
 }
 
 kapt {

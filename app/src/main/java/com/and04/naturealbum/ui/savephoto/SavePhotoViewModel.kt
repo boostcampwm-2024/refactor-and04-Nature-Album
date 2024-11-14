@@ -8,7 +8,6 @@ import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,8 +37,9 @@ class SavePhotoViewModel @Inject constructor(
         description: String,
         isRepresented: Boolean
     ) {
-        _uiState.value = UiState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
             val labelId =
                 if (label.id == 0) repository.insertLabel(label).toInt()
                 else label.id
@@ -53,28 +53,30 @@ class SavePhotoViewModel @Inject constructor(
                         latitude = location.latitude,
                         longitude = location.longitude,
                         description = description,
-                        datetime = LocalDateTime.now(ZoneId.of("UTC")),
+                        datetime = LocalDateTime.now(ZoneId.of("UTC")),//FIXME API 26 미만 시 사용 불가능
                     )
                 )
             }
             album.await().run {
-                if (isEmpty()) repository.insertPhotoInAlbum(
-                    Album(
-                        labelId = labelId,
-                        photoDetailId = photoDetailId.await().toInt()
+                if (isEmpty()) {
+                    repository.insertPhotoInAlbum(
+                        Album(
+                            labelId = labelId,
+                            photoDetailId = photoDetailId.await().toInt()
+                        )
                     )
-                )
-                else if (isRepresented)
+                } else if (isRepresented) {
                     repository.updateAlbum(
                         first().copy(
                             photoDetailId = photoDetailId.await().toInt()
                         )
                     )
-                else {
+                } else {
+
                 }
             }
+
             _uiState.emit(UiState.Success)
         }
     }
-
 }
