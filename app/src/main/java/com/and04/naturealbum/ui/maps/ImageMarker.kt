@@ -15,6 +15,8 @@ import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import coil3.request.transformations
+import coil3.transform.CircleCropTransformation
 import com.and04.naturealbum.R
 import java.io.File
 import java.io.IOException
@@ -38,6 +40,7 @@ class ImageMarkerCoil @JvmOverloads constructor(
     fun loadImage(uri: String, onImageLoaded: () -> Unit) {
         imageView.load(Uri.parse(uri)) {
             crossfade(true)
+            transformations(CircleCropTransformation())
             placeholder(R.drawable.cat_dummy)
             error(R.drawable.ic_launcher_background)
             allowHardware(false)
