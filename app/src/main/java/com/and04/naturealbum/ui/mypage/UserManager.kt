@@ -12,8 +12,4 @@ object UserManager {
     fun getUser(): FirebaseUser? {
         return auth.currentUser
     }
-
-    fun getNotNullSignInUser(): FirebaseUser {
-        return auth.currentUser!!
-    }
 }

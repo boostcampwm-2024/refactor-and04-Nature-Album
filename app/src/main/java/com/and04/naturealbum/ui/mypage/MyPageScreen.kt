@@ -67,7 +67,7 @@ fun MyPageScreen(
         ) {
             when (uiState.value) {
                 is UiState.Success -> {
-                    val email = UserManager.getNotNullSignInUser().email
+                    val email = UserManager.getUser()?.email
                     UserProfileContent(email = email)
                 }
 
