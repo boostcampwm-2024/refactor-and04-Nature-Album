@@ -28,8 +28,15 @@ class SavePhotoViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
 
+    private val _photoLoadingUiState = MutableStateFlow<UiState>(UiState.Idle)
+    val photoLoadingUiState: StateFlow<UiState> = _photoLoadingUiState
+
     private val _photoSaveState = MutableStateFlow<UiState>(UiState.Idle)
     val photoSaveState: StateFlow<UiState> = _photoSaveState
+
+    fun setPhotoLoadingUiSate(uiState: UiState) {
+        _photoLoadingUiState.value = uiState
+    }
 
     fun savePhoto(
         uri: String,

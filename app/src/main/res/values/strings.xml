@@ -25,6 +25,9 @@
     <string name="save_photo_screen_select_label">라벨을 선택해주세요.</string>
     <string name="save_photo_screen_description">설명</string>
     <string name="save_photo_screen_description_about_photo">사진에 대한 설명을 추가할 수 있습니다.</string>
+    <string name="save_photo_screen_image_description">사진찍은 이미지</string>
+    <string name="save_photo_screen_saving">저장중</string>
+    <string name="save_photo_screen_loading">불러오는중..</string>
 
     <string name="photo_info_screen_calender_icon">달력 아이콘</string>
     <string name="photo_info_screen_location_icon">위치 아이콘</string>
@@ -44,4 +47,7 @@
     <string name="home_navigate_to_album">나의 도감</string>
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
+
+    <!-- component -->
+    <string name="component_navigation_image_button">네비게이션 이미지 버튼</string>
 </resources>

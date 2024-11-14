@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.savephoto
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -51,11 +49,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.isPortrait
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavePhotoScreen(
     location: Location?,
@@ -65,26 +63,36 @@ fun SavePhotoScreen(
     onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
-    modifier: Modifier = Modifier,
     viewModel: SavePhotoViewModel = hiltViewModel(),
     onNavigateToMyPage: () -> Unit,
 ) {
-    Log.d(
-        "FFFF", "save " +
-                "\nlocation:${location}" +
-                "\nmodel:${model}" +
-                "\nlabel:${label}" +
-                "\ndescrip:${description}"
-    )
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
+
     if (photoSaveState.value == UiState.Success) {
         onSave()
     }
 
+    viewModel.setPhotoLoadingUiSate(UiState.Idle)
+    val photoLoadingUiState = viewModel.photoLoadingUiState.collectAsStateWithLifecycle()
+
+    when (photoLoadingUiState.value) {
+        UiState.Idle, UiState.Loading -> {
+            RotatingImageLoading(
+                drawalbeRes = R.drawable.fish_loading_image,
+                stringRes = R.string.save_photo_screen_loading
+            )
+        }
+
+        UiState.Success -> {
+            // TODO:  
+        }
+    }
+
     BackHandler(onBack = onBack)
+
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
