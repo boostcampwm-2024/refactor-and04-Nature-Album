@@ -94,7 +94,7 @@ fun UserProfileContent(uri: Uri? = null, email: String? = null) {
     )
 
     Text(
-        text = email ?: "",
+        text = email ?: stringResource(R.string.my_page_default_user_email),
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
