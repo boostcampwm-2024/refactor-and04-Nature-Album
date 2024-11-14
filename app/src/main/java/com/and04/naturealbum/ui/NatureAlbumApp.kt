@@ -25,6 +25,7 @@ import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.maps.MapScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
@@ -99,7 +100,8 @@ fun NatureAlbumNavHost(
                 locationHandler = locationHandler,
                 takePicture = { takePicture() },
                 onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) }
+                onNavigateToMap = { navController.navigate(NavigateDestination.Map.route) },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -157,7 +159,11 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen()
+            MyPageScreen(navigateToHome = { navController.navigate(NavigateDestination.Home.route) })
+        }
+
+        composable(NavigateDestination.Map.route) {
+            MapScreen()
         }
     }
 }

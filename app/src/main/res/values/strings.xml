@@ -40,7 +40,6 @@
     <string name="album_folder_screen_item_image_description">아이템 이미지</string>
     <string name="album_folder_screen_save_text">저장중...</string>
 
-
     <!-- Home -->
     <string name="home_navigate_to_map">나의 생물 지도</string>
     <string name="home_btn_menu_map_description"> 나의 생물 지도로 가는 버튼</string>
@@ -50,4 +49,13 @@
 
     <!-- component -->
     <string name="component_navigation_image_button">네비게이션 이미지 버튼</string>
-</resources>
+
+    <!-- Map -->
+    <string name="map_marker_loading">Loading map markers...</string>
+
+    <!-- My Page -->
+    <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>
+    <string name="my_page_user_profile_image">My Page User Profile Image</string>
+    <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
+    <string name="my_page_google_login_btn">구글</string>
+    <string name="my_page_login_txt">로그인</string>
