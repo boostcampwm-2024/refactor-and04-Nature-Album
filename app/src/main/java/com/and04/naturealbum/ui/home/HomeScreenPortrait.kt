@@ -13,7 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.ClippingButtonWithFile
-import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.utils.GetTopbar
 
 @Composable
 fun HomeScreenPortrait(
@@ -22,7 +22,9 @@ fun HomeScreenPortrait(
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
-    Scaffold(topBar = { PortraitTopAppBar { onNavigateToMyPage() } }) { innerPadding ->
+    Scaffold(
+        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)

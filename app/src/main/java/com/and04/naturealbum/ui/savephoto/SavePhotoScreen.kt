@@ -77,6 +77,7 @@ fun SavePhotoScreen(
     label: Label? = null,
     modifier: Modifier = Modifier,
     viewModel: SavePhotoViewModel = hiltViewModel(),
+    onNavigateToMyPage: () -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsState() // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     var rememberDescription by rememberSaveable { mutableStateOf(description) }
@@ -336,7 +337,8 @@ private fun ScreenPreview() {
             label = Label(0, "0000FF", "cat"),
             onBack = { },
             onSave = {},
-            onLabelSelect = {})
+            onLabelSelect = {},
+            onNavigateToMyPage = {})
     }
 }
 
@@ -350,7 +352,8 @@ private fun ScreenEmptyPreview() {
             model = R.drawable.fish_loading_image,
             onBack = { },
             onSave = {},
-            onLabelSelect = {})
+            onLabelSelect = {},
+            onNavigateToMyPage = {})
     }
 }
 
@@ -369,6 +372,7 @@ private fun ScreenDescriptionPreview() {
             label = Label(0, "FFFFFF", "cat"),
             onBack = { },
             onSave = {},
-            onLabelSelect = {})
+            onLabelSelect = {},
+            onNavigateToMyPage = {})
     }
 }

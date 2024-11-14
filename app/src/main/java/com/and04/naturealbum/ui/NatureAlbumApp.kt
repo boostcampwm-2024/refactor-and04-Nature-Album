@@ -116,7 +116,8 @@ fun NatureAlbumNavHost(
                 label = selectedLabel,
                 onLabelSelect = {
                     navController.navigate(NavigateDestination.SearchLabel.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -132,7 +133,8 @@ fun NatureAlbumNavHost(
                 onLabelClick = { labelId ->
                     selectedAlbumLabel = labelId
                     navController.navigate(NavigateDestination.AlbumFolder.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -142,12 +144,16 @@ fun NatureAlbumNavHost(
                 onPhotoClick = { labelId ->
                     selectedPhotoDetail = labelId
                     navController.navigate(NavigateDestination.PhotoInfo.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
         composable(NavigateDestination.PhotoInfo.route) {
-            PhotoInfo(selectedPhotoDetail)
+            PhotoInfo(
+                selectedPhotoDetail = selectedPhotoDetail,
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+            )
         }
 
         composable(NavigateDestination.MyPage.route) {

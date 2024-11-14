@@ -21,7 +21,7 @@ import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortraitTopAppBar(onClick: () -> Unit = { }) {
+fun PortraitTopAppBar(onClick: () -> Unit) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.app_name))
@@ -38,7 +38,7 @@ fun PortraitTopAppBar(onClick: () -> Unit = { }) {
 }
 
 @Composable
-fun LandscapeTopAppBar(onClick: () -> Unit = { }) {
+fun LandscapeTopAppBar(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

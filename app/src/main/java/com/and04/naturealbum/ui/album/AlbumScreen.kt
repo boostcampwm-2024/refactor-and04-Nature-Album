@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -39,9 +39,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
 @Composable
@@ -77,10 +78,12 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 }
 
 @Composable
-fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val columnCount = if (isPortrait) 2 else 4
+fun AlbumGrid(
+    albums: List<AlbumDto>,
+    onLabelClick: (Int) -> Unit,
+    columnCount: Int,
+) {
+
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(columnCount),
@@ -101,7 +104,11 @@ fun AlbumGrid(albums: List<AlbumDto>, onLabelClick: (Int) -> Unit) {
 }
 
 @Composable
-fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltViewModel()) {
+fun AlbumScreen(
+    onLabelClick: (Int) -> Unit,
+    viewModel: AlbumViewModel = hiltViewModel(),
+    onNavigateToMyPage: () -> Unit,
+) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(onLabelClick) {
         if (!isDataLoaded.value) {
@@ -109,6 +116,7 @@ fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltVie
             isDataLoaded.value = true
         }
     }
+
     val uiState = viewModel.uiState.observeAsState()
     val albumList by viewModel.albumList.observeAsState()
 
@@ -118,7 +126,9 @@ fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltVie
         }
 
         UiState.Success -> {
-            Scaffold(topBar = { PortraitTopAppBar() }) { paddingValues ->
+            Scaffold(
+                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+            ) { paddingValues ->
                 Column(
                     modifier = Modifier
                         .padding(paddingValues)
@@ -127,7 +137,8 @@ fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltVie
                     albumList?.let { albumList ->
                         AlbumGrid(
                             albums = albumList,
-                            onLabelClick = onLabelClick
+                            onLabelClick = onLabelClick,
+                            columnCount = LocalContext.current.gridColumnCount(),
                         )
                     }
                 }
@@ -149,7 +160,7 @@ fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltVie
 
 @Composable
 fun AlbumLabelPreview() {
-    NatureAlbumTheme() {
+    NatureAlbumTheme {
         Surface {
             Column(
                 modifier = Modifier
@@ -199,7 +210,10 @@ fun AlbumLabelPreview() {
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         Surface {
-            AlbumScreen(onLabelClick = {})
+            AlbumScreen(
+                onLabelClick = {},
+                onNavigateToMyPage = {},
+            )
         }
     }
 }

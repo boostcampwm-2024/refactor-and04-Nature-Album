@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.albumfolder
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Color.parseColor
 import android.net.Uri
 import android.provider.Settings
@@ -44,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -57,17 +55,19 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.home.PermissionDialogState
 import com.and04.naturealbum.ui.home.PermissionDialogs
 import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.gridColumnCount
 
 @Composable
 fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
+    onNavigateToMyPage: () -> Unit,
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(selectedAlbumLabel) {
@@ -123,7 +123,9 @@ fun AlbumFolderScreen(
         }
     }
 
-    Scaffold(topBar = { PortraitTopAppBar() }) { innerPadding ->
+    Scaffold(
+        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+    ) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
             onPhotoClick = onPhotoClick,
@@ -166,9 +168,6 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
-    val configuration = LocalConfiguration.current
-    val gridColumnCount =
-        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) 2 else 4
     val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
     val label = albumFolderViewModel.label.collectAsStateWithLifecycle()
     val photoDetails = albumFolderViewModel.photoDetails.collectAsStateWithLifecycle()
@@ -211,7 +210,7 @@ private fun ItemContainer(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(gridColumnCount),
+                            columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(24.dp),
                             horizontalArrangement = Arrangement.spacedBy(28.dp),
