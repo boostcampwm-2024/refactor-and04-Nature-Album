@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.size
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -80,7 +81,7 @@ fun MapFromLocalFileScreen(
 
     // AndroidView로 MapView를 표시
     AndroidView(factory = { mapView }, modifier = modifier) {
-        it.getMapAsync { naverMap ->
+        mapView.getMapAsync { naverMap ->
             photos.value.map { photoDetail ->
                 // ImageMarker 사용
                 val imageMarker =
@@ -139,8 +140,7 @@ fun MapScreen(
 
                     override fun onGlobalLayout() {
                         Log.d("ImageMarker", "${imageMarker.stateDescription}")
-
-                        if (imageMarker.height > 0 && imageMarker.width > 0) {
+                        if (imageMarker.isImageLoaded()) {
                             val overlayImage = OverlayImage.fromView(imageMarker)
                             val marker = Marker().apply {
                                 position = LatLng(photoDetail.latitude, photoDetail.longitude)
@@ -261,7 +261,7 @@ fun LoadingScreen() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Loading map markers...")
+            Text("")
         }
     }
 }

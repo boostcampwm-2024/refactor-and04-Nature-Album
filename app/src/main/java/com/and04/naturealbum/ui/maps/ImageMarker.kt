@@ -7,7 +7,6 @@ import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil3.load
@@ -66,6 +65,8 @@ class ImageMarkerCoil @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         Log.d("ImageMarkerCoil", "ImageMarkerCoil onMeasure called.")
     }
+
+    fun isImageLoaded(): Boolean = width > 0 && height > 0
 }
 
 
@@ -89,7 +90,7 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
         }
 
         bitmap?.let {
-            binding.ivMarkerImage.setImageBitmap(it)
+            binding.ivMarkerImage.setImageBitmap(bitmap)
         } ?: run {
             // 에러 처리: 이미지가 없으면 기본 이미지 사용
             binding.ivMarkerImage.setImageResource(R.drawable.ic_launcher_background)

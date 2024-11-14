@@ -44,4 +44,7 @@
     <string name="home_navigate_to_album">나의 도감</string>
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
+
+    <!-- Map -->
+    <string name="map_marker_loading">Loading map markers...</string>
 </resources>
