@@ -8,7 +8,7 @@ import com.and04.naturealbum.ui.component.LandscapeTopAppBar
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 
 const val COLUMN_COUNT_PORTRAIT = 2
-const val COLUMN_COUNT_LANDSCAPE = 2
+const val COLUMN_COUNT_LANDSCAPE = 4
 
 fun Context.isPortrait(): Boolean {
     return resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
