@@ -44,7 +44,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 
 @Composable
@@ -59,7 +59,7 @@ fun PhotoInfo(
             isDataLoaded.value = true
         }
     }
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+    Scaffold(topBar = { PortraitTopAppBar() }) { innerPadding ->
         Content(innerPadding = innerPadding)
     }
 }

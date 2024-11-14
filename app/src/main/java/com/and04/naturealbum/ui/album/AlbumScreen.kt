@@ -39,7 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.toColor
@@ -124,7 +124,7 @@ fun AlbumScreen(onLabelClick: (Int) -> Unit, viewModel: AlbumViewModel = hiltVie
         }
 
         UiState.Success -> {
-            Scaffold(topBar = { MyTopAppBar() }) { paddingValues ->
+            Scaffold(topBar = { PortraitTopAppBar() }) { paddingValues ->
                 Column(
                     modifier = Modifier
                         .padding(paddingValues)
