@@ -117,15 +117,21 @@ private fun SearchContent(
             modifier = Modifier.padding(start = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val toastText = stringResource(R.string.label_search_blank_query_toast)
+            val blankToastText = stringResource(R.string.label_search_blank_query_toast)
+            val nestToastText = stringResource(R.string.label_search_nest_label_toast)
             Text(stringResource(R.string.label_search_create))
             Spacer(Modifier.size(4.dp))
             SuggestionChip(
                 onClick = {
                     if (query.isBlank()) {
-                        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
                     }
+                    else if(labelsState.find { it.name == query } != null){
+                        Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
+                        return@SuggestionChip
+                    }
+
                     onSelected(
                         Label(
                             backgroundColor = randomColor,

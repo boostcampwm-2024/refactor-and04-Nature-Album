@@ -7,6 +7,7 @@
     <string name="label_search_create">생성</string>
     <string name="label_search_label_search">라벨 검색</string>
     <string name="label_search_blank_query_toast">라벨을 입력하세요.</string>
+    <string name="label_search_nest_label_toast">이미 존재하는 라벨입니다.</string>
 
     <string name="Home_Screen_button_camera">카메라</string>
     <string name="Home_Screen_button_field_guide">나의 생물 도감</string>
