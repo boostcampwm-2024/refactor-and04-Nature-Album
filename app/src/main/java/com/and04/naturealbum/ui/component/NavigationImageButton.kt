@@ -3,11 +3,11 @@ package com.and04.naturealbum.ui.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,30 +17,29 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun NavigationImageButton(
     text: String,
-    modifier: Modifier,
     textColor: Color,
+    modifier: Modifier = Modifier,
     imageVector: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-
-    val svgAspectRatio = imageVector.viewportWidth / imageVector.viewportHeight
-
-    Box(modifier = modifier
-        .aspectRatio(svgAspectRatio)
-        .clickable { onClick() })
-    {
+    Box(
+        modifier = modifier.clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
         Image(
             imageVector = imageVector,
             contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds,
         )
 
         Text(
             text = text,
+            color = textColor,
             modifier = Modifier
-                .padding(start = 12.dp, top = 8.dp),
-            color = textColor
+                .align(Alignment.TopStart)
+                .padding(8.dp)
         )
     }
+
 }

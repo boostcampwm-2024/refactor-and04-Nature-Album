@@ -82,7 +82,7 @@ class AuthenticationManager {
 
     private fun handleFirebaseSignIn(
         firebaseCredential: AuthCredential,
-        trySend: (AuthResponse) -> Unit
+        trySend: (AuthResponse) -> Unit,
     ) {
         auth.signInWithCredential(firebaseCredential)
             .addOnSuccessListener {
