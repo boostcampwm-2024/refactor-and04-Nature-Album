@@ -25,20 +25,27 @@ sealed class UiState {
 
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
-    private val repository: DataRepository
+    private val repository: DataRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState
+    private val _photoLoadingUiState = MutableStateFlow<UiState>(UiState.Idle)
+    val photoLoadingUiState: StateFlow<UiState> = _photoLoadingUiState
+
+    private val _photoSaveState = MutableStateFlow<UiState>(UiState.Idle)
+    val photoSaveState: StateFlow<UiState> = _photoSaveState
+
+    fun setPhotoLoadingUiSate(uiState: UiState) {
+        _photoLoadingUiState.value = uiState
+    }
 
     fun savePhoto(
         uri: String,
         label: Label,
         location: Location,
         description: String,
-        isRepresented: Boolean
+        isRepresented: Boolean,
     ) {
-        _uiState.value = UiState.Loading
+        _photoSaveState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             val labelId =
                 if (label.id == 0) repository.insertLabel(label).toInt()
@@ -73,7 +80,7 @@ class SavePhotoViewModel @Inject constructor(
                 else {
                 }
             }
-            _uiState.emit(UiState.Success)
+            _photoSaveState.emit(UiState.Success)
         }
     }
 

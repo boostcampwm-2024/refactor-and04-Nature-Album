@@ -100,7 +100,6 @@ fun ClippingButtonWithFile(
         parsedPathData = svgData.pathData
         parsedViewportWidth = svgData.viewportWidth
         parsedViewportHeight = svgData.viewportHeight
-
     }
 
     Box(

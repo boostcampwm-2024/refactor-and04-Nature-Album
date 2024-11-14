@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.home
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -29,6 +27,7 @@ import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.component.NavigationImageButton
+import com.and04.naturealbum.utils.isPortrait
 
 const val MAP_BUTTON_BACKGROUND_OUTLINE_SVG = "btn_home_menu_map_background_outline.svg"
 
@@ -103,11 +102,7 @@ fun HomeScreen(
         )
     }
 
-
-    val configuration = LocalConfiguration.current
-    val isPortarit = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-
-    if (isPortarit) {
+    if (context.isPortrait()) {
         HomeScreenPortrait(
             context = context,
             permissionHandler = permissionHandler,
