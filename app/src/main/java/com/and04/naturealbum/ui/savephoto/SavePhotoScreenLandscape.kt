@@ -42,7 +42,7 @@ fun SavePhotoScreenLandscape(
     Row(
         modifier = Modifier.padding(innerPadding)
     ) {
-        //오른쪽
+        //왼쪽
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -62,14 +62,16 @@ fun SavePhotoScreenLandscape(
                 selected = isRepresented.value,
                 onClick = { isRepresented.value = !isRepresented.value },
                 modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 12.dp)
             )
         }
 
-        //왼쪽
+        //오른쪽
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            LabelSelection(label, onClick = onLabelSelect, modifier = Modifier.weight(1f))
+            LabelSelection(label = label, onClick = onLabelSelect)
 
             Description(
                 description = rememberDescription.value,
@@ -79,7 +81,6 @@ fun SavePhotoScreenLandscape(
 
             Row(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(30.dp),

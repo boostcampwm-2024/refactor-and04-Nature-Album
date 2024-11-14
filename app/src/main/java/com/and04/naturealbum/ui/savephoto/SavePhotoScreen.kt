@@ -13,9 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -156,13 +155,9 @@ fun ToggleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Spacer(modifier = modifier.size(24.dp))
     Row(
         modifier = modifier
-            .padding(vertical = 8.dp)
-            .clickable(
-                onClick = { onClick() }
-            ),
+            .clickable(onClick = { onClick() }),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -183,20 +178,15 @@ fun LabelSelection(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(horizontal = 12.dp)) {
         Text(
             stringResource(R.string.save_photo_screen_label),
-            modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
-        Spacer(modifier = modifier.size(8.dp))
         Button(
             onClick = { onClick() },
-            modifier = modifier
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(all = 4.dp),
+            modifier = modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -209,39 +199,31 @@ fun LabelSelection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    modifier = modifier
-                        .padding(12.dp)
-                        .size(24.dp),
                     imageVector = Icons.Default.Menu,
                     contentDescription = null
                 )
                 Box(
                     modifier = modifier
                         .weight(1f)
-                        .padding(horizontal = 4.dp)
+                        .padding(horizontal = 24.dp)
                 ) {
                     label?.let {
                         val backgroundColor = Color(label.backgroundColor.toLong(16))
                         SuggestionChip(
                             onClick = { onClick() },
-                            label = {
-                                Text(text = label.name)
-                            },
+                            label = { Text(text = label.name) },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = backgroundColor,
                                 labelColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White,
-                            )
+                            ),
+                            modifier = Modifier.heightIn(max = 24.dp)
                         )
-                    }
-                        ?: Text(text = stringResource(R.string.save_photo_screen_select_label))
+                    } ?: Text(text = stringResource(R.string.save_photo_screen_select_label))
                 }
             }
             Icon(
-                modifier = modifier
-                    .padding(12.dp)
-                    .size(24.dp),
                 imageVector = Icons.Default.Search,
-                contentDescription = null
+                contentDescription = null,
             )
         }
     }
@@ -253,21 +235,21 @@ fun Description(
     modifier: Modifier,
     onValueChange: (String) -> Unit,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.padding(12.dp)
+    ) {
         Text(
             stringResource(R.string.save_photo_screen_description),
-            modifier = modifier,
             style = MaterialTheme.typography.headlineLarge,
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
-        Spacer(modifier = modifier.size(8.dp))
         TextField(
             value = description,
             onValueChange = { text -> onValueChange(text) },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .height(120.dp),
         )
     }
 }
