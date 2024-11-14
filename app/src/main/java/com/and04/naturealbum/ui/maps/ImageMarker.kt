@@ -30,40 +30,17 @@ class ImageMarkerCoil @JvmOverloads constructor(
     private val binding: ImageMarkerBinding =
         ImageMarkerBinding.inflate(LayoutInflater.from(context), this, true)
 
-
     fun loadImage(uri: String, onImageLoaded: () -> Unit) {
         binding.ivMarkerImage.load(Uri.parse(uri)) {
             transformations(CircleCropTransformation())
             error(R.drawable.ic_launcher_background)
             allowHardware(false)
             listener(
-                onStart = {
-                    Log.d("ImageMarkerCoil", "Coil image loading started.")
-                },
                 onSuccess = { _, _ ->
-                    Log.d("ImageMarkerCoil", "Coil image loading success.")
                     onImageLoaded()  // 이미지 로딩 완료 후 콜백 호출
-                },
-                onError = { _, throwable ->
-                    Log.e("ImageMarkerCoil", "Coil image loading failed: ${throwable.throwable}")
                 }
             )
         }
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        Log.d("ImageMarkerCoil", "ImageMarkerCoil attached to window.")
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        Log.d("ImageMarkerCoil", "ImageMarkerCoil detached from window.")
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        Log.d("ImageMarkerCoil", "ImageMarkerCoil onMeasure called.")
     }
 
     fun isImageLoaded(): Boolean = width > 0 && height > 0
@@ -102,7 +79,6 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
             val file = File(uri.path)
             BitmapFactory.decodeFile(file.absolutePath)
         } catch (e: IOException) {
-            Log.e("ImageMarker", "Error loading image from file: ${e.message}")
             null
         }
     }
@@ -112,7 +88,6 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
             BitmapFactory.decodeStream(inputStream)
         } catch (e: IOException) {
-            Log.e("ImageMarker", "Error loading image from URI: ${e.message}")
             null
         }
     }

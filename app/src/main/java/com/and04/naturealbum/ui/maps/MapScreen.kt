@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.size
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -66,9 +65,7 @@ fun MapFromLocalFileScreen(
                 Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 Lifecycle.Event.ON_STOP -> mapView.onStop()
                 Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> {
-                    Log.d("MapViewLifecycle", "Other Event: $event")
-                }
+                else -> {}
             }
         }
         lifecycle.addObserver(observer)
@@ -123,7 +120,6 @@ fun MapScreen(
         imageMarkerList.clear()
         markerList.clear()
 
-        Log.d("MapScreen", "Photos size: ${photos.value.size}")
         var loadedImagesCount = 0
 
         photos.value.forEach { photoDetail ->
@@ -139,7 +135,6 @@ fun MapScreen(
                     ViewTreeObserver.OnGlobalLayoutListener {
 
                     override fun onGlobalLayout() {
-                        Log.d("ImageMarker", "${imageMarker.stateDescription}")
                         if (imageMarker.isImageLoaded()) {
                             val overlayImage = OverlayImage.fromView(imageMarker)
                             val marker = Marker().apply {
@@ -156,10 +151,6 @@ fun MapScreen(
 
                             if (loadedImagesCount == photos.value.size) {
                                 markersReady = true  // 모든 이미지 로드 완료 후 상태 업데이트
-                                Log.d(
-                                    "MapScreen",
-                                    "---------------------All images loaded. markersReady: $markersReady"
-                                )
                             }
                         }
 
@@ -168,11 +159,6 @@ fun MapScreen(
                 })
             }
         }
-        Log.d("MapScreen", "ImageMarkers size after adding: ${imageMarkerList.size}")
-        Log.d(
-            "MapScreen",
-            "마커 준비 됐니?: ${markersReady} / imageMarkers.size : ${imageMarkerList.size} / Photos size: ${photos.value.size}"
-        )
     }
 
 
@@ -183,39 +169,13 @@ fun MapScreen(
         // Lifecycle 이벤트를 관찰하는 Observer를 생성
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_CREATE -> {
-                    Log.d("MapViewLifecycle", "ON_CREATE")
-                    mapView.onCreate(null)
-                }
-
-                Lifecycle.Event.ON_START -> {
-                    Log.d("MapViewLifecycle", "ON_START")
-                    mapView.onStart()
-                }
-
-                Lifecycle.Event.ON_RESUME -> {
-                    Log.d("MapViewLifecycle", "ON_RESUME")
-                    mapView.onResume()
-                }
-
-                Lifecycle.Event.ON_PAUSE -> {
-                    Log.d("MapViewLifecycle", "ON_PAUSE")
-                    mapView.onPause()
-                }
-
-                Lifecycle.Event.ON_STOP -> {
-                    Log.d("MapViewLifecycle", "ON_STOP")
-                    mapView.onStop()
-                }
-
-                Lifecycle.Event.ON_DESTROY -> {
-                    Log.d("MapViewLifecycle", "ON_DESTROY")
-                    mapView.onDestroy()
-                }
-
-                else -> {
-                    Log.d("MapViewLifecycle", "Other Event: $event")
-                }
+                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {}
             }
         }
         // Lifecycle에 Observer를 추가하여 생명주기를 관찰
@@ -224,7 +184,6 @@ fun MapScreen(
         // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
             lifecycle.removeObserver(observer)
-            Log.d("MapViewLifecycle", "onDispose - MapView onDestroy")
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
             // MapView에서 모든 imageMarkers 제거
             imageMarkerList.forEach { mapView.removeView(it) }
