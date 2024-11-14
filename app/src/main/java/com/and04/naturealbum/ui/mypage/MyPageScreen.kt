@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.mypage
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -67,8 +68,10 @@ fun MyPageScreen(
         ) {
             when (uiState.value) {
                 is UiState.Success -> {
-                    val email = UserManager.getUser()?.email
-                    UserProfileContent(email = email)
+                    val user = UserManager.getUser()
+                    val email = user?.email
+                    val photoUri = user?.photoUrl
+                    UserProfileContent(uri = photoUri, email = email)
                 }
 
                 else -> {
@@ -82,9 +85,9 @@ fun MyPageScreen(
 }
 
 @Composable
-fun UserProfileContent(uri: String? = null, email: String? = null) {
+fun UserProfileContent(uri: Uri? = null, email: String? = null) {
     UserProfileImage(
-        uri = uri,
+        uri = uri?.toString() ?: "",
         modifier = Modifier
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
