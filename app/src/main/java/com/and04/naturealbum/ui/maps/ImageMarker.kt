@@ -16,6 +16,7 @@ import coil3.request.error
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import com.and04.naturealbum.R
+import com.and04.naturealbum.databinding.ImageMarkerBinding
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -27,16 +28,12 @@ class ImageMarkerCoil @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private val imageView: ImageView
+    private val binding: ImageMarkerBinding =
+        ImageMarkerBinding.inflate(LayoutInflater.from(context), this, true)
 
-    init {
-        Log.d("ImageMarkerCoil", "ImageMarkerCoil initialized")
-        LayoutInflater.from(context).inflate(R.layout.image_marker, this, true)
-        imageView = findViewById(R.id.iv_marker_image)
-    }
 
     fun loadImage(uri: String, onImageLoaded: () -> Unit) {
-        imageView.load(Uri.parse(uri)) {
+        binding.ivMarkerImage.load(Uri.parse(uri)) {
             transformations(CircleCropTransformation())
             error(R.drawable.ic_launcher_background)
             allowHardware(false)
@@ -78,12 +75,8 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : RelativeLayout(context, attrs, defStyleAttr) {
 
-    private val imageView: ImageView
-
-    init {
-        LayoutInflater.from(context).inflate(R.layout.image_marker, this, true)
-        imageView = findViewById(R.id.iv_marker_image)
-    }
+    private val binding: ImageMarkerBinding =
+        ImageMarkerBinding.inflate(LayoutInflater.from(context), this, true)
 
     fun loadImage(uri: String) {
         // 파일 경로 처리
@@ -96,10 +89,10 @@ class ImageMarkerFromLocalFileBitmap @JvmOverloads constructor(
         }
 
         bitmap?.let {
-            imageView.setImageBitmap(it)
+            binding.ivMarkerImage.setImageBitmap(it)
         } ?: run {
             // 에러 처리: 이미지가 없으면 기본 이미지 사용
-            imageView.setImageResource(R.drawable.ic_launcher_background)
+            binding.ivMarkerImage.setImageResource(R.drawable.ic_launcher_background)
         }
     }
 
