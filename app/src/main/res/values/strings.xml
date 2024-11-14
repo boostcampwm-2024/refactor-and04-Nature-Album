@@ -37,7 +37,6 @@
     <string name="album_folder_screen_item_image_description">아이템 이미지</string>
     <string name="album_folder_screen_save_text">저장중...</string>
 
-
     <!-- Home -->
     <string name="home_navigate_to_map">나의 생물 지도</string>
     <string name="home_btn_menu_map_description"> 나의 생물 지도로 가는 버튼</string>
@@ -45,6 +44,8 @@
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
 
+    <!-- Map -->
+    <string name="map_marker_loading">Loading map markers...</string>
 
     <!-- My Page -->
     <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>

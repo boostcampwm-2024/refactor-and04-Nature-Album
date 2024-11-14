@@ -28,6 +28,7 @@ fun HomeScreenLandscape(
     permissionHandler: PermissionHandler,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
+    onNavigateToMap: () -> Unit,
 ) {
     Scaffold { innerPadding ->
         MainBackground(Modifier.fillMaxSize())
@@ -68,7 +69,7 @@ fun HomeScreenLandscape(
                             text = stringResource(R.string.home_navigate_to_map),
                             textColor = Color.Black,
                             imageResId = R.drawable.btn_home_menu_map_background,
-                            onClick = { /* TODO: Navigation 연결 */ }
+                            onClick = onNavigateToMap
                         )
                     }
 
