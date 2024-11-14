@@ -85,7 +85,7 @@ fun MyPageScreen(
 }
 
 @Composable
-fun UserProfileContent(uri: Uri? = null, email: String? = null) {
+private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
     UserProfileImage(
         uri = uri?.toString() ?: "",
         modifier = Modifier
@@ -101,7 +101,7 @@ fun UserProfileContent(uri: Uri? = null, email: String? = null) {
 }
 
 @Composable
-fun UserProfileImage(uri: String?, modifier: Modifier) {
+private fun UserProfileImage(uri: String?, modifier: Modifier) {
     uri?.let {
         AsyncImage(
             model = uri,
@@ -117,7 +117,7 @@ fun UserProfileImage(uri: String?, modifier: Modifier) {
 }
 
 @Composable
-fun LoginContent(loginHandle: () -> Unit) {
+private fun LoginContent(loginHandle: () -> Unit) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
