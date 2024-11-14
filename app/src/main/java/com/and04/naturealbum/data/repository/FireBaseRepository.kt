@@ -1,6 +1,8 @@
 package com.and04.naturealbum.data.repository
 
 import android.net.Uri
+import com.and04.naturealbum.data.dto.FirebaseLabel
+import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,13 +21,13 @@ interface FireBaseRepository {
     suspend fun insertLabel(
         uid: String,
         labelName: String,
-        labelData: HashMap<String, Any>
+        labelData: FirebaseLabel
     ): Task<Void>
 
     suspend fun insertPhotoInfo(
         uid: String,
         uri: String,
-        photoData: HashMap<String, Any>
+        photoData: FirebasePhotoInfo
     ): Task<Void>
 
     //UPDATE
@@ -59,7 +61,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
-        labelData: HashMap<String, Any>
+        labelData: FirebaseLabel
     ): Task<Void> {
 
         return fireStore.collection(USER).document(uid).collection(LABEL).document(labelName).set(labelData)
@@ -67,11 +69,11 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     override suspend fun insertPhotoInfo(
         uid: String,
-        uri: String,
-        photoData: HashMap<String, Any>
+        fileName: String,
+        photoData: FirebasePhotoInfo
     ): Task<Void> {
 
-        return fireStore.collection(USER).document(uid).collection(PHOTOS).document(uri).set(photoData)
+        return fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName).set(photoData)
     }
 
     companion object {

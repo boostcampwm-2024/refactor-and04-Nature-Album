@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
@@ -63,6 +64,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.service.FirebaseInsertService
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +105,7 @@ fun SavePhotoScreen(
             )
         },
     ) { innerPadding ->
+        val context = LocalContext.current
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -162,9 +165,16 @@ fun SavePhotoScreen(
                             location = location!!, // TODO : Null 처리 필요
                             isRepresented = isRepresented
                         )
-                    })
-            }
 
+                        val intent = Intent(context, FirebaseInsertService::class.java)
+                        intent.putExtra("uri", model.toString())
+                        intent.putExtra("label", label)
+                        intent.putExtra("location", location)
+                        intent.putExtra("description", rememberDescription)
+                        context.startService(intent)
+                    }
+                )
+            }
         }
     }
 }
