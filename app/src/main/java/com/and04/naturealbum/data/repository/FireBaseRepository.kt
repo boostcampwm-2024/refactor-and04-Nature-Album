@@ -8,7 +8,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.UploadTask
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 interface FireBaseRepository {
@@ -17,18 +17,18 @@ interface FireBaseRepository {
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
 
     //INSERT
-    suspend fun saveImageFile(uid: String?, label: String, fileName: String, uri: Uri): UploadTask
+    suspend fun saveImageFile(uid: String?, label: String, fileName: String, uri: Uri): Uri?
     suspend fun insertLabel(
         uid: String,
         labelName: String,
         labelData: FirebaseLabel
-    ): Task<Void>
+    ): Boolean
 
     suspend fun insertPhotoInfo(
         uid: String,
-        uri: String,
+        fileName: String,
         photoData: FirebasePhotoInfo
-    ): Task<Void>
+    ): Boolean
 
     //UPDATE
 
@@ -53,27 +53,48 @@ class FireBaseRepositoryImpl @Inject constructor(
         label: String,
         fileName: String,
         uri: Uri,
-    ): UploadTask {
+    ): Uri? {
+        var storageUri: Uri? = null
+        fireStorage.getReference("$uid/$label/$fileName").putFile(uri)
+            .addOnSuccessListener { imageTask ->
+                imageTask.storage.downloadUrl
+                    .addOnSuccessListener { imageTaskUri ->
+                        storageUri = imageTaskUri
+                    }
+            }.await()
 
-        return fireStorage.getReference("$uid/$label/$fileName").putFile(uri)
+        return storageUri
     }
 
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
         labelData: FirebaseLabel
-    ): Task<Void> {
+    ): Boolean {
+        var requestSuccess = false
+        fireStore.collection(USER).document(uid).collection(LABEL).document(labelName)
+            .set(labelData)
+            .addOnSuccessListener {
+                requestSuccess = true
+            }.await()
 
-        return fireStore.collection(USER).document(uid).collection(LABEL).document(labelName).set(labelData)
+        return requestSuccess
     }
 
     override suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
         photoData: FirebasePhotoInfo
-    ): Task<Void> {
+    ): Boolean {
+        var requestSuccess = false
 
-        return fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName).set(photoData)
+        fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+            .set(photoData)
+            .addOnSuccessListener {
+                requestSuccess = true
+            }.await()
+
+        return requestSuccess
     }
 
     companion object {
