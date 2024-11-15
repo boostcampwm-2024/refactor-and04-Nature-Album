@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.content.Intent
 import android.location.Location
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.service.FirebaseInsertService
 
 @Composable
 fun SavePhotoScreenPortrait(
@@ -40,11 +42,12 @@ fun SavePhotoScreenPortrait(
     onBack: () -> Unit,
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.padding(innerPadding)
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(context)
                 .data(model)
                 .crossfade(true)
                 .build(),
@@ -98,6 +101,13 @@ fun SavePhotoScreenPortrait(
                         location = location!!, // TODO : Null 처리 필요
                         isRepresented = isRepresented.value
                     )
+
+                    val intent = Intent(context, FirebaseInsertService::class.java)
+                    intent.putExtra("uri", model.toString())
+                    intent.putExtra("label", label)
+                    intent.putExtra("location", location)
+                    intent.putExtra("description", rememberDescription.value)
+                    context.startService(intent)
                 })
         }
 
