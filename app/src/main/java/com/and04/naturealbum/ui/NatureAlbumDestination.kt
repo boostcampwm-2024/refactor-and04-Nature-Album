@@ -19,8 +19,11 @@ sealed class NavigateDestination(val route: String) : Destination {
     data object SearchLabel : NavigateDestination("search_label")
 
     @Serializable
+    data object Map : NavigateDestination("map")
+
+    @Serializable
     data object MyPage : NavigateDestination("my_page")
-    
+
     @Serializable
     data object AlbumFolder : NavigateDestination("album_folder")
 

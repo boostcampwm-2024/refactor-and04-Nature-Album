@@ -25,6 +25,7 @@ import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.maps.MapScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
@@ -99,7 +100,8 @@ fun NatureAlbumNavHost(
                 locationHandler = locationHandler,
                 takePicture = { takePicture() },
                 onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) }
+                onNavigateToMap = { navController.navigate(NavigateDestination.Map.route) },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -111,12 +113,14 @@ fun NatureAlbumNavHost(
                 onSave = {
                     navController.navigate(NavigateDestination.Album.route) {
                         popUpTo(NavigateDestination.Home.route) { inclusive = false }
+                        selectedLabel = null
                     }
                 },
                 label = selectedLabel,
                 onLabelSelect = {
                     navController.navigate(NavigateDestination.SearchLabel.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -132,7 +136,8 @@ fun NatureAlbumNavHost(
                 onLabelClick = { labelId ->
                     selectedAlbumLabel = labelId
                     navController.navigate(NavigateDestination.AlbumFolder.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
@@ -142,16 +147,24 @@ fun NatureAlbumNavHost(
                 onPhotoClick = { labelId ->
                     selectedPhotoDetail = labelId
                     navController.navigate(NavigateDestination.PhotoInfo.route)
-                }
+                },
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
         composable(NavigateDestination.PhotoInfo.route) {
-            PhotoInfo(selectedPhotoDetail)
+            PhotoInfo(
+                selectedPhotoDetail = selectedPhotoDetail,
+                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+            )
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen()
+            MyPageScreen(navigateToHome = { navController.navigate(NavigateDestination.Home.route) })
+        }
+
+        composable(NavigateDestination.Map.route) {
+            MapScreen()
         }
     }
 }

@@ -13,10 +13,13 @@ import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopAppBar(onClick: () -> Unit = { }) {
+fun MyTopAppBar(navigationIcon: @Composable () -> Unit = { }, onClick: () -> Unit = { }) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.app_name))
+        },
+        navigationIcon = {
+            navigationIcon()
         },
         actions = {
             IconButton(onClick = { onClick() }) {

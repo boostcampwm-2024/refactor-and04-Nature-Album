@@ -3,7 +3,10 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.and04.naturealbum.ui.savephoto.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -12,14 +15,24 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val authenticationManager: AuthenticationManager
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow<UiState>(setInitUiState())
+    val uiState: StateFlow<UiState> = _uiState
 
     fun signInWithGoogle(context: Context) {
         authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
-                    val token = response.token // token
+                    _uiState.emit(UiState.Success)
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun setInitUiState(): UiState {
+        return if (UserManager.isSignIn()) {
+            UiState.Success
+        } else {
+            UiState.Idle
+        }
     }
 }

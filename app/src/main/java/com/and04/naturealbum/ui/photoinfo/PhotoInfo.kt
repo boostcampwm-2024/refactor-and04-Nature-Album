@@ -44,12 +44,13 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.component.MyTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.utils.GetTopbar
 
 @Composable
 fun PhotoInfo(
     selectedPhotoDetail: Int = 0,
+    onNavigateToMyPage: () -> Unit,
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
@@ -59,7 +60,9 @@ fun PhotoInfo(
             isDataLoaded.value = true
         }
     }
-    Scaffold(topBar = { MyTopAppBar() }) { innerPadding ->
+    Scaffold(
+        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+    ) { innerPadding ->
         Content(innerPadding = innerPadding)
     }
 }
@@ -249,5 +252,7 @@ private fun RowInfo(
 @Preview
 @Composable
 private fun PhotoInfoPreview() {
-    PhotoInfo()
+    PhotoInfo(
+        onNavigateToMyPage = {}
+    )
 }
