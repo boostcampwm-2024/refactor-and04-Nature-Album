@@ -54,16 +54,8 @@ class FireBaseRepositoryImpl @Inject constructor(
         fileName: String,
         uri: Uri,
     ): Uri? {
-        var storageUri: Uri? = null
-        fireStorage.getReference("$uid/$label/$fileName").putFile(uri)
-            .addOnSuccessListener { imageTask ->
-                imageTask.storage.downloadUrl
-                    .addOnSuccessListener { imageTaskUri ->
-                        storageUri = imageTaskUri
-                    }
-            }.await()
-
-        return storageUri
+        val task = fireStorage.getReference("$uid/$label/$fileName").putFile(uri).await()
+        return task.storage.downloadUrl.await()
     }
 
     override suspend fun insertLabel(
