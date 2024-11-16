@@ -74,6 +74,7 @@ private class SvgOutlineShape(
 @Composable
 fun ClippingButtonWithFile(
     context: Context,
+    modifier: Modifier,
     isFromAssets: Boolean = true,
     fileNameOrResId: Any,
     text: String,
@@ -103,7 +104,7 @@ fun ClippingButtonWithFile(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
     ) {
         val path = PathParser().parsePathString(parsedPathData).toPath()
 
@@ -148,6 +149,7 @@ private fun ClippingButtonWithFilePreview() {
     val context = LocalContext.current
     ClippingButtonWithFile(
         context = context,
+        modifier = Modifier,
         isFromAssets = true,
         fileNameOrResId = "btn_home_menu_map_background_outline.svg",
         text = stringResource(R.string.home_navigate_to_map),
