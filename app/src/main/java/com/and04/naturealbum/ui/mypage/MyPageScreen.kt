@@ -34,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.component.MyTopAppBar
+import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -47,7 +47,7 @@ fun MyPageScreen(
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(topBar = {
-        MyTopAppBar(
+        PortraitTopAppBar(
             navigationIcon = {
                 IconButton(onClick = { navigateToHome() }) {
                     Icon(
