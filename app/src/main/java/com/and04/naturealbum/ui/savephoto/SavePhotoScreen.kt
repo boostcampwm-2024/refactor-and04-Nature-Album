@@ -1,8 +1,11 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -49,10 +52,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.service.FirebaseInsertService
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.isPortrait
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SavePhotoScreen(
@@ -262,6 +273,22 @@ fun Description(
     }
 }
 
+fun insertFirebaseService(
+    context: Context,
+    model: Any,
+    label: Label,
+    location: Location,
+    description: String
+){
+    if(Firebase.auth.currentUser == null) return
+
+    val intent = Intent(context, FirebaseInsertService::class.java)
+    intent.putExtra(SERVICE_URI, model.toString())
+    intent.putExtra(SERVICE_LABEL, label)
+    intent.putExtra(SERVICE_LOCATION, location)
+    intent.putExtra(SERVICE_DESCRIPTION, description)
+    context.startService(intent)
+}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)

@@ -28,6 +28,10 @@ import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.service.FirebaseInsertService
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 
 @Composable
 fun SavePhotoScreenLandscape(
@@ -109,12 +113,13 @@ fun SavePhotoScreenLandscape(
                             isRepresented = isRepresented.value
                         )
 
-                        val intent = Intent(context, FirebaseInsertService::class.java)
-                        intent.putExtra("uri", model.toString())
-                        intent.putExtra("label", label)
-                        intent.putExtra("location", location)
-                        intent.putExtra("description", rememberDescription.value)
-                        context.startService(intent)
+                        insertFirebaseService(
+                            context = context,
+                            model = model,
+                            label = label,
+                            location = location,
+                            description = rememberDescription.value
+                        )
                     })
             }
         }

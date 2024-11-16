@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.location.Location
 import android.os.IBinder
+import android.util.Log
 import androidx.core.net.toUri
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
@@ -30,52 +31,45 @@ class FirebaseInsertService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val uid = Firebase.auth.currentUser!!.uid
-        val uri = intent?.getStringExtra("uri") as String
-        val label = intent.getParcelableExtra<Label>("label")
-        val location = intent.getParcelableExtra<Location>("location")
-        val description = intent.getStringExtra("description") as String
+        val uri = intent?.getStringExtra(SERVICE_URI) as String
+        val label = intent.getParcelableExtra<Label>(SERVICE_LABEL)!!
+        val location = intent.getParcelableExtra<Location>(SERVICE_LOCATION)
+        val description = intent.getStringExtra(SERVICE_DESCRIPTION)
 
         val storageJob = scope.launch {
             val storageUri = fireBaseRepository
                 .saveImageFile(
                     uid = uid,
-                    label = "Test",
+                    label = label.name,
                     fileName = "TestFile12",
                     uri = uri.toUri()
                 )
 
-            val labelJob = launch {
-                if (label != null) {
-                    fireBaseRepository
-                        .insertLabel(
-                            uid = uid,
-                            labelName = label.name,
-                            labelData = FirebaseLabel(
-                                backgroundColor = "FFFFFF",
-                                thumbnail = storageUri.toString()
-                            )
-                        )
-                }
-            }
-
-            val photoJob = launch {
+            if (label.id == 0) {
                 fireBaseRepository
-                    .insertPhotoInfo(
+                    .insertLabel(
                         uid = uid,
-                        fileName = "파일이름",
-                        photoData = FirebasePhotoInfo(
-                            uri = uri,
-                            label = "라벨명",
-                            latitude = location!!.latitude,
-                            longitude = location.longitude,
-                            description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
+                        labelName = label.name,
+                        labelData = FirebaseLabel(
+                            backgroundColor = label.backgroundColor,
+                            thumbnail = storageUri.toString()
                         )
                     )
             }
 
-            labelJob.join()
-            photoJob.join()
+            fireBaseRepository
+                .insertPhotoInfo(
+                    uid = uid,
+                    fileName = "파일이름",
+                    photoData = FirebasePhotoInfo(
+                        uri = uri,
+                        label = label.name,
+                        latitude = location!!.latitude,
+                        longitude = location.longitude,
+                        description = description,
+                        datetime = LocalDateTime.now(ZoneId.of("UTC"))
+                    )
+                )
 
             stopService(intent)
         }
@@ -92,5 +86,12 @@ class FirebaseInsertService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         job?.cancel()
+    }
+
+    companion object {
+        const val SERVICE_URI = "service_uri"
+        const val SERVICE_LABEL = "service_label"
+        const val SERVICE_LOCATION = "service_location"
+        const val SERVICE_DESCRIPTION = "service_location"
     }
 }
