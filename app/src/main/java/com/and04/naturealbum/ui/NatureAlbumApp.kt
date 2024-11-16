@@ -55,6 +55,7 @@ fun NatureAlbumNavHost(
         )
     }
     var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
+    var fileName: String by rememberSaveable { mutableStateOf("") }
     var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
@@ -76,7 +77,7 @@ fun NatureAlbumNavHost(
         }
     val takePicture = {
         // TODO: imageUri가 EMPTY가 아닐때 해당 파일 삭제
-        val fileName = "${System.currentTimeMillis()}.jpg"
+        fileName = "${System.currentTimeMillis()}.jpg"
         val imageFile = File(context.filesDir, fileName)
         imageUri =
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
@@ -109,6 +110,7 @@ fun NatureAlbumNavHost(
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
+                fileName = fileName,
                 onBack = { takePicture() },
                 onSave = {
                     navController.navigate(NavigateDestination.Album.route) {

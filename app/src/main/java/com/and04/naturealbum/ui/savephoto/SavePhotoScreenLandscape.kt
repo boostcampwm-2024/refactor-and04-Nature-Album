@@ -37,6 +37,7 @@ import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 fun SavePhotoScreenLandscape(
     innerPadding: PaddingValues,
     model: Any,
+    fileName: String,
     label: Label?,
     location: Location?,
     rememberDescription: MutableState<String>,
@@ -108,6 +109,7 @@ fun SavePhotoScreenLandscape(
                         viewModel.savePhoto(
                             uri = model.toString(),
                             label = label!!,
+                            fileName = fileName,
                             description = rememberDescription.value,
                             location = location!!, // TODO : Null 처리 필요
                             isRepresented = isRepresented.value
@@ -116,6 +118,7 @@ fun SavePhotoScreenLandscape(
                         insertFirebaseService(
                             context = context,
                             model = model,
+                            fileName = fileName,
                             label = label,
                             location = location,
                             description = rememberDescription.value

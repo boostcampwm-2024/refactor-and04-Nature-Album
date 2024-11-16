@@ -10,8 +10,8 @@ data class FirebaseLabel(
 data class FirebasePhotoInfo(
     val uri: String,
     val label: String,
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Double?,
+    val longitude: Double?,
     val description: String?,
     val datetime: LocalDateTime
 )

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -54,6 +53,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.service.FirebaseInsertService
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_FILENAME
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
@@ -61,14 +61,14 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.isPortrait
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SavePhotoScreen(
     location: Location?,
-    model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
+    model: Any,
+    fileName: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onLabelSelect: () -> Unit,
@@ -111,6 +111,7 @@ fun SavePhotoScreen(
             SavePhotoScreenPortrait(
                 innerPadding = innerPadding,
                 model = model,
+                fileName = fileName,
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
@@ -123,6 +124,7 @@ fun SavePhotoScreen(
             SavePhotoScreenLandscape(
                 innerPadding = innerPadding,
                 model = model,
+                fileName = fileName,
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
@@ -276,16 +278,18 @@ fun Description(
 fun insertFirebaseService(
     context: Context,
     model: Any,
+    fileName: String,
     label: Label,
     location: Location,
     description: String
-){
-    if(Firebase.auth.currentUser == null) return
+) {
+    if (Firebase.auth.currentUser == null) return
 
     val intent = Intent(context, FirebaseInsertService::class.java)
     intent.putExtra(SERVICE_URI, model.toString())
+    intent.putExtra(SERVICE_FILENAME, fileName)
     intent.putExtra(SERVICE_LABEL, label)
-    intent.putExtra(SERVICE_LOCATION, location)
+    intent.putExtra(SERVICE_LOCATION, location) //FIXME Location == null
     intent.putExtra(SERVICE_DESCRIPTION, description)
     context.startService(intent)
 }
@@ -298,6 +302,7 @@ private fun ScreenPreview() {
         SavePhotoScreen(
             location = null,
             model = R.drawable.fish_loading_image,
+            fileName = "fileName.jpg",
             label = Label(0, "0000FF", "cat"),
             onBack = { },
             onSave = {},
@@ -314,6 +319,7 @@ private fun ScreenEmptyPreview() {
         SavePhotoScreen(
             location = null,
             model = R.drawable.fish_loading_image,
+            fileName = "fileName.jpg",
             onBack = { },
             onSave = {},
             onLabelSelect = {},
@@ -329,6 +335,7 @@ private fun ScreenDescriptionPreview() {
         SavePhotoScreen(
             location = null,
             model = R.drawable.fish_loading_image,
+            fileName = "fileName.jpg",
             description = "내용을 적어보아요.\n" +
                     "최대 4줄까지는 기본으로 보이고\n" +
                     "그 아래는 스크롤이 되도록 해보아요\n" +

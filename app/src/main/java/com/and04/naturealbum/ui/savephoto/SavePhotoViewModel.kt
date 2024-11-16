@@ -39,6 +39,7 @@ class SavePhotoViewModel @Inject constructor(
 
     fun savePhoto(
         uri: String,
+        fileName: String,
         label: Label,
         location: Location,
         description: String,
@@ -56,6 +57,7 @@ class SavePhotoViewModel @Inject constructor(
                     PhotoDetail(
                         labelId = labelId,
                         photoUri = uri,
+                        fileName = fileName,
                         latitude = location.latitude,
                         longitude = location.longitude,
                         description = description,
