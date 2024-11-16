@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
@@ -96,6 +97,8 @@ fun SavePhotoScreen(
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
+        BackgroundImage()
+
         if (LocalContext.current.isPortrait()) {
             SavePhotoScreenPortrait(
                 innerPadding = innerPadding,
@@ -261,7 +264,6 @@ fun Description(
         )
     }
 }
-
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
