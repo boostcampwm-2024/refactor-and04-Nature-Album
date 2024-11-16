@@ -103,33 +103,51 @@ fun ClippingButtonWithFile(
         parsedViewportHeight = svgData.viewportHeight
     }
 
+    ClippingButton(
+        modifier = modifier,
+        text = text,
+        textColor = textColor,
+        imageResId = imageResId,
+        pathData = parsedPathData,
+        viewportWidth = parsedViewportWidth,
+        viewportHeight = parsedViewportHeight,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun ClippingButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    textColor: Color,
+    imageResId: Int,
+    pathData: String,
+    viewportWidth: Float,
+    viewportHeight: Float,
+    onClick: () -> Unit
+) {
+
+    val path = PathParser().parsePathString(pathData).toPath()
+
     Box(
         modifier = modifier
+            .aspectRatio(viewportWidth / viewportHeight)
+            .clip(SvgOutlineShape(path, viewportWidth, viewportHeight))
+            .clickable { onClick() }
     ) {
-        val path = PathParser().parsePathString(parsedPathData).toPath()
+        Image(
+            painter = painterResource(id = imageResId),
+            contentDescription = stringResource(R.string.cliping_button_navigate_to_map),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
 
-        Surface(
+        Text(
+            text = text,
             modifier = Modifier
-                .aspectRatio(parsedViewportWidth / parsedViewportHeight)
-                .clip(SvgOutlineShape(path, parsedViewportWidth, parsedViewportHeight))
-                .clickable { onClick() }
-        ) {
-
-            Image(
-                painter = painterResource(id = imageResId),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-
-            Text(
-                text = text,
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 36.dp),
-                color = textColor
-            )
-        }
+                .padding(start = 16.dp, top = 36.dp),
+            color = textColor
+        )
     }
 }
 

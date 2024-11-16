@@ -63,4 +63,5 @@
 
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
+    <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
 </resources>
