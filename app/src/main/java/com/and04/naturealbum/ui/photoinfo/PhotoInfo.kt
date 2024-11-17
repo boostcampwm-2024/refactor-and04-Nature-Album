@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -54,29 +55,52 @@ fun PhotoInfo(
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    val uiState by photoInfoViewModel.uiState.collectAsStateWithLifecycle()
+    val photoDetail by photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
+    val label by photoInfoViewModel.label.collectAsStateWithLifecycle()
+
     LaunchedEffect(selectedPhotoDetail) {
         if (!isDataLoaded.value) {
             photoInfoViewModel.loadPhotoDetail(selectedPhotoDetail)
             isDataLoaded.value = true
         }
     }
+
+    PhotoInfo(
+        onNavigateToMyPage = onNavigateToMyPage,
+        uiState = uiState,
+        photoDetail = photoDetail,
+        label = label
+    )
+}
+
+@Composable
+fun PhotoInfo(
+    onNavigateToMyPage: () -> Unit,
+    uiState: UiState,
+    photoDetail: PhotoDetail,
+    label: Label
+) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
     ) { innerPadding ->
-        Content(innerPadding = innerPadding)
+        Content(
+            innerPadding = innerPadding,
+            uiState = uiState,
+            photoDetail = photoDetail,
+            label = label
+        )
     }
 }
 
 @Composable
 private fun Content(
     innerPadding: PaddingValues,
-    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
+    uiState: UiState,
+    photoDetail: PhotoDetail,
+    label: Label
 ) {
-    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
-    val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
-    val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
-
-    when (uiState.value) {
+    when (uiState) {
         is UiState.Idle, UiState.Loading -> {
             //TODO Loading
         }
@@ -90,8 +114,8 @@ private fun Content(
 @Composable
 private fun PhotoDetailInfo(
     innerPadding: PaddingValues,
-    photoDetail: State<PhotoDetail>,
-    label: State<Label>,
+    photoDetail: PhotoDetail,
+    label: Label,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -103,7 +127,7 @@ private fun PhotoDetailInfo(
             label = label,
         )
     } else {
-        PhtoInfoPortrait(
+        PhotoInfoPortrait(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
@@ -114,8 +138,8 @@ private fun PhotoDetailInfo(
 @Composable
 private fun PhotoInfoLandscape(
     innerPadding: PaddingValues,
-    photoDetail: State<PhotoDetail>,
-    label: State<Label>,
+    photoDetail: PhotoDetail,
+    label: Label,
 ) {
     Row(
         modifier = Modifier
@@ -131,10 +155,10 @@ private fun PhotoInfoLandscape(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoDetail.value.photoUri)
+                    .data(photoDetail.photoUri)
                     .crossfade(true)
                     .build(),
-                contentDescription = photoDetail.value.description,
+                contentDescription = photoDetail.description,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp))
             )
         }
@@ -148,40 +172,40 @@ private fun PhotoInfoLandscape(
             AlbumLabel(
                 modifier = Modifier
                     .background(
-                        color = Color(parseColor("#${label.value.backgroundColor}")),
+                        color = Color(parseColor("#${label.backgroundColor}")),
                         shape = CircleShape
                     )
                     .fillMaxWidth(0.6f),
-                text = label.value.name,
-                backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+                text = label.name,
+                backgroundColor = Color(parseColor("#${label.backgroundColor}"))
             )
 
             RowInfo(
                 imgVector = Icons.Default.DateRange,
                 contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-                text = photoDetail.value.datetime.toString() // TODO: date format
+                text = photoDetail.datetime.toString() // TODO: date format
             )
 
             RowInfo(
                 imgVector = Icons.Default.LocationOn,
                 contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-                text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+                text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
             )
 
             RowInfo(
                 imgVector = Icons.Default.Edit,
                 contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-                text = photoDetail.value.description
+                text = photoDetail.description
             )
         }
     }
 }
 
 @Composable
-private fun PhtoInfoPortrait(
+private fun PhotoInfoPortrait(
     innerPadding: PaddingValues,
-    photoDetail: State<PhotoDetail>,
-    label: State<Label>,
+    photoDetail: PhotoDetail,
+    label: Label,
 ) {
     Column(
         modifier = Modifier
@@ -193,20 +217,20 @@ private fun PhtoInfoPortrait(
         AlbumLabel(
             modifier = Modifier
                 .background(
-                    color = Color(parseColor("#${label.value.backgroundColor}")),
+                    color = Color(parseColor("#${label.backgroundColor}")),
                     shape = CircleShape
                 )
                 .fillMaxWidth(0.4f),
-            text = label.value.name,
-            backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
+            text = label.name,
+            backgroundColor = Color(parseColor("#${label.backgroundColor}"))
         )
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(photoDetail.value.photoUri)
+                .data(photoDetail.photoUri)
                 .crossfade(true)
                 .build(),
-            contentDescription = photoDetail.value.description,
+            contentDescription = photoDetail.description,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .clip(RoundedCornerShape(10.dp))
@@ -215,19 +239,19 @@ private fun PhtoInfoPortrait(
         RowInfo(
             imgVector = Icons.Default.DateRange,
             contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-            text = photoDetail.value.datetime.toString() // TODO: date format
+            text = photoDetail.datetime.toString() // TODO: date format
         )
 
         RowInfo(
             imgVector = Icons.Default.LocationOn,
             contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+            text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
         )
 
         RowInfo(
             imgVector = Icons.Default.Edit,
             contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-            text = photoDetail.value.description
+            text = photoDetail.description
         )
     }
 }
@@ -253,6 +277,9 @@ private fun RowInfo(
 @Composable
 private fun PhotoInfoPreview() {
     PhotoInfo(
-        onNavigateToMyPage = {}
+        onNavigateToMyPage = {},
+        uiState = UiState.Success,
+        photoDetail = PhotoDetail.emptyPhotoDetail(),
+        label = Label.emptyLabel()
     )
 }

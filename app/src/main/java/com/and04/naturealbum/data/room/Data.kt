@@ -16,11 +16,14 @@ data class Label(
     @ColumnInfo(name = "name") val name: String,
 ) : Parcelable {
     companion object {
+        private const val DUMMY_LABEL_BACKGROUND_COLOR = "FFFFFF"
+        private const val DUMMY_LABEL_NAME = "빈 라벨"
+
         fun emptyLabel(): Label {
             return Label(
                 id = 0,
-                backgroundColor = "",
-                name = ""
+                backgroundColor = DUMMY_LABEL_BACKGROUND_COLOR,
+                name = DUMMY_LABEL_NAME
             )
         }
     }
