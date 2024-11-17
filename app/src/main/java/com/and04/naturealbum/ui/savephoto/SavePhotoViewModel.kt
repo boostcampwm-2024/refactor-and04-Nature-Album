@@ -62,7 +62,7 @@ class SavePhotoViewModel @Inject constructor(
                         latitude = location.latitude,
                         longitude = location.longitude,
                         description = description,
-                        datetime = LocalDateTime.now(ZoneId.of("UTC")),//FIXME API 26 미만 시 사용 불가능
+                        datetime = LocalDateTime.now(ZoneId.of("UTC")),
                     )
                 )
             }
