@@ -49,7 +49,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.isPortrait
@@ -76,20 +75,6 @@ fun SavePhotoScreen(
     }
 
     viewModel.setPhotoLoadingUiSate(UiState.Idle)
-    val photoLoadingUiState = viewModel.photoLoadingUiState.collectAsStateWithLifecycle()
-
-    when (photoLoadingUiState.value) {
-        UiState.Idle, UiState.Loading -> {
-            RotatingImageLoading(
-                drawalbeRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading
-            )
-        }
-
-        UiState.Success -> {
-            // TODO:  
-        }
-    }
 
     BackHandler(onBack = onBack)
 
