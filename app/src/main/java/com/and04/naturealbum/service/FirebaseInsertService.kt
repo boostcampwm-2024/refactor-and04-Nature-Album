@@ -3,6 +3,7 @@ package com.and04.naturealbum.service
 import android.app.Service
 import android.content.Intent
 import android.location.Location
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
@@ -35,8 +36,16 @@ class FirebaseInsertService : Service() {
             val uid = Firebase.auth.currentUser!!.uid
             val uri = intent?.getStringExtra(SERVICE_URI) as String
             val fileName = intent.getStringExtra(SERVICE_FILENAME)!!
-            val label = intent.getParcelableExtra<Label>(SERVICE_LABEL)!!
-            val location = intent.getParcelableExtra<Location>(SERVICE_LOCATION)
+            val label = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(SERVICE_LABEL, Label::class.java)!!
+            } else {
+                intent.getParcelableExtra<Label>(SERVICE_LABEL)!!
+            }
+            val location = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(SERVICE_LOCATION, Location::class.java)
+            } else {
+                intent.getParcelableExtra<Location>(SERVICE_LOCATION)
+            }
             val description = intent.getStringExtra(SERVICE_DESCRIPTION)
 
             val storageJob = scope.launch {
