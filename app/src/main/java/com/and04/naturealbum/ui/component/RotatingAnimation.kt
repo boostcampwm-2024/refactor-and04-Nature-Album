@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RotatingImageLoading(
-    @DrawableRes drawalbeRes: Int?,
+    @DrawableRes drawableRes: Int?,
     @StringRes stringRes: Int?,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "init_animation")
@@ -63,9 +63,9 @@ fun RotatingImageLoading(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (drawalbeRes != null) {
+            if (drawableRes != null) {
                 Image(
-                    painter = painterResource(id = drawalbeRes),
+                    painter = painterResource(id = drawableRes),
                     contentDescription = "Loading",
                     modifier = Modifier
                         .size(64.dp)
