@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
@@ -22,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,8 +46,23 @@ fun MyPageScreen(
     myPageViewModel: MyPageViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by myPageViewModel.uiState.collectAsStateWithLifecycle()
 
+    MyPageScreen(
+        context = context,
+        navigateToHome = navigateToHome,
+        uiState = uiState,
+        signInWithGoogle = myPageViewModel::signInWithGoogle
+    )
+}
+
+@Composable
+fun MyPageScreen(
+    context: Context,
+    navigateToHome: () -> Unit,
+    uiState: UiState,
+    signInWithGoogle: (Context) -> Unit,
+) {
     Scaffold(topBar = {
         MyTopAppBar(
             navigationIcon = {
@@ -66,7 +83,7 @@ fun MyPageScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            when (uiState.value) {
+            when (uiState) {
                 is UiState.Success -> {
                     val user = UserManager.getUser()
                     val email = user?.email
@@ -79,7 +96,7 @@ fun MyPageScreen(
                 }
             }
 
-            LoginContent({ myPageViewModel.signInWithGoogle(context) })
+            LoginContent { signInWithGoogle(context) }
         }
     }
 }
@@ -142,6 +159,11 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun MyPageScreenPreview() {
     NatureAlbumTheme {
-//        MyPageScreen({})
+        MyPageScreen(
+            context = LocalContext.current,
+            navigateToHome = {},
+            uiState = UiState.Idle,
+            signInWithGoogle = {}
+        )
     }
 }
