@@ -156,7 +156,7 @@ private fun SearchContent(
                     if (query.isBlank()) {
                         Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
-                    } else if (labelsState.find { it.name == query } != null) {
+                    } else if (labelsState.find { label -> label.name == query } != null) {
                         Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
                     }
