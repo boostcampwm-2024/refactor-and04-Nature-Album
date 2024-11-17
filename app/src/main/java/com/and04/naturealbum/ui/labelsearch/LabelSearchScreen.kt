@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.labelsearch
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -43,12 +44,28 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+
+@Composable
+fun LabelSearchScreen(
+    onSelected: (Label) -> Unit = {},
+    labelSearchViewModel: LabelSearchViewModel = hiltViewModel()
+) {
+    val labelsState by labelSearchViewModel.labels.collectAsState()
+
+    LabelSearchScreen(onSelected, labelsState)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LabelSearchScreen(
-    onSelected: (Label) -> Unit = {}
+    onSelected: (Label) -> Unit,
+    labelsState: List<Label>
 ) {
+    val context = LocalContext.current
+    var query by rememberSaveable { mutableStateOf("") }
+    var randomColor by rememberSaveable { mutableStateOf(getRandomColor()) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -64,21 +81,37 @@ fun LabelSearchScreen(
             )
         }
     ) { innerPadding ->
-        SearchContent(innerPadding, onSelected)
+        SearchContent(
+            context = context,
+            innerPadding = innerPadding,
+            onSelected = onSelected,
+            query = query,
+            onQueryChange = { changeQuery ->
+                if (changeQuery.length <= 100)
+                    query = changeQuery
+            },
+            randomColor = randomColor,
+            containerColor = Color(
+                randomColor.toLong(16)
+            ),
+            labelColor = getLabelColor(randomColor),
+            labelsState = labelsState,
+        )
     }
 }
 
 @Composable
 private fun SearchContent(
+    context: Context,
     innerPadding: PaddingValues,
     onSelected: (Label) -> Unit,
-    labelSearchViewModel: LabelSearchViewModel = hiltViewModel()
+    query: String,
+    onQueryChange: (String) -> Unit,
+    randomColor: String,
+    containerColor: Color,
+    labelColor: Color,
+    labelsState: List<Label>,
 ) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var randomColor by rememberSaveable { mutableStateOf("") }
-    val labelsState by labelSearchViewModel.labels.collectAsState()
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .padding(innerPadding)
@@ -87,10 +120,7 @@ private fun SearchContent(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = query,
-            onValueChange = { changeQuery ->
-                if (changeQuery.length > 100) return@TextField
-                else query = changeQuery
-            },
+            onValueChange = onQueryChange,
             placeholder = { Text(stringResource(R.string.label_search_label_search)) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -126,8 +156,7 @@ private fun SearchContent(
                     if (query.isBlank()) {
                         Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
-                    }
-                    else if(labelsState.find { it.name == query } != null){
+                    } else if (labelsState.find { it.name == query } != null) {
                         Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
                     }
@@ -141,13 +170,8 @@ private fun SearchContent(
                 },
                 label = { Text(query) },
                 colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = Color(
-                        randomColor.ifBlank {
-                            randomColor = getRandomColor()
-                            randomColor
-                        }.toLong(16)
-                    ),
-                    labelColor = if (Color(randomColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
+                    containerColor = containerColor,
+                    labelColor = labelColor
                 )
             )
         }
@@ -179,8 +203,20 @@ fun UnderLineSuggestionChip(
     )
 }
 
+private fun getLabelColor(randomColor: String): Color {
+    return if (Color(randomColor.toLong(16)).luminance() > 0.5f)
+        Color.Black
+    else
+        Color.White
+}
+
 @Preview
 @Composable
 fun PreviewFunc() {
-    LabelSearchScreen()
+    NatureAlbumTheme {
+        LabelSearchScreen(
+            onSelected = { },
+            labelsState = emptyList(),
+        )
+    }
 }
