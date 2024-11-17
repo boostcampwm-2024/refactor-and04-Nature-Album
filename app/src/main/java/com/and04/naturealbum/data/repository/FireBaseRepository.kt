@@ -17,7 +17,7 @@ interface FireBaseRepository {
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
 
     //INSERT
-    suspend fun saveImageFile(uid: String?, label: String, fileName: String, uri: Uri): Uri?
+    suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri?
     suspend fun insertLabel(
         uid: String,
         labelName: String,
@@ -49,7 +49,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveImageFile(
-        uid: String?,
+        uid: String,
         label: String,
         fileName: String,
         uri: Uri,
