@@ -10,6 +10,7 @@ import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,7 +48,7 @@ class FirebaseInsertService : Service() {
                         uri = uri.toUri()
                     )
 
-                if (label.id == 0) {
+                if (label.id == NEW_LABEL) {
                     fireBaseRepository
                         .insertLabel(
                             uid = uid,

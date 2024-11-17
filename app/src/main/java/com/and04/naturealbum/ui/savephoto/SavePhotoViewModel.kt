@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -48,7 +49,7 @@ class SavePhotoViewModel @Inject constructor(
         _photoSaveState.value = UiState.Loading
         viewModelScope.launch {
             val labelId =
-                if (label.id == 0) repository.insertLabel(label).toInt()
+                if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
                 else label.id
 
             val album = async { repository.getAlbumByLabelId(labelId) }

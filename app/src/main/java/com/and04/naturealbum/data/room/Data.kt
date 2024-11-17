@@ -16,6 +16,7 @@ data class Label(
     @ColumnInfo(name = "name") val name: String,
 ) : Parcelable {
     companion object {
+        const val NEW_LABEL = 0
         fun emptyLabel(): Label {
             return Label(
                 id = 0,
