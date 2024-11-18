@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.utils.GetTopbar
+import java.time.LocalDateTime
 
 @Composable
 fun PhotoInfo(
@@ -55,9 +57,9 @@ fun PhotoInfo(
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
-    val uiState by photoInfoViewModel.uiState.collectAsStateWithLifecycle()
-    val photoDetail by photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
-    val label by photoInfoViewModel.label.collectAsStateWithLifecycle()
+    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
+    val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
+    val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
 
     LaunchedEffect(selectedPhotoDetail) {
         if (!isDataLoaded.value) {
@@ -77,9 +79,9 @@ fun PhotoInfo(
 @Composable
 fun PhotoInfo(
     onNavigateToMyPage: () -> Unit,
-    uiState: UiState,
-    photoDetail: PhotoDetail,
-    label: Label
+    uiState: State<UiState>,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
@@ -96,11 +98,11 @@ fun PhotoInfo(
 @Composable
 private fun Content(
     innerPadding: PaddingValues,
-    uiState: UiState,
-    photoDetail: PhotoDetail,
-    label: Label
+    uiState: State<UiState>,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>
 ) {
-    when (uiState) {
+    when (uiState.value) {
         is UiState.Idle, UiState.Loading -> {
             //TODO Loading
         }
@@ -114,8 +116,8 @@ private fun Content(
 @Composable
 private fun PhotoDetailInfo(
     innerPadding: PaddingValues,
-    photoDetail: PhotoDetail,
-    label: Label,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -138,8 +140,8 @@ private fun PhotoDetailInfo(
 @Composable
 private fun PhotoInfoLandscape(
     innerPadding: PaddingValues,
-    photoDetail: PhotoDetail,
-    label: Label,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>,
 ) {
     Row(
         modifier = Modifier
@@ -155,10 +157,10 @@ private fun PhotoInfoLandscape(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoDetail.photoUri)
+                    .data(photoDetail.value.photoUri)
                     .crossfade(true)
                     .build(),
-                contentDescription = photoDetail.description,
+                contentDescription = photoDetail.value.description,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp))
             )
         }
@@ -172,30 +174,30 @@ private fun PhotoInfoLandscape(
             AlbumLabel(
                 modifier = Modifier
                     .background(
-                        color = Color(parseColor("#${label.backgroundColor}")),
+                        color = Color(parseColor("#${label.value.backgroundColor}")),
                         shape = CircleShape
                     )
                     .fillMaxWidth(0.6f),
-                text = label.name,
-                backgroundColor = Color(parseColor("#${label.backgroundColor}"))
+                text = label.value.name,
+                backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
             )
 
             RowInfo(
                 imgVector = Icons.Default.DateRange,
                 contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-                text = photoDetail.datetime.toString() // TODO: date format
+                text = photoDetail.value.datetime.toString() // TODO: date format
             )
 
             RowInfo(
                 imgVector = Icons.Default.LocationOn,
                 contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-                text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
+                text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
             )
 
             RowInfo(
                 imgVector = Icons.Default.Edit,
                 contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-                text = photoDetail.description
+                text = photoDetail.value.description
             )
         }
     }
@@ -204,8 +206,8 @@ private fun PhotoInfoLandscape(
 @Composable
 private fun PhotoInfoPortrait(
     innerPadding: PaddingValues,
-    photoDetail: PhotoDetail,
-    label: Label,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>,
 ) {
     Column(
         modifier = Modifier
@@ -217,20 +219,20 @@ private fun PhotoInfoPortrait(
         AlbumLabel(
             modifier = Modifier
                 .background(
-                    color = Color(parseColor("#${label.backgroundColor}")),
+                    color = Color(parseColor("#${label.value.backgroundColor}")),
                     shape = CircleShape
                 )
                 .fillMaxWidth(0.4f),
-            text = label.name,
-            backgroundColor = Color(parseColor("#${label.backgroundColor}"))
+            text = label.value.name,
+            backgroundColor = Color(parseColor("#${label.value.backgroundColor}"))
         )
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(photoDetail.photoUri)
+                .data(photoDetail.value.photoUri)
                 .crossfade(true)
                 .build(),
-            contentDescription = photoDetail.description,
+            contentDescription = photoDetail.value.description,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .clip(RoundedCornerShape(10.dp))
@@ -239,19 +241,19 @@ private fun PhotoInfoPortrait(
         RowInfo(
             imgVector = Icons.Default.DateRange,
             contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-            text = photoDetail.datetime.toString() // TODO: date format
+            text = photoDetail.value.datetime.toString() // TODO: date format
         )
 
         RowInfo(
             imgVector = Icons.Default.LocationOn,
             contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
+            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
         )
 
         RowInfo(
             imgVector = Icons.Default.Edit,
             contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-            text = photoDetail.description
+            text = photoDetail.value.description
         )
     }
 }
@@ -276,10 +278,14 @@ private fun RowInfo(
 @Preview
 @Composable
 private fun PhotoInfoPreview() {
+    val uiState = remember { mutableStateOf(UiState.Success) }
+    val photoDetail = remember { mutableStateOf(PhotoDetail.emptyPhotoDetail()) }
+    val label = remember { mutableStateOf(Label.emptyLabel()) }
+
     PhotoInfo(
         onNavigateToMyPage = {},
-        uiState = UiState.Success,
-        photoDetail = PhotoDetail.emptyPhotoDetail(),
-        label = Label.emptyLabel()
+        uiState = uiState,
+        photoDetail = photoDetail,
+        label = label,
     )
 }
