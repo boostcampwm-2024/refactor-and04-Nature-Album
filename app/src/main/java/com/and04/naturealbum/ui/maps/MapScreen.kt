@@ -32,8 +32,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.ItemKey
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
+import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import kotlinx.coroutines.delay
@@ -113,53 +115,60 @@ fun MapScreen(
     val markerList = remember { mutableStateListOf<Marker>() }
     var markersReady by remember { mutableStateOf(true) }
 
-    LaunchedEffect(photos.value) {
-        if (photos.value.isEmpty()) return@LaunchedEffect
+    val cluster: Clusterer<ItemKey> = Clusterer.Builder<ItemKey>().build()
+    cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to photoDetail.labelId})
 
-        markersReady = false  // 로딩 시작
-        imageMarkerList.clear()
-        markerList.clear()
-
-        var loadedImagesCount = 0
-
-        photos.value.forEach { photoDetail ->
-            val imageMarker = ImageMarkerCoil(context)
-            mapView.addView(imageMarker)
-            imageMarkerList.add(imageMarker)
-
-            imageMarker.loadImage(photoDetail.photoUri) {
-                loadedImagesCount++
-
-                // 임시 뷰에서 뷰의 로드 및 measure가 끝나면 리스트에 추가
-                imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
-                    ViewTreeObserver.OnGlobalLayoutListener {
-
-                    override fun onGlobalLayout() {
-                        if (imageMarker.isImageLoaded()) {
-                            val overlayImage = OverlayImage.fromView(imageMarker)
-                            val marker = Marker().apply {
-                                position = LatLng(photoDetail.latitude, photoDetail.longitude)
-                                icon = overlayImage
-                            }
-
-                            markerList.add(marker)
-
-                            imageMarker.postDelayed({
-                                mapView.removeView(imageMarker)
-                            }, 0)
-
-
-                            if (loadedImagesCount == photos.value.size) {
-                                markersReady = true  // 모든 이미지 로드 완료 후 상태 업데이트
-                            }
-                        }
-
-                        imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    }
-                })
-            }
-        }
-    }
+//    LaunchedEffect(photos.value) {
+//        markersReady = false
+//        markersReady = true
+//    }
+//    LaunchedEffect(photos.value) {
+//        if (photos.value.isEmpty()) return@LaunchedEffect
+//
+//        markersReady = false  // 로딩 시작
+//        imageMarkerList.clear()
+//        markerList.clear()
+//
+//        var loadedImagesCount = 0
+//
+//        photos.value.forEach { photoDetail ->
+//            val imageMarker = ImageMarkerCoil(context)
+//            mapView.addView(imageMarker)
+//            imageMarkerList.add(imageMarker)
+//
+//            imageMarker.loadImage(photoDetail.photoUri) {
+//                loadedImagesCount++
+//
+//                // 임시 뷰에서 뷰의 로드 및 measure가 끝나면 리스트에 추가
+//                imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
+//                    ViewTreeObserver.OnGlobalLayoutListener {
+//
+//                    override fun onGlobalLayout() {
+//                        if (imageMarker.isImageLoaded()) {
+//                            val overlayImage = OverlayImage.fromView(imageMarker)
+//                            val marker = Marker().apply {
+//                                position = LatLng(photoDetail.latitude, photoDetail.longitude)
+//                                icon = overlayImage
+//                            }
+//
+//                            markerList.add(marker)
+//
+//                            imageMarker.postDelayed({
+//                                mapView.removeView(imageMarker)
+//                            }, 0)
+//
+//
+//                            if (loadedImagesCount == photos.value.size) {
+//                                markersReady = true  // 모든 이미지 로드 완료 후 상태 업데이트
+//                            }
+//                        }
+//
+//                        imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//                    }
+//                })
+//            }
+//        }
+//    }
 
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -195,10 +204,11 @@ fun MapScreen(
         AndroidView(factory = { mapView }, modifier = modifier.matchParentSize())
 
         if (markersReady) {
-            LaunchedEffect(markersReady) {
+            LaunchedEffect(cluster) {
                 delay(100) // 모든 뷰가 준비될 시간을 주기 위해 약간의 지연을 추가
                 mapView.getMapAsync { naverMap ->
-                    markerList.forEach { marker -> marker.map = naverMap }
+//                    markerList.forEach { marker -> marker.map = naverMap }
+                    cluster.map = naverMap
                 }
             }
         }
