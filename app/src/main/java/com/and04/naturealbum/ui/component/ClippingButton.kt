@@ -81,26 +81,19 @@ fun ClippingButtonWithFile(
     imageResId: Int,
     onClick: () -> Unit,
 ) {
-    var parsedPathData by remember { mutableStateOf("") }
-    var parsedViewportWidth by remember { mutableFloatStateOf(1f) }
-    var parsedViewportHeight by remember { mutableFloatStateOf(1f) }
+    val svgData = when {
+        isFromAssets && fileNameOrResId is String -> parseSvgFile(context, fileNameOrResId)
+        !isFromAssets && fileNameOrResId is Int -> parseDrawableSvgFile(
+            context,
+            fileNameOrResId
+        )
 
-    LaunchedEffect(fileNameOrResId) {
-        val svgData = when {
-            isFromAssets && fileNameOrResId is String -> parseSvgFile(context, fileNameOrResId)
-            !isFromAssets && fileNameOrResId is Int -> parseDrawableSvgFile(
-                context,
-                fileNameOrResId
-            )
-
-            else -> null
-        }
-        if (svgData == null) return@LaunchedEffect
-
-        parsedPathData = svgData.pathData
-        parsedViewportWidth = svgData.viewportWidth
-        parsedViewportHeight = svgData.viewportHeight
+        else -> null
     }
+
+    val parsedPathData = svgData?.pathData ?: ""
+    val parsedViewportWidth = svgData?.viewportWidth ?: 1f
+    val parsedViewportHeight = svgData?.viewportHeight ?: 1f
 
     Box(
         modifier = Modifier
