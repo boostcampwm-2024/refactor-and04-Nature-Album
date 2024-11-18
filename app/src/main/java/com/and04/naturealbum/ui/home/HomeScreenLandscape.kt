@@ -66,6 +66,7 @@ fun HomeScreenLandscape(
                     ) {
                         ClippingButtonWithFile(
                             context = context,
+                            modifier = Modifier,
                             isFromAssets = true,
                             fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
                             text = stringResource(R.string.home_navigate_to_map),

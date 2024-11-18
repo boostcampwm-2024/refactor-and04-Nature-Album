@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -53,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
@@ -78,24 +80,6 @@ fun SavePhotoScreen(
     if (photoSaveState == UiState.Success) {
         onSave()
     }
-
-    viewModel.setPhotoLoadingUiSate(UiState.Idle)
-    val photoLoadingUiState = viewModel.photoLoadingUiState.collectAsStateWithLifecycle()
-
-    when (photoLoadingUiState.value) {
-        UiState.Idle, UiState.Loading -> {
-            RotatingImageLoading(
-                drawableRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading
-            )
-        }
-
-        UiState.Success -> {
-            // TODO:  
-        }
-    }
-
-    BackHandler(onBack = onBack)
 
     SavePhotoScreen(
         model = model,
@@ -131,6 +115,8 @@ fun SavePhotoScreen(
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
+        BackgroundImage()
+
         if (LocalContext.current.isPortrait()) {
             SavePhotoScreenPortrait(
                 innerPadding = innerPadding,
@@ -163,6 +149,15 @@ fun SavePhotoScreen(
             )
         }
     }
+
+    if (photoSaveState.value == UiState.Loading) {
+        RotatingImageLoading(
+            drawalbeRes = R.drawable.fish_loading_image,
+            stringRes = R.string.save_photo_screen_loading,
+        )
+    }
+
+    BackHandler(onBack = onBack)
 }
 
 @Composable
@@ -302,7 +297,6 @@ fun Description(
         )
     }
 }
-
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
