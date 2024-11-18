@@ -10,6 +10,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +39,7 @@ fun RotatingImageLoading(
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
-        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 1000)),
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 500)),
         label = "rotating_image"
     )
 
@@ -56,7 +57,8 @@ fun RotatingImageLoading(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f)),
+            .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f))
+            .clickable(enabled = true) { /* 클릭 이벤트를 소비하 Scaffold 입력 차단 */ },
         contentAlignment = Alignment.Center
     ) {
         Column(
