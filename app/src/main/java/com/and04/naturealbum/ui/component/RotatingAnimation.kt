@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,10 +21,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,6 +41,7 @@ fun RotatingImageLoading(
     @StringRes stringRes: Int?,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "init_animation")
+    val focusRequester = remember { FocusRequester() }
 
     // 이미지 회전
     val rotation by infiniteTransition.animateFloat(
@@ -58,7 +66,16 @@ fun RotatingImageLoading(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f))
-            .clickable(enabled = true) { /* 클릭 이벤트를 소비하 Scaffold 입력 차단 */ },
+            .focusRequester(focusRequester = focusRequester)
+            .focusable()
+            .pointerInput(Unit) {
+                // 모든 터치 이벤트 소비해서 뒤의 Scaffold에 전달되지 않게 함
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent(PointerEventPass.Initial)
+                    }
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -83,5 +100,9 @@ fun RotatingImageLoading(
                 )
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 }
