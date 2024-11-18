@@ -21,6 +21,11 @@ class AlbumViewModel @Inject constructor(
     private val _albumList = MutableStateFlow<List<AlbumDto>>(emptyList())
     val albumList: StateFlow<List<AlbumDto>> = _albumList
 
+    init {
+        loadAlbums()
+    }
+
+
     fun loadAlbums() {
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)

@@ -20,10 +20,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,16 +48,8 @@ fun AlbumScreen(
     onNavigateToMyPage: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
-    val isDataLoaded = rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(onLabelClick) {
-        if (!isDataLoaded.value) {
-            viewModel.loadAlbums()
-            isDataLoaded.value = true
-        }
-    }
-
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val albumList = viewModel.albumList.collectAsStateWithLifecycle()
 
     AlbumScreen(
         uiState = uiState,
@@ -70,12 +61,12 @@ fun AlbumScreen(
 
 @Composable
 fun AlbumScreen(
-    uiState: UiState,
-    albumList: List<AlbumDto>,
+    uiState: State<UiState>,
+    albumList: State<List<AlbumDto>>,
     onLabelClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
-    when (uiState) {
+    when (uiState.value) {
         is UiState.Loading, UiState.Idle -> {
             // TODO: loading
         }
@@ -102,7 +93,7 @@ fun AlbumScreen(
 
 @Composable
 fun AlbumGrid(
-    albums: List<AlbumDto>,
+    albums: State<List<AlbumDto>>,
     onLabelClick: (Int) -> Unit,
     columnCount: Int,
 ) {
@@ -113,7 +104,7 @@ fun AlbumGrid(
         horizontalArrangement = Arrangement.spacedBy(28.dp),
     ) {
         items(
-            items = albums,
+            items = albums.value,
             key = { albumDto -> albumDto.labelId }
         ) { album ->
             AlbumItem(
@@ -172,9 +163,12 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 @Composable
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
+        val uiState = remember { mutableStateOf(UiState.Success) }
+        val albumList = remember { mutableStateOf(AlbumDto.dummyList()) }
+
         AlbumScreen(
-            uiState = UiState.Success,
-            albumList = AlbumDto.dummyList(),
+            uiState = uiState,
+            albumList = albumList,
             onLabelClick = {},
             onNavigateToMyPage = {},
         )
