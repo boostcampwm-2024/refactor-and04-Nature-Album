@@ -25,7 +25,7 @@ import com.and04.naturealbum.utils.GetTopbar
 @Composable
 fun HomeScreenLandscape(
     context: Context,
-    permissionHandler: PermissionHandler,
+    onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToMap: () -> Unit,
@@ -80,7 +80,7 @@ fun HomeScreenLandscape(
                     Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                         NavigateContent(
                             modifier = Modifier.fillMaxWidth(),
-                            permissionHandler = permissionHandler,
+                            onClickCamera = onClickCamera,
                             onNavigateToAlbum = onNavigateToAlbum
                         )
 

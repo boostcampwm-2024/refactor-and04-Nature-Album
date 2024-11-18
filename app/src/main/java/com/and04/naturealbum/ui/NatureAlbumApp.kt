@@ -125,10 +125,10 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen { label ->
+            LabelSearchScreen(onSelected = { label ->
                 selectedLabel = label
                 navController.popBackStack()
-            }
+            })
         }
 
         composable(NavigateDestination.Album.route) {

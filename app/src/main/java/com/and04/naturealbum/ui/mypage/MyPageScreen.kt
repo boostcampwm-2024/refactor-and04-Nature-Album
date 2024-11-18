@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
@@ -22,6 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +50,21 @@ fun MyPageScreen(
     val context = LocalContext.current
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
 
+    MyPageScreen(
+        context = context,
+        navigateToHome = navigateToHome,
+        uiState = uiState,
+        signInWithGoogle = myPageViewModel::signInWithGoogle
+    )
+}
+
+@Composable
+fun MyPageScreen(
+    context: Context,
+    navigateToHome: () -> Unit,
+    uiState: State<UiState>,
+    signInWithGoogle: (Context) -> Unit,
+) {
     Scaffold(topBar = {
         PortraitTopAppBar(
             navigationIcon = {
@@ -79,7 +98,7 @@ fun MyPageScreen(
                 }
             }
 
-            LoginContent({ myPageViewModel.signInWithGoogle(context) })
+            LoginContent { signInWithGoogle(context) }
         }
     }
 }
@@ -141,7 +160,13 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 private fun MyPageScreenPreview() {
+    val uiState = remember { mutableStateOf(UiState.Idle) }
     NatureAlbumTheme {
-//        MyPageScreen({})
+        MyPageScreen(
+            context = LocalContext.current,
+            navigateToHome = {},
+            uiState = uiState,
+            signInWithGoogle = {}
+        )
     }
 }

@@ -20,7 +20,7 @@ import com.and04.naturealbum.utils.GetTopbar
 @Composable
 fun HomeScreenPortrait(
     context: Context,
-    permissionHandler: PermissionHandler,
+    onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToMap: () -> Unit,
@@ -60,7 +60,7 @@ fun HomeScreenPortrait(
                     .weight(1.17f)
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
-                permissionHandler = permissionHandler,
+                onClickCamera = onClickCamera,
                 onNavigateToAlbum = onNavigateToAlbum
             )
 
