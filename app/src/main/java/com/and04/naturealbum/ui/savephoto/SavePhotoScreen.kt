@@ -32,12 +32,10 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -74,8 +72,8 @@ fun SavePhotoScreen(
 ) {
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState by viewModel.photoSaveState.collectAsStateWithLifecycle()
-    var rememberDescription by rememberSaveable { mutableStateOf(description) }
-    var isRepresented by rememberSaveable { mutableStateOf(false) }
+    val rememberDescription = rememberSaveable { mutableStateOf(description) }
+    val isRepresented = rememberSaveable { mutableStateOf(false) }
 
     if (photoSaveState == UiState.Success) {
         onSave()
@@ -105,9 +103,9 @@ fun SavePhotoScreen(
         location = location,
         photoSaveState = photoSaveState,
         rememberDescription = rememberDescription,
-        onDescriptionChange = { newDescription -> rememberDescription = newDescription },
+        onDescriptionChange = { newDescription -> rememberDescription.value = newDescription },
         isRepresented = isRepresented,
-        onRepresentedChange = { isRepresented = !isRepresented },
+        onRepresentedChange = { isRepresented.value = !isRepresented.value },
         onNavigateToMyPage = onNavigateToMyPage,
         onLabelSelect = onLabelSelect,
         onBack = onBack,
@@ -120,9 +118,9 @@ fun SavePhotoScreen(
     model: Uri,
     label: Label?,
     location: Location?,
-    rememberDescription: String,
+    rememberDescription: State<String>,
     onDescriptionChange: (String) -> Unit,
-    isRepresented: Boolean,
+    isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
     photoSaveState: UiState,
     onNavigateToMyPage: () -> Unit,
@@ -202,7 +200,7 @@ fun IconTextButton(
 
 @Composable
 fun ToggleButton(
-    selected: Boolean,
+    selected: State<Boolean>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -213,7 +211,7 @@ fun ToggleButton(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RadioButton(
-            selected = selected,
+            selected = selected.value,
             onClick = { onClick() },
             modifier = modifier
                 .size(24.dp)
@@ -282,7 +280,7 @@ fun LabelSelection(
 
 @Composable
 fun Description(
-    description: String,
+    description: State<String>,
     modifier: Modifier,
     onValueChange: (String) -> Unit,
 ) {
@@ -295,7 +293,7 @@ fun Description(
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         TextField(
-            value = description,
+            value = description.value,
             onValueChange = { text -> onValueChange(text) },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
@@ -311,13 +309,16 @@ fun Description(
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
+        val rememberDescription = rememberSaveable { mutableStateOf("") }
+        val isRepresented = rememberSaveable { mutableStateOf(false) }
+
         SavePhotoScreen(
             model = "".toUri(),
             label = Label(0, "0000FF", "cat"),
             location = null,
-            rememberDescription = "",
+            rememberDescription = rememberDescription,
             onDescriptionChange = { },
-            isRepresented = false,
+            isRepresented = isRepresented,
             onRepresentedChange = { },
             photoSaveState = UiState.Success,
             onNavigateToMyPage = { },

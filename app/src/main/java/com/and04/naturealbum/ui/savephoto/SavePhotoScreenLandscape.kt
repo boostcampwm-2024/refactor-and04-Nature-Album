@@ -33,9 +33,9 @@ fun SavePhotoScreenLandscape(
     model: Any,
     label: Label?,
     location: Location?,
-    rememberDescription: String,
+    rememberDescription: State<String>,
     onDescriptionChange: (String) -> Unit,
-    isRepresented: Boolean,
+    isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
     photoSaveState: UiState,
     onLabelSelect: () -> Unit,
@@ -104,8 +104,8 @@ fun SavePhotoScreenLandscape(
                             model.toString(),
                             label!!,
                             location!!, // TODO : Null 처리 필요
-                            rememberDescription,
-                            isRepresented
+                            rememberDescription.value,
+                            isRepresented.value
                         )
                     })
             }
