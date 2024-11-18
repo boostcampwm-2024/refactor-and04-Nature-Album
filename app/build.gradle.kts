@@ -144,6 +144,9 @@ dependencies {
 
     // Naver Maps
     implementation(libs.map.sdk)
+
+    // Image Rotation
+    implementation(libs.androidx.exifinterface)
 }
 
 kapt {
