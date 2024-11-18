@@ -76,7 +76,6 @@ class SavePhotoViewModel @Inject constructor(
                     else {
                     }
                 }
-                delay(1000) // TODO: 로딩 이미지 보는 용도, 이후 Firebase 저장 로직 들어오면 확인 후 제거
                 _photoSaveState.emit(UiState.Success) // 저장 완료
             } catch (e: Exception) {
                 Log.e("SavePhotoViewModel", "Error saving photo: ${e.message}")
