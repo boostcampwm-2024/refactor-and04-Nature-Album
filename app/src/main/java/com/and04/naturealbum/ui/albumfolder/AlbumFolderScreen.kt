@@ -35,6 +35,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,58 +74,35 @@ fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
 
-    var isDataLoaded by rememberSaveable { mutableStateOf(false) }
+    val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
+    val label = albumFolderViewModel.label.collectAsStateWithLifecycle()
+    val photoDetails = albumFolderViewModel.photoDetails.collectAsStateWithLifecycle()
 
-    val uiState by albumFolderViewModel.uiState.collectAsStateWithLifecycle()
-    val label by albumFolderViewModel.label.collectAsStateWithLifecycle()
-    val photoDetails by albumFolderViewModel.photoDetails.collectAsStateWithLifecycle()
+    val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
+    val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
 
-    var imgDownLoading by rememberSaveable { mutableStateOf(false) }
-    val setLoading = { isImgDownLoading: Boolean -> imgDownLoading = isImgDownLoading }
-
-    var editMode by rememberSaveable { mutableStateOf(false) }
-    val isEditMode = { editMode }
-    val switchEditMode = { isEditModeEnabled: Boolean -> editMode = isEditModeEnabled }
-
-    var checkList by rememberSaveable { mutableStateOf(setOf<PhotoDetail>()) }
-    if (!editMode) checkList = setOf()
-
-    var selectAll by rememberSaveable { mutableStateOf(false) }
-
-    val addPhotoFromCheckList = { photoDetail: PhotoDetail ->
-        checkList += photoDetail
-    }
-
-    val removePhotoFromCheckList = { photoDetail: PhotoDetail ->
-        checkList -= photoDetail
-    }
-
-    val onClickAllBtn = { isAllSelected: Boolean ->
-        selectAll = isAllSelected
-        if (isAllSelected) checkList = photoDetails.toSet() // TODO
-        else checkList = emptySet() // TODO
-    }
 
     LaunchedEffect(selectedAlbumLabel) {
-        if (!isDataLoaded) {
+        if (!state.isDataLoaded.value) {
             albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-            isDataLoaded = true
+            state.isDataLoaded.value = true
         }
     }
 
     val saveImagesWithLoading = {
         saveImagesWithLoading(
             context = context,
-            checkList.toList(),
-            setLoading,
-            switchEditMode
+            photoDetails = state.checkList.value.toList(),
+            setLoading = setLoading,
+            switchEditMode = switchEditMode,
         )
     }
-    var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
+
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission())
         { permissionAllow ->
@@ -137,9 +116,10 @@ fun AlbumFolderScreen(
                         WRITE_EXTERNAL_STORAGE
                     )
                 if (!hasPreviouslyDeniedPermission)
-                    permissionDialogState = PermissionDialogState.GoToSettings
+                    state.permissionDialogState.value = PermissionDialogState.GoToSettings
             }
         }
+
     val requestPermission = { requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE) }
 
     val savePhotos = {
@@ -157,25 +137,23 @@ fun AlbumFolderScreen(
         label = label,
         onPhotoClick = onPhotoClick,
         switchEditMode = switchEditMode,
-        isEditMode = isEditMode,
-        selectAll = selectAll,
-        onClickAllSelect = onClickAllBtn,
+        editMode = state.editMode,
+        selectAll = state.selectAll,
         setLoading = setLoading,
         savePhotos = savePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
-        addPhotoFromCheckList = addPhotoFromCheckList,
-        removePhotoFromCheckList = removePhotoFromCheckList
+        checkList = state.checkList,
     )
 
-    if (imgDownLoading) {
+    if (state.imgDownLoading.value) {
         RotatingImageLoading(
             drawableRes = R.drawable.fish_loading_image,
             stringRes = R.string.album_folder_screen_save_text
         )
     }
     PermissionDialogs(
-        permissionDialogState = permissionDialogState,
-        onDismiss = { permissionDialogState = PermissionDialogState.None },
+        permissionDialogState = state.permissionDialogState.value,
+        onDismiss = { state.permissionDialogState.value = PermissionDialogState.None },
         onGoToSettings = {
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = Uri.fromParts("package", context.packageName, null)
@@ -183,28 +161,22 @@ fun AlbumFolderScreen(
             }
         }
     )
-
-    BackHandler(enabled = editMode) {
-        if (editMode) editMode = false
-    }
 }
 
 @Composable
 fun AlbumFolderScreen(
     context: Context,
-    uiState: UiState,
-    photoDetails: List<PhotoDetail>,
-    label: Label,
+    uiState: State<UiState>,
+    photoDetails: State<List<PhotoDetail>>,
+    label: State<Label>,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
-    isEditMode: () -> Boolean,
-    selectAll: Boolean,
-    onClickAllSelect: (Boolean) -> Unit,
+    editMode: MutableState<Boolean>,
+    selectAll: MutableState<Boolean>,
     setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
-    addPhotoFromCheckList: (PhotoDetail) -> Unit,
-    removePhotoFromCheckList: (PhotoDetail) -> Unit,
+    checkList: MutableState<Set<PhotoDetail>>,
 ) {
     Scaffold(
         topBar = { context.GetTopbar { onNavigateToMyPage() } }
@@ -216,13 +188,12 @@ fun AlbumFolderScreen(
             label = label,
             onPhotoClick = onPhotoClick,
             switchEditMode = switchEditMode,
-            isEditMode = isEditMode,
+            editMode = editMode,
             selectAll = selectAll,
-            onClickAllSelect = onClickAllSelect,
+//            onClickAllSelect = onClickAllSelect,
             setLoading = setLoading,
             savePhotos = savePhotos,
-            addPhotoFromCheckList = addPhotoFromCheckList,
-            removePhotoFromCheckList = removePhotoFromCheckList
+            checkList = checkList,
         )
     }
 }
@@ -230,20 +201,18 @@ fun AlbumFolderScreen(
 @Composable
 private fun ItemContainer(
     innerPaddingValues: PaddingValues,
-    uiState: UiState,
-    photoDetails: List<PhotoDetail>,
-    label: Label,
+    uiState: State<UiState>,
+    photoDetails: State<List<PhotoDetail>>,
+    label: State<Label>,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
-    isEditMode: () -> Boolean,
-    selectAll: Boolean,
-    onClickAllSelect: (Boolean) -> Unit,
+    editMode: MutableState<Boolean>,
+    selectAll: MutableState<Boolean>,
     setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
-    addPhotoFromCheckList: (PhotoDetail) -> Unit,
-    removePhotoFromCheckList: (PhotoDetail) -> Unit,
+    checkList: MutableState<Set<PhotoDetail>>,
 ) {
-    when (uiState) {
+    when (uiState.value) {
         is UiState.Loading, UiState.Idle -> {
             setLoading(true)
         }
@@ -262,12 +231,12 @@ private fun ItemContainer(
                     AlbumLabel(
                         modifier = Modifier
                             .background(
-                                color = Color(parseColor("#${label.backgroundColor}")),
+                                color = Color(parseColor("#${label.value.backgroundColor}")),
                                 shape = CircleShape
                             )
                             .fillMaxWidth(0.9f),
-                        text = label.name,
-                        backgroundColor = Color(parseColor("#${label.backgroundColor}")),
+                        text = label.value.name,
+                        backgroundColor = Color(parseColor("#${label.value.backgroundColor}")),
                     )
 
                     Box(
@@ -281,32 +250,41 @@ private fun ItemContainer(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(
-                                items = photoDetails,
+                                items = photoDetails.value,
                                 key = { item -> item.id }
                             ) { photoDetail ->
                                 PhotoDetailItem(
                                     photoDetail = photoDetail,
                                     onPhotoClick = onPhotoClick,
                                     switchEditMode = switchEditMode,
-                                    isEditMode = isEditMode,
-                                    selectAll = selectAll,
-                                    addPhotoFromCheckList = addPhotoFromCheckList,
-                                    removePhotoFromCheckList = removePhotoFromCheckList
+                                    editMode = editMode,
+                                    selectAll = selectAll.value,
+                                    checkList = checkList,
                                 )
                             }
                         }
 
                         ButtonWithAnimation(
-                            selectAll = onClickAllSelect,
+                            selectAll = { isAllSelected: Boolean ->
+                                selectAll.value = isAllSelected
+                                if (isAllSelected)
+                                    checkList.value = photoDetails.value.toSet() // TODO
+                                else checkList.value = emptySet() // TODO
+                            },
                             savePhotos = savePhotos,
-                            label = label,
-                            isEditMode = isEditMode(),
+                            editMode = editMode,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomEnd)
                         )
                     }
                 }
+            }
+
+            BackHandler(enabled = editMode.value) {
+                if (editMode.value)
+                    editMode.value = false
+                checkList.value = setOf()
             }
         }
     }
@@ -317,14 +295,13 @@ private fun PhotoDetailItem(
     photoDetail: PhotoDetail,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
-    isEditMode: () -> Boolean,
+    editMode: State<Boolean>,
     selectAll: Boolean,
-    addPhotoFromCheckList: (PhotoDetail) -> Unit,
-    removePhotoFromCheckList: (PhotoDetail) -> Unit,
+    checkList: MutableState<Set<PhotoDetail>>,
 ) {
     var isSelected by rememberSaveable { mutableStateOf(selectAll) }
     LaunchedEffect(selectAll) { isSelected = selectAll }
-    if (!isEditMode()) isSelected = false
+    if (!editMode.value) isSelected = false
 
     Box(
         modifier = Modifier
@@ -334,15 +311,15 @@ private fun PhotoDetailItem(
                     onLongPress = {
                         isSelected = true
                         switchEditMode(true)
-                        addPhotoFromCheckList(photoDetail)
+                        checkList.value += photoDetail
                     },
                     onTap = {
-                        if (isEditMode()) {
+                        if (editMode.value) {
                             isSelected = !isSelected
                             if (isSelected) {
-                                addPhotoFromCheckList(photoDetail)
+                                checkList.value += photoDetail
                             } else {
-                                removePhotoFromCheckList(photoDetail)
+                                checkList.value -= photoDetail
                             }
                         } else {
                             onPhotoClick(photoDetail.id)
@@ -405,21 +382,21 @@ fun ImageOverlay(modifier: Modifier = Modifier) {
 @Composable
 private fun AlbumFolderScreenPreview() {
     NatureAlbumTheme {
-        AlbumFolderScreen(
-            context = LocalContext.current,
-            uiState = UiState.Success,
-            photoDetails = emptyList(),
-            label = Label.emptyLabel(),
-            onPhotoClick = { },
-            switchEditMode = { },
-            isEditMode = { false },
-            selectAll = false,
-            onClickAllSelect = { },
-            setLoading = { },
-            savePhotos = { },
-            onNavigateToMyPage = { },
-            addPhotoFromCheckList = { },
-            removePhotoFromCheckList = { },
-        )
+//        AlbumFolderScreen(
+//            context = LocalContext.current,
+//            uiState = UiState.Success,
+//            photoDetails = emptyList(),
+//            label = Label.emptyLabel(),
+//            onPhotoClick = { },
+//            switchEditMode = { },
+//            isEditMode = { false },
+//            selectAll = false,
+//            onClickAllSelect = { },
+//            setLoading = { },
+//            savePhotos = { },
+//            onNavigateToMyPage = { },
+//            addPhotoFromCheckList = { },
+//            removePhotoFromCheckList = { },
+//        )
     }
 }
