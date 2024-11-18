@@ -25,11 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,8 +63,8 @@ fun LabelSearchScreen(
     labelsState: List<Label>
 ) {
     val context = LocalContext.current
-    var query by rememberSaveable { mutableStateOf("") }
-    var randomColor by rememberSaveable { mutableStateOf(getRandomColor()) }
+    var query = rememberSaveable { mutableStateOf("") }
+    var randomColor = rememberSaveable { mutableStateOf(getRandomColor()) }
 
     Scaffold(
         topBar = {
@@ -88,13 +88,13 @@ fun LabelSearchScreen(
             query = query,
             onQueryChange = { changeQuery ->
                 if (changeQuery.length <= 100)
-                    query = changeQuery
+                    query.value = changeQuery
             },
             randomColor = randomColor,
             containerColor = Color(
-                randomColor.toLong(16)
+                randomColor.value.toLong(16)
             ),
-            labelColor = getLabelColor(randomColor),
+            labelColor = getLabelColor(randomColor.value),
             labelsState = labelsState,
         )
     }
@@ -105,9 +105,9 @@ private fun SearchContent(
     context: Context,
     innerPadding: PaddingValues,
     onSelected: (Label) -> Unit,
-    query: String,
+    query: State<String>,
     onQueryChange: (String) -> Unit,
-    randomColor: String,
+    randomColor: State<String>,
     containerColor: Color,
     labelColor: Color,
     labelsState: List<Label>,
@@ -117,18 +117,7 @@ private fun SearchContent(
             .padding(innerPadding)
             .fillMaxSize()
     ) {
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = query,
-            onValueChange = onQueryChange,
-            placeholder = { Text(stringResource(R.string.label_search_label_search)) },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                errorContainerColor = Color.Transparent
-            )
-        )
+        LabelTextField(Modifier.fillMaxWidth(), query, onQueryChange)
 
         Text(
             modifier = Modifier.padding(12.dp),
@@ -137,7 +126,7 @@ private fun SearchContent(
         )
 
         LazyColumn {
-            val queryLabelList = labelsState.filter { label -> label.name.contains(query) }
+            val queryLabelList = labelsState.filter { label -> label.name.contains(query.value) }
             items(queryLabelList) { label ->
                 UnderLineSuggestionChip(label, onSelected)
             }
@@ -153,22 +142,22 @@ private fun SearchContent(
             Spacer(Modifier.size(4.dp))
             SuggestionChip(
                 onClick = {
-                    if (query.isBlank()) {
+                    if (query.value.isBlank()) {
                         Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
-                    } else if (labelsState.find { label -> label.name == query } != null) {
+                    } else if (labelsState.find { label -> label.name == query.value } != null) {
                         Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
                         return@SuggestionChip
                     }
 
                     onSelected(
                         Label(
-                            backgroundColor = randomColor,
-                            name = query
+                            backgroundColor = randomColor.value,
+                            name = query.value
                         )
                     )
                 },
-                label = { Text(query) },
+                label = { Text(query.value) },
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = containerColor,
                     labelColor = labelColor
@@ -176,6 +165,26 @@ private fun SearchContent(
             )
         }
     }
+}
+
+@Composable
+private fun LabelTextField(
+    modifier: Modifier,
+    query: State<String>,
+    onQueryChange: (String) -> Unit,
+) {
+    TextField(
+        modifier = modifier,
+        value = query.value,
+        onValueChange = onQueryChange,
+        placeholder = { Text(stringResource(R.string.label_search_label_search)) },
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            errorContainerColor = Color.Transparent
+        )
+    )
 }
 
 @Composable
