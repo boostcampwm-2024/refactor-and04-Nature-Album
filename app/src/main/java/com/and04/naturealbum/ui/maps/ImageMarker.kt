@@ -30,20 +30,15 @@ class ImageMarkerCoil @JvmOverloads constructor(
     private val binding: ImageMarkerBinding =
         ImageMarkerBinding.inflate(LayoutInflater.from(context), this, true)
 
-    fun loadImage(uri: String, onImageLoaded: () -> Unit) {
+    fun loadImage(uri: String) {
         binding.ivMarkerImage.load(Uri.parse(uri)) {
             transformations(CircleCropTransformation())
             error(R.drawable.ic_launcher_background)
             allowHardware(false)
-            listener(
-                onSuccess = { _, _ ->
-                    onImageLoaded()  // 이미지 로딩 완료 후 콜백 호출
-                }
-            )
         }
     }
 
-    fun isImageLoaded(): Boolean = width > 0 && height > 0
+    fun isImageLoaded(): Boolean = binding.ivMarkerImage.width > 0 && binding.ivMarkerImage.height > 0
 }
 
 

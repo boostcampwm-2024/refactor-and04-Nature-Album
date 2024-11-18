@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.ItemKey
+import com.and04.naturealbum.data.room.PhotoDetail
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
 import com.naver.maps.map.clustering.ClusterMarkerInfo
@@ -39,9 +40,8 @@ import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
 import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
-import com.naver.maps.map.util.MarkerIcons
-import kotlinx.coroutines.delay
 
 
 @Composable
@@ -107,6 +107,7 @@ fun MapScreen(
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+    val marker1 = Marker()
 
     val mapView = remember {
         MapView(context).apply {
@@ -114,41 +115,32 @@ fun MapScreen(
         }
     }
 
-    val cluster: Clusterer<ItemKey> = remember {
-        Clusterer.Builder<ItemKey>().clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
-            override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                super.updateClusterMarker(info, marker)
-                Log.d("Marker", "$info")
-                Log.d("Marker", "$marker")
-                marker.zIndex = 0
-                Log.d("Marker", "$marker")
+    var markerPhoto: PhotoDetail? = remember { null }
+    var customMarker = ImageMarkerCoil(context).apply {
+        visibility = View.INVISIBLE
+        mapView.addView(this)
+        viewTreeObserver.addOnGlobalLayoutListener(ViewTreeObserver.OnGlobalLayoutListener {
+            if (isImageLoaded()) {
+                marker1.icon = OverlayImage.fromView(this@apply)
             }
         })
-            .leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
-                override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                    super.updateLeafMarker(info, marker)
-                    Log.d("Marker", "$info")
-                    Log.d("Marker", "$marker")
-                    val key = info.key as ItemKey
-                    val imageMarker = ImageMarkerCoil(context)
-                    imageMarker.visibility = View.INVISIBLE
-                    mapView.addView(imageMarker)
-                    imageMarker.loadImage(key.photoDetail.photoUri) {
-                        imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
-                            ViewTreeObserver.OnGlobalLayoutListener {
-                            override fun onGlobalLayout() {
-                                if (imageMarker.isImageLoaded()) {
-                                    val overlayImage = OverlayImage.fromView(imageMarker)
-                                    marker.icon = overlayImage
-                                    marker.zIndex = -1
-                                    mapView.removeView(imageMarker)
-                                    imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                                }
-                            }
-                        })
-                    }
+    }
+
+
+    val cluster: Clusterer<ItemKey> = remember {
+        Clusterer.Builder<ItemKey>().clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
+        }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
+            override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
+                super.updateLeafMarker(info, marker)
+                marker.onClickListener = Overlay.OnClickListener {
+                    markerPhoto = (info.key as ItemKey).photoDetail
+                    customMarker.loadImage(markerPhoto!!.photoUri)
+                    marker1.position = marker.position
+                    mapView.getMapAsync { marker1.map = it }
+                    true
                 }
-            })
+            }
+        })
             .build()
     }
 
@@ -188,12 +180,8 @@ fun MapScreen(
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.matchParentSize())
 
-        LaunchedEffect(cluster) {
-            delay(100) // 모든 뷰가 준비될 시간을 주기 위해 약간의 지연을 추가
-            Log.e("MapScreen", "get")
-            mapView.getMapAsync { naverMap ->
-                cluster.map = naverMap
-            }
+        mapView.getMapAsync { naverMap ->
+            cluster.map = naverMap
         }
     }
 }
