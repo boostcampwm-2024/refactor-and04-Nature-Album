@@ -39,6 +39,7 @@ import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.dummyAlbumDtoList
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -164,7 +165,7 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
         val uiState = remember { mutableStateOf(UiState.Success) }
-        val albumList = remember { mutableStateOf(AlbumDto.dummyList()) }
+        val albumList = remember { mutableStateOf(dummyAlbumDtoList()) }
 
         AlbumScreen(
             uiState = uiState,
