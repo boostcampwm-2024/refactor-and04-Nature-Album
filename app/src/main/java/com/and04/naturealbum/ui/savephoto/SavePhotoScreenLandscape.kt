@@ -37,7 +37,7 @@ fun SavePhotoScreenLandscape(
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
-    photoSaveState: UiState,
+    photoSaveState: State<UiState>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, Label, Location, String, Boolean) -> Unit
@@ -95,7 +95,7 @@ fun SavePhotoScreenLandscape(
                     stringRes = R.string.save_photo_screen_cancel,
                     onClick = { onBack() })
                 IconTextButton(
-                    enabled = (label != null) && (photoSaveState != UiState.Loading),
+                    enabled = (label != null) && (photoSaveState.value != UiState.Loading),
                     modifier = Modifier.weight(1f),
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,

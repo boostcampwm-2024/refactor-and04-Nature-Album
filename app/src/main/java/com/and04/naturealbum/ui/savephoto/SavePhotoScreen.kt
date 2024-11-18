@@ -73,11 +73,11 @@ fun SavePhotoScreen(
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
-    val photoSaveState by viewModel.photoSaveState.collectAsStateWithLifecycle()
+    val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    if (photoSaveState == UiState.Success) {
+    if (photoSaveState.value == UiState.Success) {
         onSave()
     }
 
@@ -106,7 +106,7 @@ fun SavePhotoScreen(
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
-    photoSaveState: UiState,
+    photoSaveState: State<UiState>,
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
@@ -152,7 +152,7 @@ fun SavePhotoScreen(
 
     if (photoSaveState.value == UiState.Loading) {
         RotatingImageLoading(
-            drawalbeRes = R.drawable.fish_loading_image,
+            drawableRes = R.drawable.fish_loading_image,
             stringRes = R.string.save_photo_screen_loading,
         )
     }
@@ -303,6 +303,7 @@ fun Description(
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
+        val uiState = rememberSaveable { mutableStateOf(UiState.Success) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
 
@@ -314,7 +315,7 @@ private fun ScreenPreview() {
             onDescriptionChange = { },
             isRepresented = isRepresented,
             onRepresentedChange = { },
-            photoSaveState = UiState.Success,
+            photoSaveState = uiState,
             onNavigateToMyPage = { },
             onLabelSelect = { },
             onBack = { },
