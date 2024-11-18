@@ -23,7 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +48,7 @@ fun MyPageScreen(
     myPageViewModel: MyPageViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val uiState by myPageViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
 
     MyPageScreen(
         context = context,
@@ -60,7 +62,7 @@ fun MyPageScreen(
 fun MyPageScreen(
     context: Context,
     navigateToHome: () -> Unit,
-    uiState: UiState,
+    uiState: State<UiState>,
     signInWithGoogle: (Context) -> Unit,
 ) {
     Scaffold(topBar = {
@@ -83,7 +85,7 @@ fun MyPageScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            when (uiState) {
+            when (uiState.value) {
                 is UiState.Success -> {
                     val user = UserManager.getUser()
                     val email = user?.email
@@ -158,11 +160,12 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 private fun MyPageScreenPreview() {
+    val uiState = remember { mutableStateOf(UiState.Idle) }
     NatureAlbumTheme {
         MyPageScreen(
             context = LocalContext.current,
             navigateToHome = {},
-            uiState = UiState.Idle,
+            uiState = uiState,
             signInWithGoogle = {}
         )
     }
