@@ -190,7 +190,6 @@ fun AlbumFolderScreen(
             switchEditMode = switchEditMode,
             editMode = editMode,
             selectAll = selectAll,
-//            onClickAllSelect = onClickAllSelect,
             setLoading = setLoading,
             savePhotos = savePhotos,
             checkList = checkList,
@@ -382,21 +381,26 @@ fun ImageOverlay(modifier: Modifier = Modifier) {
 @Composable
 private fun AlbumFolderScreenPreview() {
     NatureAlbumTheme {
-//        AlbumFolderScreen(
-//            context = LocalContext.current,
-//            uiState = UiState.Success,
-//            photoDetails = emptyList(),
-//            label = Label.emptyLabel(),
-//            onPhotoClick = { },
-//            switchEditMode = { },
-//            isEditMode = { false },
-//            selectAll = false,
-//            onClickAllSelect = { },
-//            setLoading = { },
-//            savePhotos = { },
-//            onNavigateToMyPage = { },
-//            addPhotoFromCheckList = { },
-//            removePhotoFromCheckList = { },
-//        )
+        val uiState = remember { mutableStateOf(UiState.Success) }
+        val photoDetails = remember { mutableStateOf<List<PhotoDetail>>(emptyList()) }
+        val label = remember { mutableStateOf(Label.emptyLabel()) }
+        val editMode = remember { mutableStateOf(false) }
+        val selectAll = remember { mutableStateOf(false) }
+        val checkList = remember { mutableStateOf<Set<PhotoDetail>>(setOf()) }
+
+        AlbumFolderScreen(
+            context = LocalContext.current,
+            uiState = uiState,
+            photoDetails = photoDetails,
+            label = label,
+            onPhotoClick = { },
+            switchEditMode = { _ -> },
+            editMode = editMode,
+            selectAll = selectAll,
+            setLoading = { _ -> },
+            savePhotos = { },
+            onNavigateToMyPage = { },
+            checkList = checkList,
+        )
     }
 }
