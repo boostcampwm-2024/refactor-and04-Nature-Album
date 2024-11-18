@@ -2,8 +2,10 @@ package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.view.View
 import android.view.ViewTreeObserver
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,11 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,9 +33,14 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.ItemKey
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
+import com.naver.maps.map.clustering.ClusterMarkerInfo
 import com.naver.maps.map.clustering.Clusterer
+import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
+import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
+import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
+import com.naver.maps.map.util.MarkerIcons
 import kotlinx.coroutines.delay
 
 
@@ -111,65 +114,48 @@ fun MapScreen(
         }
     }
 
-    val imageMarkerList = remember { mutableStateListOf<ImageMarkerCoil>() }
-    val markerList = remember { mutableStateListOf<Marker>() }
-    var markersReady by remember { mutableStateOf(true) }
+    val cluster: Clusterer<ItemKey> = remember {
+        Clusterer.Builder<ItemKey>().clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
+            override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
+                super.updateClusterMarker(info, marker)
+                Log.d("Marker", "$info")
+                Log.d("Marker", "$marker")
+                marker.zIndex = 0
+                Log.d("Marker", "$marker")
+            }
+        })
+            .leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
+                override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
+                    super.updateLeafMarker(info, marker)
+                    Log.d("Marker", "$info")
+                    Log.d("Marker", "$marker")
+                    val key = info.key as ItemKey
+                    val imageMarker = ImageMarkerCoil(context)
+                    imageMarker.visibility = View.INVISIBLE
+                    mapView.addView(imageMarker)
+                    imageMarker.loadImage(key.photoDetail.photoUri) {
+                        imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
+                            ViewTreeObserver.OnGlobalLayoutListener {
+                            override fun onGlobalLayout() {
+                                if (imageMarker.isImageLoaded()) {
+                                    val overlayImage = OverlayImage.fromView(imageMarker)
+                                    marker.icon = overlayImage
+                                    marker.zIndex = -1
+                                    mapView.removeView(imageMarker)
+                                    imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                }
+                            }
+                        })
+                    }
+                }
+            })
+            .build()
+    }
 
-    val cluster: Clusterer<ItemKey> = Clusterer.Builder<ItemKey>().build()
-    cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to photoDetail.labelId})
-
-//    LaunchedEffect(photos.value) {
-//        markersReady = false
-//        markersReady = true
-//    }
-//    LaunchedEffect(photos.value) {
-//        if (photos.value.isEmpty()) return@LaunchedEffect
-//
-//        markersReady = false  // 로딩 시작
-//        imageMarkerList.clear()
-//        markerList.clear()
-//
-//        var loadedImagesCount = 0
-//
-//        photos.value.forEach { photoDetail ->
-//            val imageMarker = ImageMarkerCoil(context)
-//            mapView.addView(imageMarker)
-//            imageMarkerList.add(imageMarker)
-//
-//            imageMarker.loadImage(photoDetail.photoUri) {
-//                loadedImagesCount++
-//
-//                // 임시 뷰에서 뷰의 로드 및 measure가 끝나면 리스트에 추가
-//                imageMarker.viewTreeObserver.addOnGlobalLayoutListener(object :
-//                    ViewTreeObserver.OnGlobalLayoutListener {
-//
-//                    override fun onGlobalLayout() {
-//                        if (imageMarker.isImageLoaded()) {
-//                            val overlayImage = OverlayImage.fromView(imageMarker)
-//                            val marker = Marker().apply {
-//                                position = LatLng(photoDetail.latitude, photoDetail.longitude)
-//                                icon = overlayImage
-//                            }
-//
-//                            markerList.add(marker)
-//
-//                            imageMarker.postDelayed({
-//                                mapView.removeView(imageMarker)
-//                            }, 0)
-//
-//
-//                            if (loadedImagesCount == photos.value.size) {
-//                                markersReady = true  // 모든 이미지 로드 완료 후 상태 업데이트
-//                            }
-//                        }
-//
-//                        imageMarker.viewTreeObserver.removeOnGlobalLayoutListener(this)
-//                    }
-//                })
-//            }
-//        }
-//    }
-
+    LaunchedEffect(photos.value) {
+        Log.e("MapScreen", "LaunchedEffect ${photos.value.size}")
+        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to null })
+    }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
     DisposableEffect(lifecycleOwner) {
@@ -194,8 +180,7 @@ fun MapScreen(
         onDispose {
             lifecycle.removeObserver(observer)
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
-            // MapView에서 모든 imageMarkers 제거
-            imageMarkerList.forEach { mapView.removeView(it) }
+            cluster.clear()
         }
     }
 
@@ -203,18 +188,12 @@ fun MapScreen(
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.matchParentSize())
 
-        if (markersReady) {
-            LaunchedEffect(cluster) {
-                delay(100) // 모든 뷰가 준비될 시간을 주기 위해 약간의 지연을 추가
-                mapView.getMapAsync { naverMap ->
-//                    markerList.forEach { marker -> marker.map = naverMap }
-                    cluster.map = naverMap
-                }
+        LaunchedEffect(cluster) {
+            delay(100) // 모든 뷰가 준비될 시간을 주기 위해 약간의 지연을 추가
+            Log.e("MapScreen", "get")
+            mapView.getMapAsync { naverMap ->
+                cluster.map = naverMap
             }
-        }
-
-        if (!markersReady) {
-            LoadingScreen()
         }
     }
 }
@@ -226,6 +205,7 @@ fun LoadingScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White.copy(alpha = 0.7f))
+            .focusable()
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()

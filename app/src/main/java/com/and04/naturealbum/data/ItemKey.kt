@@ -4,7 +4,7 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.clustering.ClusteringKey
 
-class ItemKey(private val photoDetail: PhotoDetail) : ClusteringKey {
+class ItemKey(val photoDetail: PhotoDetail) : ClusteringKey {
 
     override fun getPosition(): LatLng = LatLng(photoDetail.latitude, photoDetail.longitude)
 
