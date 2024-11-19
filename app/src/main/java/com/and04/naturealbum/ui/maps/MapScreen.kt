@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,10 +37,12 @@ import com.naver.maps.map.MapView
 import com.naver.maps.map.clustering.ClusterMarkerInfo
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
+import com.naver.maps.map.clustering.DefaultDistanceStrategy
 import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.DefaultMarkerManager
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.clustering.MarkerInfo
+import com.naver.maps.map.clustering.Node
 import com.naver.maps.map.overlay.CircleOverlay
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
@@ -128,18 +131,18 @@ fun MapScreen(
             })
         }
     }
-    val clusterManager = remember { ClusterManager(photos.value) }
+    val clusterManager = remember {ClusterManager(photos.value)}
     val cluster: Clusterer<ItemKey> = remember {
-        val overlayImage = OverlayImage.fromResource(R.drawable.frame)
-        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
-            Overlay.OnClickListener {
-                val markerPhoto = info.tag as PhotoDetail
-                customMarker.loadImage(markerPhoto.photoUri)
-                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
-                mapView.getMapAsync { marker.map = it }
-                true
-            }
-        }
+        val overlayImage = OverlayImage.fromResource(R.drawable.ellipse_15)
+//        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
+//            Overlay.OnClickListener {
+//                val markerPhoto = info.tag as PhotoDetail
+//                customMarker.loadImage(markerPhoto.photoUri)
+//                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
+//                mapView.getMapAsync { marker.map = it }
+//                true
+//            }
+//        }
         Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
             clusterManager.setNodeGraph(cluster)
             cluster.children.fold(emptyList<Int>()) {list, node -> list + (node.tag as List<Int>)}
@@ -155,22 +158,31 @@ fun MapScreen(
                 super.updateClusterMarker(info, marker)
                 clusterManager.setClusterNode(info.tag as List<Int>)
                 marker.globalZIndex = 250000
-//                marker.icon = overlayImage
-//                marker.captionColor = android.graphics.Color.BLACK
+                marker.icon = overlayImage
+                marker.captionColor = android.graphics.Color.BLACK
+                clusterManager.setClusterMarker(marker, info.tag as List<Int>)
 //                marker.onClickListener = onClickMarker(info)
+                marker.isFlat = true
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 super.updateLeafMarker(info, marker)
                 clusterManager.setLeafNode(info.tag as List<Int>)
                 marker.globalZIndex = 250000
-//                marker.icon = overlayImage
+                marker.icon = overlayImage
 //                marker.onClickListener = onClickMarker(info)
+                marker.isFlat = true
+            }
+        }).distanceStrategy(object : DefaultDistanceStrategy() {
+            override fun getDistance(zoom: Int, node1: Node, node2: Node): Double {
+                clusterManager.setZoom(zoom)
+                return super.getDistance(zoom, node1, node2)
             }
         })
     }.build()
 
     LaunchedEffect(photos.value) {
+        clusterManager.setPhotos(photos.value)
         cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)) to listOf(photoDetail.id) })
     }
 
@@ -208,9 +220,9 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
-            clusterManager.getMarker().forEach {
-                it.map = naverMap
-            }
+//            clusterManager.getMarker().forEach {
+//                it.map = naverMap
+//            }
         }
     }
 }
