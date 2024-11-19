@@ -9,9 +9,6 @@ import android.os.Build
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
