@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
 import java.io.BufferedInputStream
@@ -40,7 +41,7 @@ class ImageConvert(
 
             return ResizePicture(
                 fileName = fileName,
-                uri = imageFile.absolutePath.toUri()
+                uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
             )
 
         } catch (e: Exception) {
