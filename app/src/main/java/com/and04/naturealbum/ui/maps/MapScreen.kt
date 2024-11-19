@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +28,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.ItemKey
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
@@ -117,7 +115,7 @@ fun MapScreen(
         }
     }
 
-    val customMarker = remember {
+    val imageMarker = remember {
         ImageMarkerCoil(context).apply {
             visibility = View.INVISIBLE
             mapView.addView(this)
@@ -128,9 +126,10 @@ fun MapScreen(
             })
         }
     }
-    val overlayImage = OverlayImage.fromResource(R.drawable.ic_cluster)
 
-    val cluster: Clusterer<ItemKey> = remember {
+    val clusterImage = OverlayImage.fromResource(R.drawable.ic_cluster)
+
+    val cluster: Clusterer<PhotoKey> = remember {
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
                 val photoDetailIds = info.tag as List<*>
@@ -140,13 +139,13 @@ fun MapScreen(
                         .maxBy { (_, photos) -> photos.size } // 그룹 중 가장 많은 사진을 가진 그룹 선택
                         .value // 가장 많은 사진을 가진 그룹의 사진 리스트
                         .maxBy { photoDetail -> photoDetail.datetime } // 가장 최근 사진 선택
-                customMarker.loadImage(pick.photoUri)
+                imageMarker.loadImage(pick.photoUri)
                 marker.position = LatLng(pick.latitude, pick.longitude)
-                mapView.getMapAsync { marker.map = it }
+                mapView.getMapAsync { naverMap -> marker.map = naverMap }
                 true
             }
         }
-        Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
+        Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
             // cluster의 tag는 해당 cluster에 포함된 사진들의 id 리스트
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
@@ -161,7 +160,7 @@ fun MapScreen(
             override fun createMarker(): Marker {
                 return Marker().apply {
                     zIndex = -1
-                    icon = overlayImage
+                    icon = clusterImage
                     isFlat = true
                     anchor = PointF(0.5f, 0.5f)
                 }
@@ -172,7 +171,7 @@ fun MapScreen(
     LaunchedEffect(photos.value) {
         photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
         cluster.addAll(photos.value.associate { photoDetail ->
-            ItemKey(
+            PhotoKey(
                 photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)
             ) to listOf(photoDetail.id)
         })
@@ -223,7 +222,6 @@ fun LoadingScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White.copy(alpha = 0.7f))
-            .focusable()
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()
