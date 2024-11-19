@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
+import android.graphics.PointF
 import android.util.Log
 import android.view.View
 import androidx.compose.foundation.background
@@ -112,7 +113,9 @@ fun MapScreen(
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val marker = Marker()
+    val marker = Marker().apply {
+//        anchor = PointF(0.5f, 0.5f)
+    }
 
     val mapView = remember {
         MapView(context).apply {
@@ -131,59 +134,47 @@ fun MapScreen(
             })
         }
     }
-    val clusterManager = remember {ClusterManager(photos.value)}
-    val cluster: Clusterer<ItemKey> = remember {
-        val overlayImage = OverlayImage.fromResource(R.drawable.ellipse_15)
-//        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
-//            Overlay.OnClickListener {
-//                val markerPhoto = info.tag as PhotoDetail
-//                customMarker.loadImage(markerPhoto.photoUri)
-//                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
-//                mapView.getMapAsync { marker.map = it }
-//                true
-//            }
-//        }
-        Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
-            clusterManager.setNodeGraph(cluster)
-            cluster.children.fold(emptyList<Int>()) {list, node -> list + (node.tag as List<Int>)}
-//            cluster.children
-//                .groupBy { node -> (node.tag as PhotoDetail).labelId }
-//                .maxBy { (_, nodes) -> nodes.size }
-//                .value
-//                .maxBy { node -> (node.tag as PhotoDetail).datetime }
-//                .tag as PhotoDetail
+    val overlayImage = OverlayImage.fromResource(R.drawable.ic_cluster)
 
+    val cluster: Clusterer<ItemKey> = remember {
+        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
+            Overlay.OnClickListener {
+                val markerPhoto = info.tag as PhotoDetail
+                customMarker.loadImage(markerPhoto.photoUri)
+                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
+                mapView.getMapAsync { marker.map = it }
+                true
+            }
+        }
+        Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
+            cluster.children
+                .groupBy { node -> (node.tag as PhotoDetail).labelId }
+                .maxBy { (_, nodes) -> nodes.size }
+                .value
+                .maxBy { node -> (node.tag as PhotoDetail).datetime }
+                .tag as PhotoDetail
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                super.updateClusterMarker(info, marker)
-                clusterManager.setClusterNode(info.tag as List<Int>)
-                marker.globalZIndex = 250000
-                marker.icon = overlayImage
-                marker.captionColor = android.graphics.Color.BLACK
-                clusterManager.setClusterMarker(marker, info.tag as List<Int>)
-//                marker.onClickListener = onClickMarker(info)
-                marker.isFlat = true
+                marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                super.updateLeafMarker(info, marker)
-                clusterManager.setLeafNode(info.tag as List<Int>)
-                marker.globalZIndex = 250000
-                marker.icon = overlayImage
-//                marker.onClickListener = onClickMarker(info)
-                marker.isFlat = true
+                marker.onClickListener = onClickMarker(info)
             }
-        }).distanceStrategy(object : DefaultDistanceStrategy() {
-            override fun getDistance(zoom: Int, node1: Node, node2: Node): Double {
-                clusterManager.setZoom(zoom)
-                return super.getDistance(zoom, node1, node2)
+        }).markerManager(object : DefaultMarkerManager() {
+            override fun createMarker(): Marker {
+                return Marker().apply {
+                    zIndex = -1
+                    icon = overlayImage
+                    isFlat = true
+                    anchor = PointF(0.5f, 0.5f)
+                }
             }
         })
     }.build()
 
     LaunchedEffect(photos.value) {
-        clusterManager.setPhotos(photos.value)
-        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)) to listOf(photoDetail.id) })
+        cluster.addAll(photos.value.associateBy { photoDetail -> ItemKey(photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude))})
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -220,9 +211,6 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
-//            clusterManager.getMarker().forEach {
-//                it.map = naverMap
-//            }
         }
     }
 }
