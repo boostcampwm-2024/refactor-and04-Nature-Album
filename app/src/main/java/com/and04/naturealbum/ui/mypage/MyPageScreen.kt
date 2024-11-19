@@ -141,7 +141,7 @@ private fun MyPageContent(
 @Composable
 private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
     UserProfileImage(
-        uri = uri?.toString() ?: "",
+        uri = uri?.toString(),
         modifier = Modifier
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
