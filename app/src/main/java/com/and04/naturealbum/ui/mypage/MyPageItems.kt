@@ -89,7 +89,7 @@ fun MyPageSearch(myFriends: List<MyFriend>) {
                     query = textFieldState,
                     onSearch = { expanded = false },
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = { expandedChange -> expanded = expandedChange },
                     placeholder = {
                         Text(text = stringResource(R.string.my_page_search_hint))
                     },
@@ -99,11 +99,15 @@ fun MyPageSearch(myFriends: List<MyFriend>) {
                             contentDescription = stringResource(R.string.my_page_search_bar_search_icon)
                         )
                     },
-                    onQueryChange = { textFieldState = it }
+                    onQueryChange = { textField ->
+                        textFieldState = textField
+                    }
                 )
             },
             expanded = expanded,
-            onExpandedChange = { expanded = it },
+            onExpandedChange = { expandedChange ->
+                expanded = expandedChange
+            },
         ) {
             // 검색 결과 리스트
             RequestedList(myFriends)
