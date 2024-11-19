@@ -2,7 +2,6 @@ package com.and04.naturealbum.ui.mypage
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +45,16 @@ fun MyPageScreen(
     val context = LocalContext.current
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
 
+    // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
+//       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
+//       - UiState.Success에 사용자 정보(email, photoUrl, displayName)를 포함시켜 단일 상태로 관리.
+//       - UI는 UiState만 구독하도록 변경하여 코드 복잡도를 줄이고 상태 관리를 단순화.
+//       - 현재 로직은 친구 추가 기능 테스트를 위한 임시 구현이며, 이후 사용자 상태 관리 구조 재설계 시 수정해야 함.
+
+    val userEmail = myPageViewModel.userEmail.collectAsStateWithLifecycle()
+    val userPhotoUrl = myPageViewModel.userPhotoUrl.collectAsStateWithLifecycle()
+    val userDisplayName = myPageViewModel.userDisplayName.collectAsStateWithLifecycle()
+
     Scaffold(topBar = {
         MyTopAppBar(
             navigationIcon = {
@@ -66,12 +75,14 @@ fun MyPageScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
+            // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
             when (uiState.value) {
                 is UiState.Success -> {
-                    val user = UserManager.getUser()
-                    val email = user?.email
-                    val photoUri = user?.photoUrl
-                    UserProfileContent(uri = photoUri, email = email)
+                    UserProfileContent(
+                        uri = userPhotoUrl.value,
+                        email = userEmail.value,
+                        displayName = userDisplayName.value,
+                    )
                 }
 
                 else -> {
@@ -85,14 +96,22 @@ fun MyPageScreen(
 }
 
 @Composable
-private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
+private fun UserProfileContent(
+    uri: String? = null,
+    email: String? = null,
+    displayName: String? = null
+) {
     UserProfileImage(
-        uri = uri?.toString() ?: "",
+        uri = uri ?: "",
         modifier = Modifier
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
     )
-
+    Text(
+        text = displayName ?: "",
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
     Text(
         text = email ?: stringResource(R.string.my_page_default_user_email),
         modifier = Modifier.fillMaxWidth(),

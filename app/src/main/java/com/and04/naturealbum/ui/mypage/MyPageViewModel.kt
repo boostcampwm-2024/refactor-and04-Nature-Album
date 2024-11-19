@@ -18,10 +18,25 @@ class MyPageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(setInitUiState())
     val uiState: StateFlow<UiState> = _uiState
 
+    private val _userEmail = MutableStateFlow<String?>(null)
+    val userEmail: StateFlow<String?> = _userEmail
+
+    private val _userPhotoUrl = MutableStateFlow<String?>(null)
+    val userPhotoUrl: StateFlow<String?> = _userPhotoUrl
+
+    private val _userDisplayName = MutableStateFlow<String?>(null)
+    val userDisplayName: StateFlow<String?> = _userDisplayName
+
+
     fun signInWithGoogle(context: Context) {
         authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
+                    val user = UserManager.getUser()
+                    _userEmail.value = user?.email
+                    _userPhotoUrl.value = user?.photoUrl.toString()
+                    _userDisplayName.value = user?.displayName
+
                     _uiState.emit(UiState.Success)
                 }
             }
