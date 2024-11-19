@@ -11,14 +11,12 @@ import com.and04.naturealbum.ui.home.PermissionDialogState
 
 @Stable
 class AlbumFolderState(
-    isDataLoaded: Boolean,
     imgDownLoading: Boolean,
     editMode: Boolean,
     checkList: Set<PhotoDetail>,
     selectAll: Boolean,
     permissionDialogState: PermissionDialogState
 ) {
-    var isDataLoaded = mutableStateOf(isDataLoaded)
     var imgDownLoading = mutableStateOf(imgDownLoading)
     var editMode = mutableStateOf(editMode)
     var checkList = mutableStateOf(checkList)
@@ -28,7 +26,6 @@ class AlbumFolderState(
 
 @Composable
 fun rememberAlbumFolderState(
-    isDataLoaded: Boolean = false,
     imgDownLoading: Boolean = false,
     editMode: Boolean = false,
     checkList: Set<PhotoDetail> = setOf(),
@@ -37,7 +34,6 @@ fun rememberAlbumFolderState(
 ): AlbumFolderState {
     return remember {
         AlbumFolderState(
-            isDataLoaded = isDataLoaded,
             imgDownLoading = imgDownLoading,
             editMode = editMode,
             checkList = checkList,

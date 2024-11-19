@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
@@ -86,11 +87,9 @@ fun AlbumFolderScreen(
     val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
     val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
 
-
-    LaunchedEffect(selectedAlbumLabel) {
-        if (!state.isDataLoaded.value) {
+    LaunchedEffect(uiState.value) {
+        if (uiState.value is UiState.Idle) {
             albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-            state.isDataLoaded.value = true
         }
     }
 
@@ -151,6 +150,7 @@ fun AlbumFolderScreen(
             stringRes = R.string.album_folder_screen_save_text
         )
     }
+
     PermissionDialogs(
         permissionDialogState = state.permissionDialogState.value,
         onDismiss = { state.permissionDialogState.value = PermissionDialogState.None },
