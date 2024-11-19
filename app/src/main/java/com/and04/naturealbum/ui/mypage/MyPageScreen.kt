@@ -55,6 +55,10 @@ import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
+const val SOCIAL_LIST_TAB_INDEX = 0
+const val SOCIAL_SEARCH_TAB_INDEX = 1
+const val SOCIAL_ALARM_TAB_INDEX = 2
+
 @Composable
 fun MyPageScreen(
     navigateToHome: () -> Unit,
@@ -198,7 +202,8 @@ private fun SocialContent(
     modifier: Modifier,
     myFriends: State<List<MyFriend>>,
 ) {
-    var tabState by remember { mutableIntStateOf(0) }
+    var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
+
     val titles = listOf(
         stringResource(R.string.my_page_social_list),
         stringResource(R.string.my_page_social_search),
@@ -215,9 +220,9 @@ private fun SocialContent(
         }
 
         when (tabState) {
-            0 -> MyPageSocialList(myFriends.value)
-            1 -> MyPageSearch(myFriends.value)
-            2 -> MyPageAlarm(myFriends.value, {}, {})
+            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends.value)
+            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(myFriends.value)
+            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(myFriends.value, {}, {})
         }
     }
 }
@@ -236,7 +241,7 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
                 )
 
                 Box {
-                    if (index == 2 && itemCount > 0) {
+                    if (index == SOCIAL_ALARM_TAB_INDEX && itemCount > 0) {
                         Badge(
                             modifier = Modifier.padding(start = 8.dp),
                             containerColor = Color.Red,
