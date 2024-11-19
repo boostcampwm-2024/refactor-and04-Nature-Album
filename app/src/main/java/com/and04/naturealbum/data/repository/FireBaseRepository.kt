@@ -5,6 +5,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
+import com.and04.naturealbum.data.dto.FirestoreUser
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,8 +28,9 @@ interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
-    suspend fun getFriendRequests(uid: String): Task<QuerySnapshot>
-    suspend fun getFriends(uid: String): Task<QuerySnapshot>
+    suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
+    suspend fun getFriends(uid: String): List<FirebaseFriend>
+    suspend fun getAllUsers(): List<FirestoreUser>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -90,12 +92,29 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).get()
     }
 
-    override suspend fun getFriends(uid: String): Task<QuerySnapshot> {
-        return fireStore.collection(USER).document().collection(FRIENDS).get()
+    override suspend fun getFriends(uid: String): List<FirebaseFriend> {
+        return fireStore.collection(USER)
+            .document(uid)
+            .collection(FRIENDS)
+            .get()
+            .await()
+            .toObjects(FirebaseFriend::class.java)
+
     }
 
-    override suspend fun getFriendRequests(uid: String): Task<QuerySnapshot> {
-        return fireStore.collection(USER).document().collection(FRIEND_REQUESTS).get()
+
+    override suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest> {
+        return fireStore.collection(USER)
+            .document(uid)
+            .collection(FRIEND_REQUESTS)
+            .get()
+            .await()
+            .toObjects(FirebaseFriendRequest::class.java)
+    }
+
+
+    override suspend fun getAllUsers(): List<FirestoreUser> {
+        return fireStore.collection(USER).get().await().toObjects(FirestoreUser::class.java)
     }
 
     override suspend fun saveImageFile(
@@ -141,9 +160,16 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     // 친구 요청 보냈을 경우
     override suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
-        val requestTime = LocalDateTime.now()
-        val friendRequest = FirebaseFriendRequest(requestedAt = requestTime, status = "sent")
-        val targetFriendRequest = friendRequest.copy(status = "received")
+        val requestTime = LocalDateTime.now().toString() // String으로 변환
+        val friendRequest = FirebaseFriendRequest(
+            id = targetUid,
+            requestedAt = requestTime,
+            status = "sent"
+        )
+        val targetFriendRequest = friendRequest.copy(
+            id = uid,
+            status = "received"
+        )
 
         return try {
             fireStore.runTransaction { transaction ->
@@ -155,7 +181,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                 transaction.set(
                     fireStore.collection(USER).document(targetUid).collection(FRIEND_REQUESTS)
                         .document(uid),
-                    friendRequest
+                    targetFriendRequest
                 )
             }.await()
             true
@@ -166,8 +192,9 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     // 수락했을 경우
     override suspend fun acceptFriendRequest(uid: String, targetUid: String): Boolean {
-        val addedTime = LocalDateTime.now()
-        val friendData = FirebaseFriend(addedAt = addedTime)
+        val addedTime = LocalDateTime.now().toString() // 문자열로 변환
+        val uidFriendData = FirebaseFriend(id = targetUid, addedAt = addedTime)
+        val targetUidFriendData = FirebaseFriend(id = uid, addedAt = addedTime)
 
         return try {
             fireStore.runTransaction { transaction ->
@@ -175,12 +202,12 @@ class FireBaseRepositoryImpl @Inject constructor(
                 transaction.set(
                     fireStore.collection(USER).document(uid).collection(FRIENDS)
                         .document(targetUid),
-                    friendData
+                    uidFriendData
                 )
                 transaction.set(
                     fireStore.collection(USER).document(targetUid).collection(FRIENDS)
                         .document(uid),
-                    friendData
+                    targetUidFriendData
                 )
                 // 서로의 요청 상태 제거
                 transaction.delete(

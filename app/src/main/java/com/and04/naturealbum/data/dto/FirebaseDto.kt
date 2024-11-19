@@ -16,11 +16,32 @@ data class FirebasePhotoInfo(
     val datetime: LocalDateTime
 )
 
-data class FirebaseFriendRequest(
-    val requestedAt: LocalDateTime,
-    val status: String, // "sent", "received"
+data class FirebaseFriend(
+    val id: String = "",
+    val addedAt: String = ""
 )
 
-data class FirebaseFriend(
-    val addedAt: LocalDateTime
+data class FirebaseFriendRequest(
+    val id: String = "", // 문서 id = 요청 관련자
+    val requestedAt: String = "",
+    val status: String = ""       // "sent", "received"
+) {
+    // Firestore에서 사용 가능한 `LocalDateTime` 변환 메서드
+    companion object {
+        fun fromLocalDateTime(localDateTime: LocalDateTime): String {
+            return localDateTime.toString() // ISO-8601 형식
+        }
+
+        fun toLocalDateTime(string: String): LocalDateTime {
+            return LocalDateTime.parse(string)
+        }
+    }
+}
+
+
+data class FirestoreUser(
+    val uid: String = "",
+    val displayName: String = "",
+    val email: String = "",
+    val photoUrl: String = "",
 )
