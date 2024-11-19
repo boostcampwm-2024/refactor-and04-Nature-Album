@@ -56,7 +56,6 @@ fun NatureAlbumNavHost(
         )
     }
 
-    val imageConverter = remember { ImageConvert(context) }
     var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
     var fileName: String by rememberSaveable { mutableStateOf("") }
     var imageFile: File? = remember { null }
@@ -67,7 +66,7 @@ fun NatureAlbumNavHost(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
-                val resizePicture = imageConverter.resizeImage(imageUri)!!
+                val resizePicture = ImageConvert.resizeImage(imageUri)!!
                 imageFile?.delete()
                 imageUri = resizePicture.uri
                 fileName = resizePicture.fileName

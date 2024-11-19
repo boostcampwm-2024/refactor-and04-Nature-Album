@@ -8,17 +8,20 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
+import com.and04.naturealbum.NatureAlbum
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 
-class ImageConvert(
-    private val context: Context
-) {
+object ImageConvert {
+    private const val MAX_WIDTH = 800
+    private const val MAX_HEIGHT = 600
+    private const val COMPRESS_QUALITY = 80
+
     fun resizeImage(uri: Uri): ResizePicture? {
         try {
+            val context = NatureAlbum.getInstance()
             val storage = context.filesDir
             val fileName = "${System.currentTimeMillis()}.jpg"
 
@@ -26,7 +29,7 @@ class ImageConvert(
             imageFile.createNewFile()
 
             FileOutputStream(imageFile).use { fos ->
-                decodeBitmapFromUri(uri)?.apply {
+                decodeBitmapFromUri(context = context, uri = uri)?.apply {
                     if (Build.VERSION.SDK_INT >= 30) {
                         compress(Bitmap.CompressFormat.WEBP_LOSSY, COMPRESS_QUALITY, fos)
                     } else {
@@ -41,7 +44,11 @@ class ImageConvert(
 
             return ResizePicture(
                 fileName = fileName,
-                uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+                uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    imageFile
+                )
             )
 
         } catch (e: Exception) {
@@ -51,7 +58,7 @@ class ImageConvert(
         return null
     }
 
-    private fun decodeBitmapFromUri(uri: Uri): Bitmap? {
+    private fun decodeBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         BufferedInputStream(
             context.contentResolver.openInputStream(uri)
         ).use { input ->
@@ -64,11 +71,12 @@ class ImageConvert(
                 bitmap = BitmapFactory.decodeStream(input, null, this)
                 input.reset()
 
-                inSampleSize = calculateInSampleSize(this)
+                inSampleSize = calculateInSampleSize(options = this)
                 inJustDecodeBounds = false
 
                 bitmap = BitmapFactory.decodeStream(input, null, this)
-                if (bitmap != null) bitmap = rotateImageIfRequired(bitmap = bitmap!!, uri = uri)
+                if (bitmap != null) bitmap =
+                    rotateImageIfRequired(context = context, bitmap = bitmap!!, uri = uri)
             }
 
             return bitmap
@@ -91,7 +99,7 @@ class ImageConvert(
         return inSampleSize
     }
 
-    private fun rotateImageIfRequired(bitmap: Bitmap, uri: Uri): Bitmap? {
+    private fun rotateImageIfRequired(context: Context, bitmap: Bitmap, uri: Uri): Bitmap? {
         val input = context.contentResolver.openInputStream(uri) ?: return null
         input.use {
             val exif = ExifInterface(input)
@@ -115,12 +123,6 @@ class ImageConvert(
         val matrix = Matrix()
         matrix.postRotate(degree.toFloat())
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
-
-    companion object {
-        private const val MAX_WIDTH = 800
-        private const val MAX_HEIGHT = 600
-        private const val COMPRESS_QUALITY = 80
     }
 }
 

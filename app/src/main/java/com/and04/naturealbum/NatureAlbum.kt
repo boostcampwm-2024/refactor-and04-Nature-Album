@@ -8,7 +8,14 @@ import dagger.hilt.android.HiltAndroidApp
 class NatureAlbum : Application() {
     override fun onCreate() {
         super.onCreate()
+        myApplication = this
+
         NaverMapSdk.getInstance(this).client =
             NaverMapSdk.NaverCloudPlatformClient(BuildConfig.NAVER_MAP_CLIENT_ID)
+    }
+
+    companion object {
+        private lateinit var myApplication: NatureAlbum
+        fun getInstance(): NatureAlbum = myApplication
     }
 }
