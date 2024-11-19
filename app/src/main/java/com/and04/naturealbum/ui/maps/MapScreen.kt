@@ -39,6 +39,7 @@ import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
 import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.LeafMarkerInfo
+import com.naver.maps.map.clustering.MarkerInfo
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
@@ -107,7 +108,7 @@ fun MapScreen(
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val marker1 = Marker()
+    val marker = Marker()
 
     val mapView = remember {
         MapView(context).apply {
@@ -115,38 +116,49 @@ fun MapScreen(
         }
     }
 
-    var markerPhoto: PhotoDetail? = remember { null }
-    var customMarker = ImageMarkerCoil(context).apply {
+    val customMarker = ImageMarkerCoil(context).apply {
         visibility = View.INVISIBLE
         mapView.addView(this)
-        viewTreeObserver.addOnGlobalLayoutListener(ViewTreeObserver.OnGlobalLayoutListener {
+        viewTreeObserver.addOnGlobalLayoutListener({
             if (isImageLoaded()) {
-                marker1.icon = OverlayImage.fromView(this@apply)
+                marker.icon = OverlayImage.fromView(this@apply)
             }
         })
     }
 
-
     val cluster: Clusterer<ItemKey> = remember {
-        Clusterer.Builder<ItemKey>().clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
+        val onclickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
+            Overlay.OnClickListener {
+                val markerPhoto = info.tag as PhotoDetail
+                customMarker.loadImage(markerPhoto.photoUri)
+                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
+                mapView.getMapAsync { marker.map = it }
+                true
+            }
+        }
+        Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
+            cluster.children
+                .groupBy { node -> (node.tag as PhotoDetail).labelId }
+                .maxBy { (_, nodes) -> nodes.size }
+                .value
+                .maxBy { node -> (node.tag as PhotoDetail).datetime }
+                .tag as PhotoDetail
+        }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
+            override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
+                super.updateClusterMarker(info, marker)
+                marker.onClickListener = onclickMarker(info)
+            }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 super.updateLeafMarker(info, marker)
-                marker.onClickListener = Overlay.OnClickListener {
-                    markerPhoto = (info.key as ItemKey).photoDetail
-                    customMarker.loadImage(markerPhoto!!.photoUri)
-                    marker1.position = marker.position
-                    mapView.getMapAsync { marker1.map = it }
-                    true
-                }
+                marker.onClickListener = onclickMarker(info)
             }
         })
-            .build()
-    }
+    }.build()
 
     LaunchedEffect(photos.value) {
         Log.e("MapScreen", "LaunchedEffect ${photos.value.size}")
-        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to null })
+        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to photoDetail })
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
