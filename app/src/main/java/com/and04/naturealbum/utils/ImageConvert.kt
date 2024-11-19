@@ -5,9 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -20,13 +24,18 @@ class ImageConvert(
             val storage = context.filesDir
             val fileName = "${System.currentTimeMillis()}.jpg"
 
-            val tempFile = File(storage, fileName)
-            tempFile.createNewFile()
+            val imageFile = File(storage, fileName)
+            imageFile.createNewFile()
 
-            val fos = FileOutputStream(tempFile)
+            val fos = FileOutputStream(imageFile)
 
             decodeBitmapFromUri(uri)?.apply {
-                compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                if (Build.VERSION.SDK_INT >= 30) {
+                    compress(Bitmap.CompressFormat.WEBP_LOSSY, 100, fos)
+                } else {
+                    compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                }
+
                 recycle()
             } ?: throw NullPointerException()
 
@@ -35,7 +44,7 @@ class ImageConvert(
 
             return ResizePicture(
                 fileName = fileName,
-                uri = tempFile.absolutePath.toUri()
+                uri = imageFile.absolutePath.toUri()
             )
 
         } catch (e: Exception) {
@@ -47,7 +56,6 @@ class ImageConvert(
 
     private fun decodeBitmapFromUri(uri: Uri): Bitmap? {
         val input = BufferedInputStream(context.contentResolver.openInputStream(uri))
-
         input.mark(input.available())
 
         var bitmap: Bitmap?
@@ -55,7 +63,6 @@ class ImageConvert(
         BitmapFactory.Options().run {
             inJustDecodeBounds = true
             bitmap = BitmapFactory.decodeStream(input, null, this)
-
             input.reset()
 
             inSampleSize = calculateInSampleSize(this)
@@ -82,7 +89,7 @@ class ImageConvert(
                 inSampleSize *= 2
             }
         }
-
+        Log.e("inSampleSize", inSampleSize.toString())
         return inSampleSize
     }
 

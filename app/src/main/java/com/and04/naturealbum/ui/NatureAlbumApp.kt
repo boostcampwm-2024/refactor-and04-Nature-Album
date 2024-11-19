@@ -60,6 +60,7 @@ fun NatureAlbumNavHost(
     var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
     var fileName: String by rememberSaveable { mutableStateOf("") }
     var imageFile: File? = remember { null }
+
     var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
