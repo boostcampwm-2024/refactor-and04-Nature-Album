@@ -15,3 +15,12 @@ data class FirebasePhotoInfo(
     val description: String?,
     val datetime: LocalDateTime
 )
+
+data class FirebaseFriendRequest(
+    val requestedAt: LocalDateTime,
+    val status: String, // "sent", "received"
+)
+
+data class FirebaseFriend(
+    val addedAt: LocalDateTime
+)
