@@ -3,6 +3,7 @@ package com.and04.naturealbum.di
 import android.content.Context
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.DataRepositoryImpl
+import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.AppDatabase
 import com.and04.naturealbum.data.room.LabelDao
@@ -53,5 +54,7 @@ object RoomModule {
 
     @Singleton
     @Provides
-    fun providerAuthenticationManager(): AuthenticationManager = AuthenticationManager()
+    fun providerAuthenticationManager(
+        fireBaseRepository: FireBaseRepository
+    ): AuthenticationManager = AuthenticationManager(fireBaseRepository)
 }

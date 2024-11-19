@@ -15,6 +15,15 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 interface FireBaseRepository {
+
+    // CREATE
+    suspend fun createUserIfNotExists(
+        uid: String,
+        displayName: String?,
+        email: String,
+        photoUrl: String?
+    ): Boolean
+
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
@@ -47,6 +56,30 @@ class FireBaseRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val fireStorage: FirebaseStorage,
 ) : FireBaseRepository {
+
+    override suspend fun createUserIfNotExists(
+        uid: String,
+        displayName: String?,
+        email: String,
+        photoUrl: String?
+    ): Boolean {
+        return try {
+            val userDoc = fireStore.collection(USER).document(uid).get().await()
+            if (!userDoc.exists()) {
+                fireStore.collection(USER).document(uid).set(
+                    mapOf(
+                        "displayName" to (displayName ?: "NoName User"),
+                        "email" to email,
+                        "photoUrl" to (photoUrl ?: "")
+                    )
+                ).await()
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     override suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot> {
 
         return fireStore.collection(USER).document(uid).collection(LABEL).document(label).get()
