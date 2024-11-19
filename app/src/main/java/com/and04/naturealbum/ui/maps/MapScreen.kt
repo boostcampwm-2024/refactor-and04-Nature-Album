@@ -128,7 +128,7 @@ fun MapScreen(
             })
         }
     }
-
+    val clusterManager = remember { ClusterManager(photos.value) }
     val cluster: Clusterer<ItemKey> = remember {
         val overlayImage = OverlayImage.fromResource(R.drawable.frame)
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
@@ -141,31 +141,37 @@ fun MapScreen(
             }
         }
         Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
-            cluster.children
-                .groupBy { node -> (node.tag as PhotoDetail).labelId }
-                .maxBy { (_, nodes) -> nodes.size }
-                .value
-                .maxBy { node -> (node.tag as PhotoDetail).datetime }
-                .tag as PhotoDetail
+            clusterManager.setNodeGraph(cluster)
+            cluster.children.fold(emptyList<Int>()) {list, node -> list + (node.tag as List<Int>)}
+//            cluster.children
+//                .groupBy { node -> (node.tag as PhotoDetail).labelId }
+//                .maxBy { (_, nodes) -> nodes.size }
+//                .value
+//                .maxBy { node -> (node.tag as PhotoDetail).datetime }
+//                .tag as PhotoDetail
 
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 super.updateClusterMarker(info, marker)
-                marker.icon = overlayImage
-                marker.captionColor = android.graphics.Color.BLACK
-                marker.onClickListener = onClickMarker(info)
+                clusterManager.setClusterNode(info.tag as List<Int>)
+                marker.globalZIndex = 250000
+//                marker.icon = overlayImage
+//                marker.captionColor = android.graphics.Color.BLACK
+//                marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 super.updateLeafMarker(info, marker)
-                marker.icon = overlayImage
-                marker.onClickListener = onClickMarker(info)
+                clusterManager.setLeafNode(info.tag as List<Int>)
+                marker.globalZIndex = 250000
+//                marker.icon = overlayImage
+//                marker.onClickListener = onClickMarker(info)
             }
         })
     }.build()
 
     LaunchedEffect(photos.value) {
-        cluster.addAll(photos.value.associateBy { photoDetail -> ItemKey(photoDetail) })
+        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)) to listOf(photoDetail.id) })
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -202,6 +208,9 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
+            clusterManager.getMarker().forEach {
+                it.map = naverMap
+            }
         }
     }
 }
