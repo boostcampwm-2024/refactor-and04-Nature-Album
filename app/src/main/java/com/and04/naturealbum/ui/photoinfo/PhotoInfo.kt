@@ -23,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +48,7 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.utils.GetTopbar
+import java.time.LocalDateTime
 
 @Composable
 fun PhotoInfo(
@@ -54,28 +57,51 @@ fun PhotoInfo(
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
+    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
+    val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
+    val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
+
     LaunchedEffect(selectedPhotoDetail) {
         if (!isDataLoaded.value) {
             photoInfoViewModel.loadPhotoDetail(selectedPhotoDetail)
             isDataLoaded.value = true
         }
     }
+
+    PhotoInfo(
+        onNavigateToMyPage = onNavigateToMyPage,
+        uiState = uiState,
+        photoDetail = photoDetail,
+        label = label
+    )
+}
+
+@Composable
+fun PhotoInfo(
+    onNavigateToMyPage: () -> Unit,
+    uiState: State<UiState>,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>
+) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
     ) { innerPadding ->
-        Content(innerPadding = innerPadding)
+        Content(
+            innerPadding = innerPadding,
+            uiState = uiState,
+            photoDetail = photoDetail,
+            label = label
+        )
     }
 }
 
 @Composable
 private fun Content(
     innerPadding: PaddingValues,
-    photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
+    uiState: State<UiState>,
+    photoDetail: State<PhotoDetail>,
+    label: State<Label>
 ) {
-    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
-    val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
-    val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
-
     when (uiState.value) {
         is UiState.Idle, UiState.Loading -> {
             //TODO Loading
@@ -103,7 +129,7 @@ private fun PhotoDetailInfo(
             label = label,
         )
     } else {
-        PhtoInfoPortrait(
+        PhotoInfoPortrait(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
@@ -178,7 +204,7 @@ private fun PhotoInfoLandscape(
 }
 
 @Composable
-private fun PhtoInfoPortrait(
+private fun PhotoInfoPortrait(
     innerPadding: PaddingValues,
     photoDetail: State<PhotoDetail>,
     label: State<Label>,
@@ -252,7 +278,14 @@ private fun RowInfo(
 @Preview
 @Composable
 private fun PhotoInfoPreview() {
+    val uiState = remember { mutableStateOf(UiState.Success) }
+    val photoDetail = remember { mutableStateOf(PhotoDetail.emptyPhotoDetail()) }
+    val label = remember { mutableStateOf(Label.emptyLabel()) }
+
     PhotoInfo(
-        onNavigateToMyPage = {}
+        onNavigateToMyPage = {},
+        uiState = uiState,
+        photoDetail = photoDetail,
+        label = label,
     )
 }

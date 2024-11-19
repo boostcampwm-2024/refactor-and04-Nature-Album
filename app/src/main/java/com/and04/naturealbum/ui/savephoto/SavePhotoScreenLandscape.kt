@@ -33,12 +33,14 @@ fun SavePhotoScreenLandscape(
     model: Any,
     label: Label?,
     location: Location?,
-    rememberDescription: MutableState<String>,
-    isRepresented: MutableState<Boolean>,
+    rememberDescription: State<String>,
+    onDescriptionChange: (String) -> Unit,
+    isRepresented: State<Boolean>,
+    onRepresentedChange: () -> Unit,
     photoSaveState: State<UiState>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    viewModel: SavePhotoViewModel = hiltViewModel(),
+    savePhoto: (String, Label, Location, String, Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier.padding(innerPadding)
@@ -60,8 +62,8 @@ fun SavePhotoScreenLandscape(
             )
 
             ToggleButton(
-                selected = isRepresented.value,
-                onClick = { isRepresented.value = !isRepresented.value },
+                selected = isRepresented,
+                onClick = { onRepresentedChange() },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 12.dp)
@@ -75,9 +77,9 @@ fun SavePhotoScreenLandscape(
             LabelSelection(label = label, onClick = onLabelSelect)
 
             Description(
-                description = rememberDescription.value,
+                description = rememberDescription,
                 modifier = Modifier.weight(1f),
-                onValueChange = { newDescription -> rememberDescription.value = newDescription }
+                onValueChange = { newDescription -> onDescriptionChange(newDescription) }
             )
 
             Row(
@@ -98,12 +100,12 @@ fun SavePhotoScreenLandscape(
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
                     onClick = {
-                        viewModel.savePhoto(
-                            uri = model.toString(),
-                            label = label!!,
-                            description = rememberDescription.value,
-                            location = location!!, // TODO : Null 처리 필요
-                            isRepresented = isRepresented.value
+                        savePhoto(
+                            model.toString(),
+                            label!!,
+                            location!!, // TODO : Null 처리 필요
+                            rememberDescription.value,
+                            isRepresented.value
                         )
                     })
             }

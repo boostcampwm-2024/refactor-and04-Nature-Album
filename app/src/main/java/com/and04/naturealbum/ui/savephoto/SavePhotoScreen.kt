@@ -3,6 +3,8 @@ package com.and04.naturealbum.ui.savephoto
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
+import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -31,6 +33,8 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -45,10 +49,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
@@ -57,14 +63,14 @@ import com.and04.naturealbum.utils.isPortrait
 @Composable
 fun SavePhotoScreen(
     location: Location?,
-    model: Any, // uri, Resource id, bitmap 등등.. 타입이 확정지어지지 않음
+    model: Uri,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
-    viewModel: SavePhotoViewModel = hiltViewModel(),
     onNavigateToMyPage: () -> Unit,
+    viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
@@ -75,27 +81,42 @@ fun SavePhotoScreen(
         onSave()
     }
 
-    viewModel.setPhotoLoadingUiSate(UiState.Idle)
-    val photoLoadingUiState = viewModel.photoLoadingUiState.collectAsStateWithLifecycle()
+    SavePhotoScreen(
+        model = model,
+        label = label,
+        location = location,
+        photoSaveState = photoSaveState,
+        rememberDescription = rememberDescription,
+        onDescriptionChange = { newDescription -> rememberDescription.value = newDescription },
+        isRepresented = isRepresented,
+        onRepresentedChange = { isRepresented.value = !isRepresented.value },
+        onNavigateToMyPage = onNavigateToMyPage,
+        onLabelSelect = onLabelSelect,
+        onBack = onBack,
+        savePhoto = viewModel::savePhoto
+    )
+}
 
-    when (photoLoadingUiState.value) {
-        UiState.Idle, UiState.Loading -> {
-            RotatingImageLoading(
-                drawalbeRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading
-            )
-        }
-
-        UiState.Success -> {
-            // TODO:  
-        }
-    }
-
-    BackHandler(onBack = onBack)
-
+@Composable
+fun SavePhotoScreen(
+    model: Uri,
+    label: Label?,
+    location: Location?,
+    rememberDescription: State<String>,
+    onDescriptionChange: (String) -> Unit,
+    isRepresented: State<Boolean>,
+    onRepresentedChange: () -> Unit,
+    photoSaveState: State<UiState>,
+    onNavigateToMyPage: () -> Unit,
+    onLabelSelect: () -> Unit,
+    onBack: () -> Unit,
+    savePhoto: (String, Label, Location, String, Boolean) -> Unit
+) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
+        BackgroundImage()
+
         if (LocalContext.current.isPortrait()) {
             SavePhotoScreenPortrait(
                 innerPadding = innerPadding,
@@ -103,10 +124,13 @@ fun SavePhotoScreen(
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
+                onDescriptionChange = onDescriptionChange,
                 isRepresented = isRepresented,
+                onRepresentedChange = onRepresentedChange,
                 photoSaveState = photoSaveState,
                 onLabelSelect = onLabelSelect,
                 onBack = onBack,
+                savePhoto = savePhoto
             )
         } else {
             SavePhotoScreenLandscape(
@@ -115,13 +139,25 @@ fun SavePhotoScreen(
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
+                onDescriptionChange = onDescriptionChange,
                 isRepresented = isRepresented,
+                onRepresentedChange = onRepresentedChange,
                 photoSaveState = photoSaveState,
                 onLabelSelect = onLabelSelect,
                 onBack = onBack,
+                savePhoto = savePhoto
             )
         }
     }
+
+    if (photoSaveState.value == UiState.Loading) {
+        RotatingImageLoading(
+            drawableRes = R.drawable.fish_loading_image,
+            stringRes = R.string.save_photo_screen_loading,
+        )
+    }
+
+    BackHandler(onBack = onBack)
 }
 
 @Composable
@@ -159,7 +195,7 @@ fun IconTextButton(
 
 @Composable
 fun ToggleButton(
-    selected: Boolean,
+    selected: State<Boolean>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -170,7 +206,7 @@ fun ToggleButton(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RadioButton(
-            selected = selected,
+            selected = selected.value,
             onClick = { onClick() },
             modifier = modifier
                 .size(24.dp)
@@ -239,7 +275,7 @@ fun LabelSelection(
 
 @Composable
 fun Description(
-    description: String,
+    description: State<String>,
     modifier: Modifier,
     onValueChange: (String) -> Unit,
 ) {
@@ -252,7 +288,7 @@ fun Description(
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         TextField(
-            value = description,
+            value = description.value,
             onValueChange = { text -> onValueChange(text) },
             placeholder = { Text(stringResource(R.string.save_photo_screen_description_about_photo)) },
             modifier = modifier
@@ -262,54 +298,28 @@ fun Description(
     }
 }
 
-
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
+        val uiState = rememberSaveable { mutableStateOf(UiState.Success) }
+        val rememberDescription = rememberSaveable { mutableStateOf("") }
+        val isRepresented = rememberSaveable { mutableStateOf(false) }
+
         SavePhotoScreen(
-            location = null,
-            model = R.drawable.fish_loading_image,
+            model = "".toUri(),
             label = Label(0, "0000FF", "cat"),
-            onBack = { },
-            onSave = {},
-            onLabelSelect = {},
-            onNavigateToMyPage = {})
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Composable
-private fun ScreenEmptyPreview() {
-    NatureAlbumTheme {
-        SavePhotoScreen(
             location = null,
-            model = R.drawable.fish_loading_image,
+            rememberDescription = rememberDescription,
+            onDescriptionChange = { },
+            isRepresented = isRepresented,
+            onRepresentedChange = { },
+            photoSaveState = uiState,
+            onNavigateToMyPage = { },
+            onLabelSelect = { },
             onBack = { },
-            onSave = {},
-            onLabelSelect = {},
-            onNavigateToMyPage = {})
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
-@Composable
-private fun ScreenDescriptionPreview() {
-    NatureAlbumTheme {
-        SavePhotoScreen(
-            location = null,
-            model = R.drawable.fish_loading_image,
-            description = "내용을 적어보아요.\n" +
-                    "최대 4줄까지는 기본으로 보이고\n" +
-                    "그 아래는 스크롤이 되도록 해보아요\n" +
-                    "룰루",
-            label = Label(0, "FFFFFF", "cat"),
-            onBack = { },
-            onSave = {},
-            onLabelSelect = {},
-            onNavigateToMyPage = {})
+            savePhoto = { _, _, _, _, _ -> },
+        )
     }
 }
