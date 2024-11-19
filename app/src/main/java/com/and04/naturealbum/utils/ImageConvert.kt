@@ -27,9 +27,9 @@ class ImageConvert(
             FileOutputStream(imageFile).use { fos ->
                 decodeBitmapFromUri(uri)?.apply {
                     if (Build.VERSION.SDK_INT >= 30) {
-                        compress(Bitmap.CompressFormat.WEBP_LOSSY, 100, fos)
+                        compress(Bitmap.CompressFormat.WEBP_LOSSY, COMPRESS_QUALITY, fos)
                     } else {
-                        compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                        compress(Bitmap.CompressFormat.JPEG, COMPRESS_QUALITY, fos)
                     }
 
                     recycle()
@@ -119,6 +119,7 @@ class ImageConvert(
     companion object {
         private const val MAX_WIDTH = 800
         private const val MAX_HEIGHT = 600
+        private const val COMPRESS_QUALITY = 80
     }
 }
 
