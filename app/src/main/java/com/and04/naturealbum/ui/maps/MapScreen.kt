@@ -2,7 +2,6 @@ package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
 import android.graphics.PointF
-import android.util.Log
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,13 +36,10 @@ import com.naver.maps.map.MapView
 import com.naver.maps.map.clustering.ClusterMarkerInfo
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
-import com.naver.maps.map.clustering.DefaultDistanceStrategy
 import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.DefaultMarkerManager
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.clustering.MarkerInfo
-import com.naver.maps.map.clustering.Node
-import com.naver.maps.map.overlay.CircleOverlay
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
@@ -111,11 +106,10 @@ fun MapScreen(
     viewModel: MapScreenViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsStateWithLifecycle()
+    val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val marker = Marker().apply {
-//        anchor = PointF(0.5f, 0.5f)
-    }
+    val marker = Marker()
 
     val mapView = remember {
         MapView(context).apply {
@@ -139,20 +133,22 @@ fun MapScreen(
     val cluster: Clusterer<ItemKey> = remember {
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
-                val markerPhoto = info.tag as PhotoDetail
-                customMarker.loadImage(markerPhoto.photoUri)
-                marker.position = LatLng(markerPhoto.latitude, markerPhoto.longitude)
+                val photoDetailIds = info.tag as List<*>
+                val pick =
+                    photoDetailIds.map { id -> idToPhoto[id]!! } // id 리스트를 PhotoDetail 리스트로 변환
+                        .groupBy { photoDetail -> photoDetail.labelId } // labelId로 그룹화
+                        .maxBy { (_, photos) -> photos.size } // 그룹 중 가장 많은 사진을 가진 그룹 선택
+                        .value // 가장 많은 사진을 가진 그룹의 사진 리스트
+                        .maxBy { photoDetail -> photoDetail.datetime } // 가장 최근 사진 선택
+                customMarker.loadImage(pick.photoUri)
+                marker.position = LatLng(pick.latitude, pick.longitude)
                 mapView.getMapAsync { marker.map = it }
                 true
             }
         }
         Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
-            cluster.children
-                .groupBy { node -> (node.tag as PhotoDetail).labelId }
-                .maxBy { (_, nodes) -> nodes.size }
-                .value
-                .maxBy { node -> (node.tag as PhotoDetail).datetime }
-                .tag as PhotoDetail
+            // cluster의 tag는 해당 cluster에 포함된 사진들의 id 리스트
+            cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 marker.onClickListener = onClickMarker(info)
@@ -174,7 +170,12 @@ fun MapScreen(
     }.build()
 
     LaunchedEffect(photos.value) {
-        cluster.addAll(photos.value.associateBy { photoDetail -> ItemKey(photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude))})
+        photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
+        cluster.addAll(photos.value.associate { photoDetail ->
+            ItemKey(
+                photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)
+            ) to listOf(photoDetail.id)
+        })
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
