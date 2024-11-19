@@ -115,6 +115,7 @@ private fun MyPageContent(
 ) {
     val context = LocalContext.current
 
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -136,7 +137,11 @@ private fun MyPageContent(
 
             else -> {
                 UserProfileContent()
-                LoginContent { signInWithGoogle(context) }
+                SocialContent(
+                    modifier = Modifier.weight(1f),
+                    myFriends = myFriends,
+                )
+//                LoginContent { signInWithGoogle(context) }
             }
         }
     }
@@ -204,6 +209,16 @@ private fun SocialContent(
 ) {
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
+    val myF = remember {
+        mutableStateOf(
+            listOf(
+                MyFriend("https://i.namu.wiki/i/d1A_wD4kuLHmOOFqJdVlOXVt1TWA9NfNt_HA0CS0Y_N0zayUAX8olMuv7odG2FiDLDQZIRBqbPQwBSArXfEJlQ.webp", "grand2181@gmail.com", true),
+                MyFriend("https://i.namu.wiki/i/d1A_wD4kuLHmOOFqJdVlOXVt1TWA9NfNt_HA0CS0Y_N0zayUAX8olMuv7odG2FiDLDQZIRBqbPQwBSArXfEJlQ.webp", "도윤@gmail.com", true),
+                MyFriend("https://i.namu.wiki/i/d1A_wD4kuLHmOOFqJdVlOXVt1TWA9NfNt_HA0CS0Y_N0zayUAX8olMuv7odG2FiDLDQZIRBqbPQwBSArXfEJlQ.webp", "정호@gmail.com", true)
+            )
+        )
+    }
+
     val titles = listOf(
         stringResource(R.string.my_page_social_list),
         stringResource(R.string.my_page_social_search),
@@ -220,9 +235,9 @@ private fun SocialContent(
         }
 
         when (tabState) {
-            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends.value)
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(myFriends.value)
-            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(myFriends.value, {}, {})
+            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myF.value)
+            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(myF.value)
+            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(myF.value, {}, {})
         }
     }
 }
