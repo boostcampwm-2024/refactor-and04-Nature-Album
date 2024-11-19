@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.util.Log
 import android.view.View
-import android.view.ViewTreeObserver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -38,8 +37,10 @@ import com.naver.maps.map.clustering.ClusterMarkerInfo
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
 import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
+import com.naver.maps.map.clustering.DefaultMarkerManager
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.clustering.MarkerInfo
+import com.naver.maps.map.overlay.CircleOverlay
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
@@ -115,19 +116,22 @@ fun MapScreen(
             id = R.id.map_view_id
         }
     }
+    val circles = mutableListOf<CircleOverlay>()
 
-    val customMarker = ImageMarkerCoil(context).apply {
-        visibility = View.INVISIBLE
-        mapView.addView(this)
-        viewTreeObserver.addOnGlobalLayoutListener({
-            if (isImageLoaded()) {
-                marker.icon = OverlayImage.fromView(this@apply)
-            }
-        })
+    val customMarker = remember {
+        ImageMarkerCoil(context).apply {
+            visibility = View.INVISIBLE
+            mapView.addView(this)
+            viewTreeObserver.addOnGlobalLayoutListener({
+                if (isImageLoaded()) {
+                    marker.icon = OverlayImage.fromView(this@apply)
+                }
+            })
+        }
     }
 
     val cluster: Clusterer<ItemKey> = remember {
-        val onclickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
+        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
                 val markerPhoto = info.tag as PhotoDetail
                 customMarker.loadImage(markerPhoto.photoUri)
@@ -137,28 +141,36 @@ fun MapScreen(
             }
         }
         Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
-            cluster.children
+            cluster.children.onEach { node ->
+                val circle = CircleOverlay()
+                circle.center = node.position
+                circle.radius = 100.0
+                circles += circle
+            }
                 .groupBy { node -> (node.tag as PhotoDetail).labelId }
                 .maxBy { (_, nodes) -> nodes.size }
                 .value
                 .maxBy { node -> (node.tag as PhotoDetail).datetime }
                 .tag as PhotoDetail
+
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 super.updateClusterMarker(info, marker)
-                marker.onClickListener = onclickMarker(info)
+//                marker.icon = overlayImage
+                marker.captionColor = android.graphics.Color.BLACK
+                marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 super.updateLeafMarker(info, marker)
-                marker.onClickListener = onclickMarker(info)
+//                marker.icon = overlayImage
+                marker.onClickListener = onClickMarker(info)
             }
         })
     }.build()
 
     LaunchedEffect(photos.value) {
-        Log.e("MapScreen", "LaunchedEffect ${photos.value.size}")
-        cluster.addAll(photos.value.associate { photoDetail -> ItemKey(photoDetail) to photoDetail })
+        cluster.addAll(photos.value.associateBy { photoDetail -> ItemKey(photoDetail) })
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -183,8 +195,9 @@ fun MapScreen(
         // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
             lifecycle.removeObserver(observer)
-            mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
             cluster.clear()
+            cluster.map = null
+            mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
         }
     }
 
@@ -194,6 +207,7 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
+            circles.forEach { circle -> circle.map = naverMap }
         }
     }
 }
