@@ -116,7 +116,6 @@ fun MapScreen(
             id = R.id.map_view_id
         }
     }
-    val circles = mutableListOf<CircleOverlay>()
 
     val customMarker = remember {
         ImageMarkerCoil(context).apply {
@@ -131,6 +130,7 @@ fun MapScreen(
     }
 
     val cluster: Clusterer<ItemKey> = remember {
+        val overlayImage = OverlayImage.fromResource(R.drawable.frame)
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
                 val markerPhoto = info.tag as PhotoDetail
@@ -141,12 +141,7 @@ fun MapScreen(
             }
         }
         Clusterer.ComplexBuilder<ItemKey>().tagMergeStrategy { cluster ->
-            cluster.children.onEach { node ->
-                val circle = CircleOverlay()
-                circle.center = node.position
-                circle.radius = 100.0
-                circles += circle
-            }
+            cluster.children
                 .groupBy { node -> (node.tag as PhotoDetail).labelId }
                 .maxBy { (_, nodes) -> nodes.size }
                 .value
@@ -156,14 +151,14 @@ fun MapScreen(
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 super.updateClusterMarker(info, marker)
-//                marker.icon = overlayImage
+                marker.icon = overlayImage
                 marker.captionColor = android.graphics.Color.BLACK
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 super.updateLeafMarker(info, marker)
-//                marker.icon = overlayImage
+                marker.icon = overlayImage
                 marker.onClickListener = onClickMarker(info)
             }
         })
@@ -207,7 +202,6 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
-            circles.forEach { circle -> circle.map = naverMap }
         }
     }
 }
