@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
-
 
 @HiltViewModel
 class FriendViewModel @Inject constructor(
@@ -24,6 +24,9 @@ class FriendViewModel @Inject constructor(
 
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
+
+    private val _allUsersWithStatus = MutableStateFlow<List<FirestoreUserWithStatus>>(emptyList())
+    val allUsersWithStatus: StateFlow<List<FirestoreUserWithStatus>> = _allUsersWithStatus
 
     private val _operationStatus = MutableStateFlow<String>("")
     val operationStatus: StateFlow<String> = _operationStatus
@@ -38,6 +41,26 @@ class FriendViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _operationStatus.value = "Failed to fetch all users: ${e.message}"
+                Log.d("FriendViewModel", _operationStatus.value)
+            }
+        }
+    }
+
+    fun fetchAllUsersInfo(uid: String) {
+        viewModelScope.launch {
+            try {
+                val users = fireBaseRepository.getAllUsersInfo(uid)
+                _allUsersWithStatus.value = users
+                _operationStatus.value = "모든 사용자 정보 가져오기 성공."
+
+                users.forEach { user ->
+                    Log.d(
+                        "FriendViewModel",
+                        "User: ${user.displayName}, Email: ${user.email}, Status: ${user.friendStatus}"
+                    )
+                }
+            } catch (e: Exception) {
+                _operationStatus.value = "모든 사용자 정보를 가져오는 데 실패했습니다: ${e.message}"
                 Log.d("FriendViewModel", _operationStatus.value)
             }
         }

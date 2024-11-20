@@ -1,11 +1,13 @@
 package com.and04.naturealbum.data.repository
 
 import android.net.Uri
+import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -31,6 +33,7 @@ interface FireBaseRepository {
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
+    suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -116,6 +119,53 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun getAllUsers(): List<FirestoreUser> {
         return fireStore.collection(USER).get().await().toObjects(FirestoreUser::class.java)
     }
+
+    override suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus> {
+        val users = mutableListOf<FirestoreUserWithStatus>()
+
+        try {
+            val userDocs = fireStore.collection(USER).get().await()
+            for (userDoc in userDocs.documents) {
+                val user = userDoc.toObject(FirestoreUserWithStatus::class.java) ?: continue
+                var friendStatus = "normal"
+
+                if (!userDoc.id.isNullOrEmpty()) {
+                    val friendRequestDoc = fireStore.collection(USER)
+                        .document(userDoc.id)
+                        .collection(FRIEND_REQUESTS)
+                        .document(uid)
+                        .get()
+                        .await()
+
+                    if (friendRequestDoc.exists()) {
+                        val request = friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
+                        friendStatus = if (request?.id == uid) {
+                            "received"
+                        } else {
+                            "sent"
+                        }
+                    }
+
+                    val friendDoc = fireStore.collection(USER)
+                        .document(uid)
+                        .collection(FRIENDS)
+                        .document(userDoc.id)
+                        .get()
+                        .await()
+
+                    if (friendDoc.exists()) {
+                        friendStatus = "friend"
+                    }
+                }
+                users.add(user.copy(friendStatus = friendStatus))
+            }
+        } catch (e: Exception) {
+            Log.e("FireBaseRepository", "getAllUsersInfo Error: ${e.message}")
+        }
+
+        return users
+    }
+
 
     override suspend fun saveImageFile(
         uid: String,

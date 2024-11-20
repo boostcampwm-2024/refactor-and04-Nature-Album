@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.friend
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,6 +25,8 @@ fun FriendTestScreen(
     val friendRequests by viewModel.friendRequests.collectAsState()
     val friends by viewModel.friends.collectAsState()
     val operationStatus by viewModel.operationStatus.collectAsState()
+    val allUsersInfo by viewModel.allUsersWithStatus.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -34,50 +38,93 @@ fun FriendTestScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // 버튼 그룹
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(onClick = {
+                        viewModel.setupTestData()
+                        Toast.makeText(context, "초기 데이터가 설정되었습니다.", Toast.LENGTH_SHORT).show()
+                    }) {
+                        Text("초기 데이터 설정")
+                    }
 
-            Button(onClick = { viewModel.setupTestData() }) {
-                Text("Set up Test Data")
-            }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Button(onClick = { viewModel.fetchAllUsers() }) {
-                Text("Fetch All Users")
-            }
+                    Button(onClick = {
+                        viewModel.fetchAllUsersInfo("jeong")
+                    }) {
+                        Text("Get All Users Info")
+                    }
 
-            Button(onClick = { viewModel.fetchFriendRequests("jeong") }) {
-                Text("Fetch Friend Requests")
-            }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Button(onClick = { viewModel.fetchFriends("jeong") }) {
-                Text("Fetch Friends")
-            }
+                    Button(onClick = { viewModel.fetchFriends("jeong") }) {
+                        Text("친구 목록 보기")
+                    }
+                }
 
-            Button(onClick = {
-                viewModel.sendFriendRequest("jeong", "yujin")
-                viewModel.sendFriendRequest("jeong", "and04")
+                Spacer(modifier = Modifier.width(16.dp))
 
-                // TODO: 동시에 firebase에 친구 요청한다면? => 최근 것으로 업데이트 됨. 이 부분은 firebase가 순차적으로 처리하니까 나중에 생각하기
-                viewModel.sendFriendRequest("cat", "jeong")
-                viewModel.sendFriendRequest("jeong", "cat")
-            }) {
-                Text("Send Friend Requests")
-            }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(onClick = { viewModel.fetchFriendRequests("jeong") }) {
+                        Text("친구 요청 목록 보기")
+                    }
 
-            Button(onClick = { viewModel.acceptFriendRequest("yujin", "jeong") }) {
-                Text("Yujin Accepts")
-            }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Button(onClick = { viewModel.rejectFriendRequest("and04", "jeong") }) {
-                Text("And04 Rejects")
+                    Button(onClick = {
+                        viewModel.sendFriendRequest("jeong", "and04")
+                        viewModel.sendFriendRequest("jeong", "yujin")
+                        viewModel.sendFriendRequest("cat", "jeong")
+                    }) {
+                        Text("요청 보내기")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(onClick = { viewModel.acceptFriendRequest("jeong", "and04") }) {
+                        Text("요청 수락")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(onClick = { viewModel.rejectFriendRequest("jeong", "yujin") }) {
+                        Text("요청 거절")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display operation status
             Text(
                 text = operationStatus,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("All Users Info", textAlign = TextAlign.Start, modifier = Modifier.fillMaxWidth())
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(allUsersInfo) { user ->
+                    Text(
+                        text = "Name: ${user.displayName}, Email: ${user.email}, Status: ${user.friendStatus}",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -88,7 +135,7 @@ fun FriendTestScreen(
             ) {
                 items(friendRequests) { request ->
                     Text(
-                        text = "jeong이 => ${request.id} 에게 ${request.requestedAt} 에, Status: ${request.status} 했음",
+                        text = "${request.id} -> 요청: ${request.status}, 시간: ${request.requestedAt}",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -103,7 +150,7 @@ fun FriendTestScreen(
             ) {
                 items(friends) { friend ->
                     Text(
-                        text = "Friend : ${friend.id} added at: ${friend.addedAt}",
+                        text = "친구: ${friend.id}, 추가 시점: ${friend.addedAt}",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -111,6 +158,7 @@ fun FriendTestScreen(
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

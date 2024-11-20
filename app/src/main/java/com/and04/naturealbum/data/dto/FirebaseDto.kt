@@ -45,3 +45,11 @@ data class FirestoreUser(
     val email: String = "",
     val photoUrl: String = "",
 )
+
+data class FirestoreUserWithStatus(
+    val uid: String = "",
+    val displayName: String = "",
+    val email: String = "",
+    val photoUrl: String = "",
+    val friendStatus: String = "", // normal, sent, received, friend
+)
