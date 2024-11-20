@@ -60,7 +60,7 @@ fun PartialBottomSheet(
     handleHeight: Dp = 36.dp,
     showHandleCollapsed: Boolean = true,
     @FloatRange(0.0, 1.0) halfExpansionSize: Float = 0.5f,
-    @FloatRange(0.0, 1.0) fullExpansionSize: Float = 0.95f,
+    @FloatRange(0.0, 1.0) fullExpansionSize: Float = 1f,
     @FloatRange(0.0, 1.0) positionThreshold: Float = 0.5f,
     velocityThreshold: Dp = 100.dp,
     snapAnimationSpec: AnimationSpec<Float> = tween(),
@@ -70,13 +70,19 @@ fun PartialBottomSheet(
     val density = LocalDensity.current
     val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val handleHeightPx = if (showHandleCollapsed) with(density) { handleHeight.toPx() } else 0f
+    val collapsedPosition = screenHeightPx - handleHeightPx
+    val halfExpandedPosition = screenHeightPx * (1 - halfExpansionSize)
+    val fullExpandedPosition = screenHeightPx * (1 - fullExpansionSize)
     var currentState by remember { mutableStateOf(initialState) }
+
+    var bottomPadding by remember { mutableStateOf(0.dp) }
+
     val state = remember {
         AnchoredDraggableState(initialValue = currentState,
             anchors = DraggableAnchors {
-                BottomSheetState.Collapsed at (screenHeightPx - handleHeightPx)
-                BottomSheetState.HalfExpanded at screenHeightPx * (1 - halfExpansionSize)
-                BottomSheetState.Expanded at screenHeightPx * (1 - fullExpansionSize)
+                BottomSheetState.Collapsed at collapsedPosition
+                BottomSheetState.HalfExpanded at halfExpandedPosition
+                BottomSheetState.Expanded at fullExpandedPosition
             },
             positionalThreshold = { distance: Float -> distance * positionThreshold },
             velocityThreshold = { with(density) { velocityThreshold.toPx() } },
@@ -87,9 +93,21 @@ fun PartialBottomSheet(
 
     LaunchedEffect(currentState) {
         state.animateTo(currentState)
+        val outSize = when(currentState) {
+            BottomSheetState.Collapsed -> collapsedPosition
+            BottomSheetState.HalfExpanded -> halfExpandedPosition
+            BottomSheetState.Expanded -> fullExpandedPosition
+        }
+        bottomPadding = with(density) { outSize.toDp() }
     }
     LaunchedEffect(state.currentValue) {
         currentState = state.currentValue
+        val outSize = when(currentState) {
+            BottomSheetState.Collapsed -> collapsedPosition
+            BottomSheetState.HalfExpanded -> halfExpandedPosition
+            BottomSheetState.Expanded -> fullExpandedPosition
+        }
+        bottomPadding = with(density) { outSize.toDp() }
     }
 
     Box(modifier = modifier
@@ -121,7 +139,9 @@ fun PartialBottomSheet(
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                    .padding(bottom = bottomPadding)
+                ,
                 contentAlignment = Alignment.TopCenter
             ) {
                 content()
