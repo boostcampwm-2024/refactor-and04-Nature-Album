@@ -3,12 +3,17 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,14 +32,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -217,57 +222,75 @@ fun BottomSheetScreen(
             modifier = Modifier
                 .fillMaxSize(),
         ) {
-            // BottomSheet
-            CustomBottomSheetComponent(
-            )
+            CustomBottomSheetComponent {
+                Column { }
+                Box(
+                    modifier = Modifier
+                        .size(
+                            50.dp
+                        )
+                        .background(Color.Blue)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(
+                            50.dp
+                        )
+                        .background(Color.Black)
+                )
+            }
         }
     }
 }
 
-enum class SheetState {
+enum class BottomSheetState {
     Collapsed,
     HalfExpanded,
     Expanded
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
-@Composable
-fun BottomSheetScreenPreView(
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        // BottomSheet
-        CustomBottomSheetComponent(
-        )
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomBottomSheetComponent(
+    initialValue: BottomSheetState = BottomSheetState.Collapsed,
     modifier: Modifier = Modifier,
+    content: @Composable () -> Unit = {}
 ) {
+    val density = LocalDensity.current
+    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
+    val screenHeight = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val handleHeight = with(density) { 40.dp.toPx() }
 
-    var offsetY by remember { mutableStateOf(0f) }
+    val state = remember {
+        AnchoredDraggableState(
+            initialValue = initialValue,
+            anchors = DraggableAnchors {
+                BottomSheetState.Collapsed at (screenHeight - handleHeight)
+                BottomSheetState.HalfExpanded at screenHeight * 0.5f
+                BottomSheetState.Expanded at screenHeight * 0.05f
+            },
+            positionalThreshold = { distance: Float -> distance * 0.5f },
+            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            snapAnimationSpec = tween(),
+            decayAnimationSpec = decayAnimationSpec
+        )
+    }
 
-
-    // 드래그 가능한 윈도우
     Box(
         modifier = modifier
-            .offset { IntOffset(0, offsetY.roundToInt()) }
+            .offset {
+                IntOffset(
+                    0,
+                    state
+                        .requireOffset()
+                        .roundToInt()
+                )
+            }
             .fillMaxWidth()
-            .border(2.dp, Color.Black)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         ElevatedCard(
-
             shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
         ) {
             Icon(
@@ -277,25 +300,101 @@ fun CustomBottomSheetComponent(
                 modifier
                     .fillMaxWidth()
                     .height(36.dp)
-                    .draggable(
+                    .anchoredDraggable(
+                        state = state,
                         orientation = Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            offsetY = (offsetY + delta)
-                        },
                     )
-
             )
             Box(
                 modifier = modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    .fillMaxSize()
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                 contentAlignment = Alignment.TopCenter
-
             ) {
+                content()
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun BottomSheetScreenCollapsedPreView(
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        CustomBottomSheetComponent(initialValue = BottomSheetState.Collapsed) {
+            Column {
                 Box(
-                    modifier
-                        .fillMaxSize()
-                        .background(Color.Gray)
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Blue)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Black)
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun BottomSheetScreenHalfExpandedPreView(
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        // BottomSheet
+        CustomBottomSheetComponent(initialValue = BottomSheetState.HalfExpanded) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Blue)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Black)
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun BottomSheetScreenExpandedPreView(
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        // BottomSheet
+        CustomBottomSheetComponent(initialValue = BottomSheetState.Expanded) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Blue)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Black)
                 )
             }
         }
