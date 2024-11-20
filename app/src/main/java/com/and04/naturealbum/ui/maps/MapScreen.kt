@@ -3,23 +3,14 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -42,61 +33,6 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-
-@Composable
-fun MapFromLocalFileScreen(
-    modifier: Modifier = Modifier,
-    viewModel: MapScreenViewModel = hiltViewModel(),
-) {
-    val photos = viewModel.photos.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-
-    val mapView = remember {
-        MapView(context).apply {
-            id = R.id.map_view_id
-        }
-    }
-
-    // MapView 생명주기 관리
-    DisposableEffect(lifecycleOwner) {
-        val lifecycle = lifecycleOwner.lifecycle
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> {}
-            }
-        }
-        lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycle.removeObserver(observer)
-            mapView.onDestroy()
-        }
-    }
-
-    // AndroidView로 MapView를 표시
-    AndroidView(factory = { mapView }, modifier = modifier) {
-        mapView.getMapAsync { naverMap ->
-            photos.value.map { photoDetail ->
-                // ImageMarker 사용
-                val imageMarker =
-                    ImageMarkerFromLocalFileBitmap(context).apply { loadImage(photoDetail.photoUri) }
-                Marker().apply {
-                    position = LatLng(photoDetail.latitude, photoDetail.longitude)
-                    icon = OverlayImage.fromView(imageMarker) // ImageMarker를 아이콘으로 설정
-                    map = naverMap
-                }
-            }
-        }
-    }
-}
-
 @SuppressLint("NewApi")
 @Composable
 fun MapScreen(
@@ -116,7 +52,7 @@ fun MapScreen(
     }
 
     val imageMarker = remember {
-        ImageMarkerCoil(context).apply {
+        ImageMarker(context).apply {
             visibility = View.INVISIBLE
             mapView.addView(this)
             viewTreeObserver.addOnGlobalLayoutListener({
@@ -211,22 +147,6 @@ fun MapScreen(
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
-        }
-    }
-}
-
-@Composable
-fun LoadingScreen() {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White.copy(alpha = 0.7f))
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("")
         }
     }
 }
