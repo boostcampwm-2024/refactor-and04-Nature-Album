@@ -74,4 +74,6 @@
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
     <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
+    <string name="my_page_friend_request_received">요청 받음</string>
+    <string name="my_page_friend">나와 친구</string>
 </resources>

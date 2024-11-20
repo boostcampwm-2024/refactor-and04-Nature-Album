@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +29,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,8 +50,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -63,9 +67,13 @@ const val SOCIAL_ALARM_TAB_INDEX = 2
 fun MyPageScreen(
     navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
+    friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
-    val myFriends = myPageViewModel.myFriend.collectAsStateWithLifecycle()
+    val myFriends = friendViewModel.friends.collectAsState() // FriendViewModel의 친구 목록
+    val friendRequests = friendViewModel.friendRequests.collectAsState() // 친구 요청 목록
+    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsState() // 사용자 정보
+
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
 //       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
 //       - UiState.Success에 사용자 정보(email, photoUrl, displayName)를 포함시켜 단일 상태로 관리.
@@ -77,9 +85,12 @@ fun MyPageScreen(
     val userDisplayName = myPageViewModel.userDisplayName.collectAsStateWithLifecycle()
 
     MyPageScreen(
+        friendViewModel = friendViewModel,
         navigateToHome = navigateToHome,
         uiState = uiState,
-        myFriends = myFriends,
+        myFriends = myFriends.value,
+        friendRequests = friendRequests.value,
+        allUsersInfo = allUsersInfo.value,
         userEmail = userEmail.value,
         userPhotoUrl = userPhotoUrl.value,
         userDisplayName = userDisplayName.value,
@@ -89,9 +100,12 @@ fun MyPageScreen(
 
 @Composable
 fun MyPageScreen(
+    friendViewModel: FriendViewModel,
     navigateToHome: () -> Unit,
     uiState: State<UiState>,
-    myFriends: State<List<MyFriend>>,
+    myFriends: List<FirebaseFriend>,
+    friendRequests: List<FirebaseFriendRequest>,
+    allUsersInfo: List<FirestoreUserWithStatus>,
     userPhotoUrl: String?,
     userEmail: String?,
     userDisplayName: String?,
@@ -115,8 +129,11 @@ fun MyPageScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize(),
+            friendViewModel = friendViewModel,
             uiState = uiState,
             myFriends = myFriends,
+            friendRequests = friendRequests,
+            allUsersInfo = allUsersInfo,
             userPhotoUrl = userPhotoUrl,
             userEmail = userEmail,
             userDisplayName = userDisplayName,
@@ -128,8 +145,11 @@ fun MyPageScreen(
 @Composable
 private fun MyPageContent(
     modifier: Modifier,
+    friendViewModel: FriendViewModel,
     uiState: State<UiState>,
-    myFriends: State<List<MyFriend>>,
+    myFriends: List<FirebaseFriend>,
+    friendRequests: List<FirebaseFriendRequest>,
+    allUsersInfo: List<FirestoreUserWithStatus>,
     userPhotoUrl: String?,
     userEmail: String?,
     userDisplayName: String?,
@@ -151,9 +171,16 @@ private fun MyPageContent(
                     displayName = userDisplayName,
                 )
 
+                // TODO: 친구 기능 테스트 용도로 로그인 전환에 필요 이후 삭제 예정
+                LoginContent { signInWithGoogle(context) }
+
                 SocialContent(
                     modifier = Modifier.weight(1f),
+                    friendViewModel = friendViewModel,
                     myFriends = myFriends,
+                    friendRequests = friendRequests,
+                    allUsersInfo = allUsersInfo,
+                    currentUid = UserManager.getUser()?.uid ?: "",
                 )
             }
 
@@ -231,7 +258,11 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun SocialContent(
     modifier: Modifier,
-    myFriends: State<List<MyFriend>>,
+    friendViewModel: FriendViewModel,
+    myFriends: List<FirebaseFriend>,
+    friendRequests: List<FirebaseFriendRequest>,
+    allUsersInfo: List<FirestoreUserWithStatus>,
+    currentUid: String,
 ) {
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
@@ -246,14 +277,21 @@ private fun SocialContent(
     ) {
         PrimaryTabRow(selectedTabIndex = tabState) {
             titles.forEachIndexed { index, title ->
-                MyPageCustomTab(tabState, index, title) { tabState = index }
+                MyPageCustomTab(tabState, index, title) {
+                    tabState = index
+                    when (index) {
+                        SOCIAL_LIST_TAB_INDEX -> friendViewModel.fetchFriends(currentUid) // 친구 목록 가져오기
+                        SOCIAL_SEARCH_TAB_INDEX -> friendViewModel.fetchAllUsersInfo(currentUid) // 전체 사용자 정보 가져오기
+                        SOCIAL_ALARM_TAB_INDEX -> friendViewModel.fetchFriendRequests(currentUid) // 친구 요청 목록 가져오기
+                    }
+                }
             }
         }
 
         when (tabState) {
-            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends.value)
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(myFriends.value)
-            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(myFriends.value, {}, {})
+            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
+            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(allUsersInfo, currentUid, friendViewModel) // 전체 사용자 정보
+            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(friendRequests, {}, {}) // 친구 요청
         }
     }
 }
@@ -309,14 +347,14 @@ private fun MyPageScreenPreview() {
     val userDisplayName = remember { mutableStateOf("Test User") }
 
     NatureAlbumTheme {
-        MyPageScreen(
-            navigateToHome = {},
-            uiState = uiState,
-            myFriends = myFriends,
-            userEmail = userEmail.value,
-            userPhotoUrl = userPhotoUrl.value,
-            userDisplayName = userDisplayName.value,
-            signInWithGoogle = {}
-        )
+//        MyPageScreen(
+//            navigateToHome = {},
+//            uiState = uiState,
+//            myFriends = myFriends,
+//            userEmail = userEmail.value,
+//            userPhotoUrl = userPhotoUrl.value,
+//            userDisplayName = userDisplayName.value,
+//            signInWithGoogle = {}
+//        )
     }
 }
