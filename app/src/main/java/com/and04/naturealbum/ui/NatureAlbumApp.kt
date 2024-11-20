@@ -25,6 +25,7 @@ import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.maps.BottomSheetScreen
 import com.and04.naturealbum.ui.maps.MapScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
@@ -164,7 +165,7 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen()
+            BottomSheetScreen({})
         }
     }
 }

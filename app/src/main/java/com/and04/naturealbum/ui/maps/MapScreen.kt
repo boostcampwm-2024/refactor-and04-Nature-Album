@@ -3,21 +3,57 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.naver.maps.geometry.LatLng
@@ -32,6 +68,7 @@ import com.naver.maps.map.clustering.MarkerInfo
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
+import kotlin.math.roundToInt
 
 @SuppressLint("NewApi")
 @Composable
@@ -143,10 +180,147 @@ fun MapScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // AndroidView를 MapView로 바로 설정
-        AndroidView(factory = { mapView }, modifier = modifier.matchParentSize())
+        AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize())
 
         mapView.getMapAsync { naverMap ->
             cluster.map = naverMap
         }
     }
+}
+
+@Composable
+fun PhotoGrid(
+    modifier: Modifier = Modifier,
+    photos: List<PhotoDetail>,
+    onPhotoClick: (Int) -> Unit,
+) {
+    LazyVerticalGrid(columns = GridCells.Adaptive(256.dp)) {
+        items(photos) { photo ->
+            AsyncImage(model = photo.photoUri, contentDescription = null)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomSheetScreen(
+    onBackButtonClick: () -> Unit
+) {
+    val customBottomSheetVisible = remember { mutableStateOf(true) }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CustomBottomSheetComponent()
+    }
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .zIndex(1f),
+//        contentAlignment = Alignment.Center
+//    ) {
+////        MapScreen()
+////        Button(onClick = { customBottomSheetVisible.value = true }) {
+////            Box(
+////                modifier = Modifier.size(
+////                    50.dp
+////                )
+////            )
+////        }
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize(),
+//        ) {
+//            // BottomSheet
+//            CustomBottomSheetComponent(
+//            )
+//        }
+//    }
+}
+
+enum class SheetState {
+    Collapsed,
+    HalfExpanded,
+    Expanded
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview
+@Composable
+fun BottomSheetScreenPreView(
+) {
+    val customBottomSheetVisible = remember { mutableStateOf(true) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CustomBottomSheetComponent()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomBottomSheetComponent(
+    modifier: Modifier = Modifier,
+) {
+
+    var offsetY by remember { mutableStateOf(0f) }
+
+
+    // 드래그 가능한 윈도우
+    Box(
+        modifier = modifier
+            .offset { IntOffset(0, offsetY.roundToInt()) }
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    offsetY = (offsetY + delta)
+                }
+            )
+            .size(200.dp)
+            .background(Color.LightGray)
+            .border(2.dp, Color.Black)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "드래그 가능한 윈도우", color = Color.Black)
+    }
+//    Box(
+//        modifier = dragModifier
+//            .height(with(LocalDensity.current) { offsetY.toDp() })
+//            .fillMaxWidth()
+//            .border(10.dp, Color.Blue)
+//            .padding(horizontal = 8.dp),
+//    ) {
+//        ElevatedCard(
+//            shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.DragHandle,
+//                contentDescription = null,
+//                modifier =
+//                modifier
+//                    .fillMaxWidth()
+//                    .height(36.dp)
+//
+//            )
+//            Box(
+//                modifier = modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+//                contentAlignment = Alignment.TopCenter
+//
+//            ) {
+//                Box(
+//                    modifier
+//                        .fillMaxSize()
+//                        .background(Color.Gray))
+//            }
+//
+//        }
+//    }
 }
