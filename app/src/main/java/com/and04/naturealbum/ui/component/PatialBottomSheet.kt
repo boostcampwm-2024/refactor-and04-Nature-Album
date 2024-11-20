@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,7 +56,7 @@ enum class BottomSheetState {
 @Composable
 fun PartialBottomSheet(
     initialState: BottomSheetState = BottomSheetState.Collapsed,
-    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 16.dp,
     handleIcon: ImageVector = Icons.Default.DragHandle,
     handleHeight: Dp = 36.dp,
     showHandleCollapsed: Boolean = true,
@@ -65,24 +66,28 @@ fun PartialBottomSheet(
     velocityThreshold: Dp = 100.dp,
     snapAnimationSpec: AnimationSpec<Float> = tween(),
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+    contentPadding: PaddingValues = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp),
     content: @Composable () -> Unit
 ) {
+    val modifier = Modifier
     val density = LocalDensity.current
     val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val handleHeightPx = if (showHandleCollapsed) with(density) { handleHeight.toPx() } else 0f
-    val collapsedPosition = screenHeightPx - handleHeightPx
-    val halfExpandedPosition = screenHeightPx * (1 - halfExpansionSize)
-    val fullExpandedPosition = screenHeightPx * (1 - fullExpansionSize)
+
+    val mapStatePosition = mapOf(
+        BottomSheetState.Collapsed to screenHeightPx - handleHeightPx,
+        BottomSheetState.HalfExpanded to screenHeightPx * (1 - halfExpansionSize),
+        BottomSheetState.Expanded to screenHeightPx * (1 - fullExpansionSize)
+    )
+
     var currentState by remember { mutableStateOf(initialState) }
 
-    var bottomPadding by remember { mutableStateOf(0.dp) }
+    var bottomPadding by remember { mutableStateOf(with(density){mapStatePosition[initialState]!!.toDp()}) }
 
     val state = remember {
         AnchoredDraggableState(initialValue = currentState,
             anchors = DraggableAnchors {
-                BottomSheetState.Collapsed at collapsedPosition
-                BottomSheetState.HalfExpanded at halfExpandedPosition
-                BottomSheetState.Expanded at fullExpandedPosition
+                mapStatePosition.forEach { (state, position) -> state at position }
             },
             positionalThreshold = { distance: Float -> distance * positionThreshold },
             velocityThreshold = { with(density) { velocityThreshold.toPx() } },
@@ -91,30 +96,21 @@ fun PartialBottomSheet(
         )
     }
 
-    LaunchedEffect(currentState) {
-        state.animateTo(currentState)
-        val outSize = when(currentState) {
-            BottomSheetState.Collapsed -> collapsedPosition
-            BottomSheetState.HalfExpanded -> halfExpandedPosition
-            BottomSheetState.Expanded -> fullExpandedPosition
-        }
-        bottomPadding = with(density) { outSize.toDp() }
-    }
     LaunchedEffect(state.currentValue) {
         currentState = state.currentValue
-        val outSize = when(currentState) {
-            BottomSheetState.Collapsed -> collapsedPosition
-            BottomSheetState.HalfExpanded -> halfExpandedPosition
-            BottomSheetState.Expanded -> fullExpandedPosition
-        }
-        bottomPadding = with(density) { outSize.toDp() }
+        bottomPadding = with(density){mapStatePosition[currentState]!!.toDp()}
     }
 
-    Box(modifier = modifier
-        .offset { IntOffset(0, state.requireOffset().roundToInt()) }
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+    LaunchedEffect(currentState) {
+        bottomPadding = with(density){mapStatePosition[currentState]!!.toDp()}
+        state.animateTo(currentState)
+    }
+
+
         ElevatedCard(
+            modifier = modifier
+                .padding(horizontal = horizontalPadding)
+                .offset { IntOffset(0, state.requireOffset().roundToInt()) },
             shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
         ) {
             Icon(imageVector = handleIcon,
@@ -139,15 +135,14 @@ fun PartialBottomSheet(
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                    .padding(bottom = bottomPadding)
-                ,
+                    .padding(contentPadding)
+                    .padding(bottom = bottomPadding),
                 contentAlignment = Alignment.TopCenter
             ) {
                 content()
             }
         }
-    }
+
 }
 
 
@@ -159,22 +154,11 @@ fun BottomSheetScreenCollapsedPreView(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
-        contentAlignment = Alignment.BottomCenter
     ) {
-        PartialBottomSheet(initialState = BottomSheetState.Collapsed) {
-            Column {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Blue)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Black)
-                )
-            }
-        }
+        PartialBottomSheet(
+            initialState = BottomSheetState.Collapsed,
+            showHandleCollapsed = false
+        ) { }
     }
 }
 
@@ -186,10 +170,11 @@ fun BottomSheetScreenHalfExpandedPreView(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
-        contentAlignment = Alignment.BottomCenter
     ) {
         // BottomSheet
-        PartialBottomSheet(initialState = BottomSheetState.HalfExpanded) {
+        PartialBottomSheet(
+            initialState = BottomSheetState.HalfExpanded
+        ) {
             Column {
                 Box(
                     modifier = Modifier
@@ -214,10 +199,10 @@ fun BottomSheetScreenExpandedPreView(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
-        contentAlignment = Alignment.BottomCenter
     ) {
-        // BottomSheet
-        PartialBottomSheet(initialState = BottomSheetState.Expanded) {
+        PartialBottomSheet(
+            initialState = BottomSheetState.Expanded
+        ) {
             Column {
                 Box(
                     modifier = Modifier
