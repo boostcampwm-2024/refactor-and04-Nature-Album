@@ -1,7 +1,6 @@
 package com.and04.naturealbum.data.repository
 
 import android.net.Uri
-import android.provider.MediaStore.Images.Thumbnails
 import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
@@ -9,6 +8,7 @@ import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -43,7 +43,7 @@ interface FireBaseRepository {
         labelName: String,
         labelData: FirebaseLabel,
 
-    ): Boolean
+        ): Boolean
 
     suspend fun insertPhotoInfo(
         uid: String,
@@ -73,13 +73,13 @@ class FireBaseRepositoryImpl @Inject constructor(
         return try {
             val userDoc = fireStore.collection(USER).document(uid).get().await()
             if (!userDoc.exists()) {
-                fireStore.collection(USER).document(uid).set(
-                    mapOf(
-                        "displayName" to (displayName ?: "NoName User"),
-                        "email" to email,
-                        "photoUrl" to (photoUrl ?: "")
-                    )
-                ).await()
+                val firestoreUser = FirestoreUser(
+                    uid = uid,
+                    displayName = displayName ?: "NoName User",
+                    email = email,
+                    photoUrl = photoUrl ?: ""
+                )
+                fireStore.collection(USER).document(uid).set(firestoreUser).await()
             }
             true
         } catch (e: Exception) {
@@ -98,25 +98,51 @@ class FireBaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getFriends(uid: String): List<FirebaseFriend> {
-        return fireStore.collection(USER)
-            .document(uid)
-            .collection(FRIENDS)
-            .get()
-            .await()
-            .toObjects(FirebaseFriend::class.java)
-
+        return try {
+            fireStore.collection(USER)
+                .document(uid)
+                .collection(FRIENDS)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { document ->
+                    try {
+                        document.toObject(FirebaseFriend::class.java) // 전체 객체 직렬화
+                    } catch (e: Exception) {
+                        Log.e(
+                            "getFriends",
+                            "Failed to deserialize friend: ${document.id}, ${e.message}"
+                        )
+                        null
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("getFriends", "Error fetching friends: ${e.message}")
+            emptyList()
+        }
     }
 
-
     override suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest> {
-        return fireStore.collection(USER)
+        val documents = fireStore.collection(USER)
             .document(uid)
             .collection(FRIEND_REQUESTS)
             .get()
             .await()
-            .toObjects(FirebaseFriendRequest::class.java)
-    }
+            .documents
 
+        return documents.mapNotNull { document ->
+            try {
+                val friendRequest = document.toObject(FirebaseFriendRequest::class.java)
+                if (friendRequest == null) {
+                    Log.e("getFriendRequests", "Failed to map document: ${document.id}")
+                }
+                friendRequest
+            } catch (e: Exception) {
+                Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
+                null
+            }
+        }
+    }
 
     override suspend fun getAllUsers(): List<FirestoreUser> {
         return fireStore.collection(USER).get().await().toObjects(FirestoreUser::class.java)
@@ -128,10 +154,10 @@ class FireBaseRepositoryImpl @Inject constructor(
         try {
             val userDocs = fireStore.collection(USER).get().await()
             for (userDoc in userDocs.documents) {
-                val user = userDoc.toObject(FirestoreUserWithStatus::class.java) ?: continue
-                var friendStatus = "normal"
+                val user = userDoc.toObject(FirestoreUser::class.java) ?: continue
+                var friendStatus = FriendStatus.NORMAL
 
-                if (!userDoc.id.isNullOrEmpty()) {
+                if (userDoc.id.isNotEmpty()) {
                     val friendRequestDoc = fireStore.collection(USER)
                         .document(userDoc.id)
                         .collection(FRIEND_REQUESTS)
@@ -141,10 +167,10 @@ class FireBaseRepositoryImpl @Inject constructor(
 
                     if (friendRequestDoc.exists()) {
                         val request = friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                        friendStatus = if (request?.id == uid) {
-                            "received"
+                        friendStatus = if (request?.user?.uid == uid) {
+                            FriendStatus.RECEIVED
                         } else {
-                            "sent"
+                            FriendStatus.SENT
                         }
                     }
 
@@ -156,10 +182,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                         .await()
 
                     if (friendDoc.exists()) {
-                        friendStatus = "friend"
+                        friendStatus = FriendStatus.FRIEND
                     }
                 }
-                users.add(user.copy(friendStatus = friendStatus))
+                users.add(FirestoreUserWithStatus(user = user, status = friendStatus))
             }
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "getAllUsersInfo Error: ${e.message}")
@@ -212,41 +238,74 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     // 친구 요청 보냈을 경우
     override suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
-        val requestTime = LocalDateTime.now().toString() // String으로 변환
+        val requestTime = LocalDateTime.now().toString()
+
+        // 요청자와 대상자의 사용자 정보 가져오기
+        val currentUserSnapshot = fireStore.collection(USER).document(uid).get().await()
+        val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
+
+        if (!currentUserSnapshot.exists() || !targetUserSnapshot.exists()) {
+            Log.e("sendFriendRequest", "User data not found for uid: $uid or targetUid: $targetUid")
+            return false
+        }
+
+        val currentUser = currentUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = uid)
+            ?: return false
+        val targetUser =
+            targetUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = targetUid)
+                ?: return false
+
+        // 친구 요청 데이터 생성
         val friendRequest = FirebaseFriendRequest(
-            id = targetUid,
+            user = targetUser,
             requestedAt = requestTime,
-            status = "sent"
+            status = FriendStatus.SENT
         )
-        val targetFriendRequest = friendRequest.copy(
-            id = uid,
-            status = "received"
+        val targetFriendRequest = FirebaseFriendRequest(
+            user = currentUser,
+            requestedAt = requestTime,
+            status = FriendStatus.RECEIVED
         )
 
+        // Firestore 트랜잭션으로 요청 저장
         return try {
             fireStore.runTransaction { transaction ->
+                // 요청자 -> 대상자 요청 생성
                 transaction.set(
                     fireStore.collection(USER).document(uid).collection(FRIEND_REQUESTS)
                         .document(targetUid),
                     friendRequest
                 )
+
+                // 대상자 -> 요청자 요청 생성
                 transaction.set(
                     fireStore.collection(USER).document(targetUid).collection(FRIEND_REQUESTS)
                         .document(uid),
                     targetFriendRequest
                 )
             }.await()
+            Log.d("sendFriendRequest", "Friend request successfully sent from $uid to $targetUid")
             true
         } catch (e: Exception) {
+            Log.e("sendFriendRequest", "Error sending friend request: ${e.message}", e)
             false
         }
     }
 
+
     // 수락했을 경우
     override suspend fun acceptFriendRequest(uid: String, targetUid: String): Boolean {
         val addedTime = LocalDateTime.now().toString() // 문자열로 변환
-        val uidFriendData = FirebaseFriend(id = targetUid, addedAt = addedTime)
-        val targetUidFriendData = FirebaseFriend(id = uid, addedAt = addedTime)
+
+        // 요청자와 대상자의 사용자 정보 가져오기
+        val currentUser = fireStore.collection(USER).document(uid).get().await()
+            .toObject(FirestoreUser::class.java) ?: return false
+        val targetUser = fireStore.collection(USER).document(targetUid).get().await()
+            .toObject(FirestoreUser::class.java) ?: return false
+
+        // FirebaseFriend 데이터 생성
+        val uidFriendData = FirebaseFriend(user = targetUser, addedAt = addedTime)
+        val targetUidFriendData = FirebaseFriend(user = currentUser, addedAt = addedTime)
 
         return try {
             fireStore.runTransaction { transaction ->
@@ -270,13 +329,13 @@ class FireBaseRepositoryImpl @Inject constructor(
                     fireStore.collection(USER).document(targetUid).collection(FRIEND_REQUESTS)
                         .document(uid)
                 )
-
             }.await()
             true
         } catch (e: Exception) {
             false
         }
     }
+
 
     // 거절했을 경우
     override suspend fun rejectFriendRequest(uid: String, targetUid: String): Boolean {

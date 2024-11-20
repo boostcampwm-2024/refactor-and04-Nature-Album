@@ -120,7 +120,7 @@ fun FriendTestScreen(
             ) {
                 items(allUsersInfo) { user ->
                     Text(
-                        text = "Name: ${user.displayName}, Email: ${user.email}, Status: ${user.friendStatus}",
+                        text = "Name: ${user.user.displayName}, Email: ${user.user.email}, Status: ${user.status}",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -135,7 +135,7 @@ fun FriendTestScreen(
             ) {
                 items(friendRequests) { request ->
                     Text(
-                        text = "${request.id} -> 요청: ${request.status}, 시간: ${request.requestedAt}",
+                        text = "Name: ${request.user.displayName}, Status: ${request.status}, Requested At: ${request.requestedAt}",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -150,7 +150,7 @@ fun FriendTestScreen(
             ) {
                 items(friends) { friend ->
                     Text(
-                        text = "친구: ${friend.id}, 추가 시점: ${friend.addedAt}",
+                        text = "Name: ${friend.user.displayName}, Added At: ${friend.addedAt}",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

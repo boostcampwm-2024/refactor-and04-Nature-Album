@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,21 +32,6 @@ class FriendViewModel @Inject constructor(
     private val _operationStatus = MutableStateFlow<String>("")
     val operationStatus: StateFlow<String> = _operationStatus
 
-    fun fetchAllUsers() {
-        viewModelScope.launch {
-            try {
-                val users = fireBaseRepository.getAllUsers()
-                _operationStatus.value = "Fetched all users successfully."
-                users.forEach { user ->
-                    Log.d("FriendViewModel", "User: ${user.displayName}, Email: ${user.email}")
-                }
-            } catch (e: Exception) {
-                _operationStatus.value = "Failed to fetch all users: ${e.message}"
-                Log.d("FriendViewModel", _operationStatus.value)
-            }
-        }
-    }
-
     fun fetchAllUsersInfo(uid: String) {
         viewModelScope.launch {
             try {
@@ -56,7 +42,7 @@ class FriendViewModel @Inject constructor(
                 users.forEach { user ->
                     Log.d(
                         "FriendViewModel",
-                        "User: ${user.displayName}, Email: ${user.email}, Status: ${user.friendStatus}"
+                        "User: ${user.user.displayName}, Email: ${user.user.email}, Status: ${user.status}"
                     )
                 }
             } catch (e: Exception) {
@@ -82,12 +68,9 @@ class FriendViewModel @Inject constructor(
     fun fetchFriends(uid: String) {
         viewModelScope.launch {
             try {
-                val friends = fireBaseRepository.getFriends(uid).map { friend ->
-                    friend.copy(addedAt = LocalDateTime.parse(friend.addedAt).toString()) // 필요 시 변환
-                }
-
-                _friends.value = friends ?: emptyList()
-                Log.d("FriendViewModel", "친구  목록: ${_friends.value}")
+                val friends = fireBaseRepository.getFriends(uid)
+                _friends.value = friends
+                Log.d("FriendViewModel", "친구 목록: ${_friends.value}")
             } catch (e: Exception) {
                 _operationStatus.value = "친구 목록을 가져오는 데 실패했습니다: ${e.message}"
                 Log.d("FriendViewModel", _operationStatus.value)
@@ -125,31 +108,39 @@ class FriendViewModel @Inject constructor(
     fun setupTestData() {
         viewModelScope.launch {
             // 더미 유저 추가
-            fireBaseRepository.createUserIfNotExists(
-                uid = "yujin",
-                displayName = "Yujin",
-                email = "yujin@example.com",
-                photoUrl = "https://example.com/yujin.jpg"
-            )
-            fireBaseRepository.createUserIfNotExists(
-                uid = "and04",
-                displayName = "And04",
-                email = "and04@example.com",
-                photoUrl = "https://example.com/and04.jpg"
-            )
-            fireBaseRepository.createUserIfNotExists(
-                uid = "cat",
-                displayName = "Cat",
-                email = "cat@example.com",
-                photoUrl = "https://example.com/cat.jpg"
-            )
-            fireBaseRepository.createUserIfNotExists(
-                uid = "jeong",
-                displayName = "Jeong",
-                email = "jeong@example.com",
-                photoUrl = "https://example.com/jeong.jpg"
-            )
-
+            listOf(
+                FirestoreUser(
+                    uid = "yujin",
+                    displayName = "YujinDisplay",
+                    email = "yujin@example.com",
+                    photoUrl = "https://example.com/yujin.jpg"
+                ),
+                FirestoreUser(
+                    uid = "and04",
+                    displayName = "And04Display",
+                    email = "and04@example.com",
+                    photoUrl = "https://example.com/and04.jpg"
+                ),
+                FirestoreUser(
+                    uid = "cat",
+                    displayName = "CatDisplay",
+                    email = "cat@example.com",
+                    photoUrl = "https://example.com/cat.jpg"
+                ),
+                FirestoreUser(
+                    uid = "jeong",
+                    displayName = "JeongDisplay",
+                    email = "jeong@example.com",
+                    photoUrl = "https://example.com/jeong.jpg"
+                )
+            ).forEach { user ->
+                fireBaseRepository.createUserIfNotExists(
+                    uid = user.uid,
+                    displayName = user.displayName,
+                    email = user.email,
+                    photoUrl = user.photoUrl
+                )
+            }
         }
     }
 }

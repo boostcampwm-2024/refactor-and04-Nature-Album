@@ -17,14 +17,14 @@ data class FirebasePhotoInfo(
 )
 
 data class FirebaseFriend(
-    val id: String = "",
+    val user: FirestoreUser = FirestoreUser(),
     val addedAt: String = ""
 )
 
 data class FirebaseFriendRequest(
-    val id: String = "", // 문서 id = 요청 관련자
+    val user: FirestoreUser = FirestoreUser(),
     val requestedAt: String = "",
-    val status: String = ""       // "sent", "received"
+    val status: FriendStatus = FriendStatus.NORMAL,     // "sent", "received"
 ) {
     // Firestore에서 사용 가능한 `LocalDateTime` 변환 메서드
     companion object {
@@ -38,7 +38,6 @@ data class FirebaseFriendRequest(
     }
 }
 
-
 data class FirestoreUser(
     val uid: String = "",
     val displayName: String = "",
@@ -47,9 +46,19 @@ data class FirestoreUser(
 )
 
 data class FirestoreUserWithStatus(
-    val uid: String = "",
-    val displayName: String = "",
-    val email: String = "",
-    val photoUrl: String = "",
-    val friendStatus: String = "", // normal, sent, received, friend
+    val user: FirestoreUser = FirestoreUser(),
+    val status: FriendStatus = FriendStatus.NORMAL, // normal, sent, received, friend
 )
+
+enum class FriendStatus(val status: String) {
+    NORMAL("normal"),
+    SENT("sent"),
+    RECEIVED("received"),
+    FRIEND("friend");
+
+    companion object {
+        fun toString(status: FriendStatus): String {
+            return status.status
+        }
+    }
+}

@@ -42,13 +42,13 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.ui.friend.FriendViewModel
 
 @Composable
 fun MyPageSocialList(myFriends: List<FirebaseFriend>) {
     LazyColumn {
-        // TODO: Friend에 email도 저장되도록 수정해서 이메일 표시하기
-        items(items = myFriends, key = { myFriend -> myFriend.addedAt }) { myFriend ->
+        items(items = myFriends, key = { myFriend -> myFriend.user.email }) { myFriend ->
             MyPageSocialItem(myFriend)
         }
     }
@@ -68,11 +68,11 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
                 .size(40.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
-            model = "", // ,myFriend.uri, // TODO: 친구에 user 기본 정보 필요 데이터 구조 수정하기
+            model = myFriend.user.photoUrl,
             contentDescription = stringResource(R.string.my_page_user_profile_image),
         )
 
-        Text(text = myFriend.id) // TODO: email or 닉네임 둘 중 하나로 표시하거나 둘 다 표시하기
+        Text(text = myFriend.user.displayName)
     }
 
     HorizontalDivider(thickness = 1.dp)
@@ -123,7 +123,7 @@ fun MyPageSearch(
             RequestedList(
                 userWithStatusList = userWithStatusList,
                 currentUid = currentUid,
-                friendViewModel= friendViewModel,
+                friendViewModel = friendViewModel,
             )
         }
 
@@ -131,7 +131,7 @@ fun MyPageSearch(
         RequestedList(
             userWithStatusList = userWithStatusList,
             currentUid = currentUid,
-            friendViewModel= friendViewModel,
+            friendViewModel = friendViewModel,
         )
     }
 }
@@ -143,11 +143,13 @@ fun RequestedList(
     friendViewModel: FriendViewModel,
 ) {
     LazyColumn {
-        items(items = userWithStatusList, key = { myFriend -> myFriend.email }) { userWithStatus ->
+        items(
+            items = userWithStatusList,
+            key = { myFriend -> myFriend.user.email }) { userWithStatus ->
             RequestedItem(
                 userWithStatus = userWithStatus,
                 currentUid = currentUid,
-                friendViewModel= friendViewModel,
+                friendViewModel = friendViewModel,
             )
         }
     }
@@ -175,22 +177,22 @@ fun RequestedItem(
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = "", // userWithStatus.uri,// TODO: 데이터 구조 수정 필요
+                model = userWithStatus.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = userWithStatus.email)
+            Text(text = userWithStatus.user.email)
         }
 
 
         SuggestionChip(
             onClick = {
-                when (userWithStatus.friendStatus) {
-                    "normal" -> {
+                when (userWithStatus.status) {
+                    FriendStatus.NORMAL -> {
                         // ViewModel의 sendFriendRequest 호출
                         friendViewModel.sendFriendRequest(
                             uid = currentUid,
-                            targetUid = userWithStatus.uid
+                            targetUid = userWithStatus.user.uid
                         )
                     }
 
@@ -199,10 +201,10 @@ fun RequestedItem(
                 }
             },
             label = {
-                val text = when (userWithStatus.friendStatus) {
-                    "sent" -> stringResource(R.string.my_page_friend_requested) // 친구 요청을 보낸 상태
-                    "received" -> stringResource(R.string.my_page_friend_request_received) // 친구 요청을 받은 상태
-                    "friend" -> stringResource(R.string.my_page_friend) // 친구 요청이 수락된 상태 = 친구
+                val text = when (userWithStatus.status) {
+                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested) // 친구 요청을 보낸 상태
+                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received) // 친구 요청을 받은 상태
+                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend) // 친구 요청이 수락된 상태 = 친구
                     else -> stringResource(R.string.my_page_friend_request) // 기본 상태
                 }
 
@@ -221,8 +223,7 @@ fun RequestedItem(
 @Composable
 fun MyPageAlarm(myAlarms: List<FirebaseFriendRequest>, onDenied: () -> Unit, onAccept: () -> Unit) {
     LazyColumn {
-        // TODO: id 이외의 email도 데이터 구조에 추가하기
-        items(items = myAlarms, key = { myFriend -> myFriend.id }) { myFriend ->
+        items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
             MyPageAlarmItem(myFriend, onDenied, onAccept)
         }
     }
@@ -244,11 +245,11 @@ fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAcc
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = "", // myFriend.uri, // TODO: 요청에 user 정보 넣기
+                model = myFriend.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = "${myFriend.id}${stringResource(R.string.my_page_alarm_txt)}")
+            Text(text = "${myFriend.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
         }
 
         Row(
