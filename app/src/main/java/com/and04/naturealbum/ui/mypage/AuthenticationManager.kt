@@ -117,24 +117,22 @@ class AuthenticationManager @Inject constructor(
                             "FirebaseSignIn",
                             "Attempting to create user in Firestore...(CoroutineScope(Dispatchers.IO).launch )"
                         )
-                        val success = createUserInFirestore(
-                            uid = uid,
-                            displayName = displayName,
-                            email = email,
-                            photoUrl = photoUrl
-                        )
-
-                        withContext(Dispatchers.Main) {
-                            if (success) {
-                                Log.d("FirebaseSignIn", "User successfully created in Firestore")
-                                getUserToken { authResponse ->
-                                    Log.d("FirebaseSignIn", "Token retrieved successfully")
-                                    trySend(authResponse)
-                                }
-                            } else {
-                                Log.e("FirebaseSignIn", "Failed to create user in Firestore")
-                                trySend(AuthResponse.Error("Failed to create user in Firestore"))
+                        val success =
+                            createUserInFirestore(
+                                uid = uid,
+                                displayName = displayName,
+                                email = email,
+                                photoUrl = photoUrl
+                            )
+                        if (success) {
+                            Log.d("FirebaseSignIn", "User successfully created in Firestore")
+                            getUserToken { authResponse ->
+                                Log.d("FirebaseSignIn", "Token retrieved successfully")
+                                trySend(authResponse)
                             }
+                        } else {
+                            Log.e("FirebaseSignIn", "Failed to create user in Firestore")
+                            trySend(AuthResponse.Error("Failed to create user in Firestore"))
                         }
                     }
                 } else {
