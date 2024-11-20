@@ -64,7 +64,6 @@ fun MyPageScreen(
     navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = myPageViewModel.myFriend.collectAsStateWithLifecycle()
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,

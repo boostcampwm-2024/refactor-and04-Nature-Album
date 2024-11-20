@@ -1,6 +1,7 @@
 package com.and04.naturealbum.data.repository
 
 import android.net.Uri
+import android.provider.MediaStore.Images.Thumbnails
 import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
@@ -40,7 +41,8 @@ interface FireBaseRepository {
     suspend fun insertLabel(
         uid: String,
         labelName: String,
-        labelData: FirebaseLabel
+        labelData: FirebaseLabel,
+
     ): Boolean
 
     suspend fun insertPhotoInfo(

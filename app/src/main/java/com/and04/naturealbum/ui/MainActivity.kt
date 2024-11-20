@@ -12,8 +12,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            //NatureAlbumApp()
-            FriendTestScreen() // TODO: 친구 기능 테스트 용도. 추후 UI 통합 후 제거 예정.
+            NatureAlbumApp()
+            //FriendTestScreen() // TODO: 친구 기능 테스트 용도. 추후 UI 통합 후 제거 예정.
         }
     }
 }
