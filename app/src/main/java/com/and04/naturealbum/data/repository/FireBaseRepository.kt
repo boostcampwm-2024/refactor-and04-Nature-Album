@@ -147,6 +147,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getReceivedFriendRequests(uid: String): List<FirebaseFriendRequest> {
+        Log.d("getReceivedFriendRequests", "$uid")
         val documents = fireStore.collection(USER)
             .document(uid)
             .collection(FRIEND_REQUESTS)
@@ -169,6 +170,8 @@ class FireBaseRepositoryImpl @Inject constructor(
                 null
             }
         }.filter { friendRequest ->
+            Log.d("getReceivedFriendRequests", friendRequest.toString())
+            Log.d("getReceivedFriendRequests","${friendRequest.status} ${FriendStatus.RECEIVED} ${friendRequest}")
             friendRequest.status == FriendStatus.RECEIVED
         }
     }

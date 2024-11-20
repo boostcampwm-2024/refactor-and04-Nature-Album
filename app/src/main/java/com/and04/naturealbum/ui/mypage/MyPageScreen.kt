@@ -70,7 +70,8 @@ fun MyPageScreen(
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
-    val receivedFriendRequests = friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
+    val receivedFriendRequests =
+        friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
 
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
@@ -98,7 +99,9 @@ fun MyPageScreen(
         fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
         fetchFriends = friendViewModel::fetchFriends,
         fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
-        sendFriendRequest = friendViewModel::sendFriendRequest
+        sendFriendRequest = friendViewModel::sendFriendRequest,
+        acceptFriendRequest = friendViewModel::acceptFriendRequest,
+        rejectFriendRequest = friendViewModel::rejectFriendRequest,
     )
 }
 
@@ -118,6 +121,8 @@ fun MyPageScreenContent(
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
 
     Scaffold(topBar = {
@@ -149,7 +154,9 @@ fun MyPageScreenContent(
             fetchReceivedFriendRequests = fetchReceivedFriendRequests,
             fetchFriends = fetchFriends,
             fetchAllUsersInfo = fetchAllUsersInfo,
-            sendFriendRequest = sendFriendRequest
+            sendFriendRequest = sendFriendRequest,
+            acceptFriendRequest = acceptFriendRequest,
+            rejectFriendRequest = rejectFriendRequest,
         )
     }
 }
@@ -170,6 +177,8 @@ private fun MyPageContent(
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -186,7 +195,7 @@ private fun MyPageContent(
                     emailState = userEmailState,
                     displayNameState = userDisplayNameState,
                 )
-
+                LoginContent { signInWithGoogle(context) }
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUidState,
@@ -196,7 +205,9 @@ private fun MyPageContent(
                     fetchReceivedFriendRequests = fetchReceivedFriendRequests,
                     fetchFriends = fetchFriends,
                     fetchAllUsersInfo = fetchAllUsersInfo,
-                    sendFriendRequest = sendFriendRequest
+                    sendFriendRequest = sendFriendRequest,
+                    acceptFriendRequest = acceptFriendRequest,
+                    rejectFriendRequest = rejectFriendRequest,
                 )
             }
 
@@ -286,6 +297,8 @@ private fun SocialContent(
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
     val currentUid = userUidState.value ?: return
     val myFriends = myFriendsState.value
@@ -322,8 +335,13 @@ private fun SocialContent(
                 allUsersInfo,
                 currentUid,
                 sendFriendRequest
-            ) // 전체 사용자 정보
-            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(friendRequests, {}, {}) // 친구 요청
+            )
+            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
+                friendRequests,
+                acceptFriendRequest,
+                rejectFriendRequest,
+                currentUid
+            )
         }
     }
 }

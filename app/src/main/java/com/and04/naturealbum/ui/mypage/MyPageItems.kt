@@ -25,6 +25,7 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -212,10 +213,19 @@ fun RequestedItem(
 }
 
 @Composable
-fun MyPageAlarm(myAlarms: List<FirebaseFriendRequest>, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarm(
+    myAlarms: List<FirebaseFriendRequest>,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
+    currentUid: String,
+) {
     LazyColumn {
         items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
-            MyPageAlarmItem(myFriend, onDenied, onAccept)
+            MyPageAlarmItem(
+                myFriend = myFriend,
+                onAccept = { acceptFriendRequest(currentUid, myFriend.user.uid) },
+                onDenied = { rejectFriendRequest(currentUid, myFriend.user.uid) }
+            )
         }
     }
 }
