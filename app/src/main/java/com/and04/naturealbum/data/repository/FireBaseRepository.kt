@@ -14,7 +14,12 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -183,51 +188,55 @@ class FireBaseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus> {
-        val users = mutableListOf<FirestoreUserWithStatus>()
-
         try {
             val userDocs = fireStore.collection(USER).get().await()
-            for (userDoc in userDocs.documents) {
-                if (userDoc.id == uid) continue
+            val result = withContext(Dispatchers.IO + SupervisorJob()) {
+                userDocs.map { userDoc ->
+                    async {
+                        if (userDoc.id == uid) return@async null
 
-                val user = userDoc.toObject(FirestoreUser::class.java) ?: continue
-                var friendStatus = FriendStatus.NORMAL
+                        val user = userDoc.toObject(FirestoreUser::class.java)
+                        var friendStatus = FriendStatus.NORMAL
 
-                if (userDoc.id.isNotEmpty()) {
-                    val friendRequestDoc = fireStore.collection(USER)
-                        .document(userDoc.id)
-                        .collection(FRIEND_REQUESTS)
-                        .document(uid)
-                        .get()
-                        .await()
+                        if (userDoc.id.isNotEmpty()) {
+                            val friendRequestDocTask = fireStore.collection(USER)
+                                .document(userDoc.id)
+                                .collection(FRIEND_REQUESTS)
+                                .document(uid)
+                                .get()
 
-                    if (friendRequestDoc.exists()) {
-                        val request = friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                        friendStatus = if (request?.user?.uid == uid) {
-                            FriendStatus.RECEIVED
-                        } else {
-                            FriendStatus.SENT
-                        }
+                            val friendDocTask = fireStore.collection(USER)
+                                .document(uid)
+                                .collection(FRIENDS)
+                                .document(userDoc.id)
+                                .get()
+
+                            val friendDoc = friendDocTask.await()
+                            val friendRequestDoc = friendRequestDocTask.await()
+
+                            if (friendRequestDoc.exists()) {
+                                val request =
+                                    friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
+                                friendStatus = if (request?.user?.uid == uid) {
+                                    FriendStatus.RECEIVED
+                                } else {
+                                    FriendStatus.SENT
+                                }
+                            }
+                            if (friendDoc.exists()) {
+                                friendStatus = FriendStatus.FRIEND
+                            }
+                            FirestoreUserWithStatus(user = user, status = friendStatus)
+                        } else null
                     }
 
-                    val friendDoc = fireStore.collection(USER)
-                        .document(uid)
-                        .collection(FRIENDS)
-                        .document(userDoc.id)
-                        .get()
-                        .await()
-
-                    if (friendDoc.exists()) {
-                        friendStatus = FriendStatus.FRIEND
-                    }
-                }
-                users.add(FirestoreUserWithStatus(user = user, status = friendStatus))
+                }.awaitAll()
             }
+            return result.filterNotNull()
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "getAllUsersInfo Error: ${e.message}")
         }
-
-        return users
+        return emptyList()
     }
 
 
