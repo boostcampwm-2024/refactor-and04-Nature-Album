@@ -3,10 +3,9 @@ package com.and04.naturealbum.background.workmanager
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import java.util.concurrent.TimeUnit
 
 class SynchronizationWorkManager(
     private val context: Context
@@ -16,10 +15,7 @@ class SynchronizationWorkManager(
         .build()
 
     private val workRequest: WorkRequest =
-        PeriodicWorkRequestBuilder<SynchronizationWorker>(
-            1, TimeUnit.DAYS, // 주기
-            30, TimeUnit.MINUTES // flexInterval
-        )
+        OneTimeWorkRequestBuilder<SynchronizationWorker>()
             .setConstraints(constraints)
             .build()
 
