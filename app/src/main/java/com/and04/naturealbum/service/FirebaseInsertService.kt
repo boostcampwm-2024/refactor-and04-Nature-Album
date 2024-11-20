@@ -64,7 +64,7 @@ class FirebaseInsertService : Service() {
                             labelName = label.name,
                             labelData = FirebaseLabel(
                                 backgroundColor = label.backgroundColor,
-                                thumbnail = storageUri.toString()
+                                thumbnailUri = storageUri.toString()
                             )
                         )
                 }
