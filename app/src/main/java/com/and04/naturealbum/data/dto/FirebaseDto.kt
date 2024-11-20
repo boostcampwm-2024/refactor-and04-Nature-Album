@@ -39,15 +39,9 @@ data class FirestoreUserWithStatus(
     val status: FriendStatus = FriendStatus.NORMAL,
 )
 
-enum class FriendStatus(val status: String) {
-    NORMAL("normal"),
-    SENT("sent"),
-    RECEIVED("received"),
-    FRIEND("friend");
-
-    companion object {
-        fun toString(status: FriendStatus): String {
-            return status.status
-        }
-    }
+enum class FriendStatus() {
+    NORMAL,
+    SENT,
+    RECEIVED,
+    FRIEND;
 }
