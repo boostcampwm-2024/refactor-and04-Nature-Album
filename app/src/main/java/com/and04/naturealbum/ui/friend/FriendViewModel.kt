@@ -12,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -60,6 +59,7 @@ class FriendViewModel @Inject constructor(
             try {
                 val requests = fireBaseRepository.getFriendRequests(uid)
                 _friendRequests.value = requests
+                _operationStatus.value = "친구 요청 목록을 성공적으로 가져왔습니다."
                 Log.d("FriendViewModel", "친구 요청 목록: ${_friendRequests.value}")
             } catch (e: Exception) {
                 _operationStatus.value = "친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
@@ -73,6 +73,7 @@ class FriendViewModel @Inject constructor(
             try {
                 val requests = fireBaseRepository.getReceivedFriendRequests(uid)
                 _receivedFriendRequests.value = requests
+                _operationStatus.value = " 받은 친구 요청 목록을 성공적으로 가져왔습니다"
                 Log.d("FriendViewModel", "받은 친구 요청 목록: ${_receivedFriendRequests.value}")
             } catch (e: Exception) {
                 _operationStatus.value = "받은 친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
@@ -86,6 +87,7 @@ class FriendViewModel @Inject constructor(
             try {
                 val friends = fireBaseRepository.getFriends(uid)
                 _friends.value = friends
+                _operationStatus.value = "친구 목록을 성공적으로 가져왔습니다"
                 Log.d("FriendViewModel", "친구 목록: ${_friends.value}")
             } catch (e: Exception) {
                 _operationStatus.value = "친구 목록을 가져오는 데 실패했습니다: ${e.message}"
