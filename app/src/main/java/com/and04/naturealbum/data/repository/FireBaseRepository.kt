@@ -171,7 +171,10 @@ class FireBaseRepositoryImpl @Inject constructor(
             }
         }.filter { friendRequest ->
             Log.d("getReceivedFriendRequests", friendRequest.toString())
-            Log.d("getReceivedFriendRequests","${friendRequest.status} ${FriendStatus.RECEIVED} ${friendRequest}")
+            Log.d(
+                "getReceivedFriendRequests",
+                "${friendRequest.status} ${FriendStatus.RECEIVED} ${friendRequest}"
+            )
             friendRequest.status == FriendStatus.RECEIVED
         }
     }
@@ -186,6 +189,8 @@ class FireBaseRepositoryImpl @Inject constructor(
         try {
             val userDocs = fireStore.collection(USER).get().await()
             for (userDoc in userDocs.documents) {
+                if (userDoc.id == uid) continue
+
                 val user = userDoc.toObject(FirestoreUser::class.java) ?: continue
                 var friendStatus = FriendStatus.NORMAL
 
