@@ -82,33 +82,42 @@ fun MyPageScreen(
     val userEmail = myPageViewModel.userEmail.collectAsStateWithLifecycle()
     val userPhotoUrl = myPageViewModel.userPhotoUrl.collectAsStateWithLifecycle()
     val userDisplayName = myPageViewModel.userDisplayName.collectAsStateWithLifecycle()
+    val userUid = myPageViewModel.userUid.collectAsStateWithLifecycle()
 
-    MyPageScreen(
-        friendViewModel = friendViewModel,
+    MyPageScreenContent(
         navigateToHome = navigateToHome,
         uiState = uiState,
-        myFriends = myFriends.value,
-        friendRequests = friendRequests.value,
-        allUsersInfo = allUsersInfo.value,
-        userEmail = userEmail.value,
-        userPhotoUrl = userPhotoUrl.value,
-        userDisplayName = userDisplayName.value,
-        signInWithGoogle = myPageViewModel::signInWithGoogle
+        myFriendsState = myFriends,
+        friendRequestsState = friendRequests,
+        allUsersInfoState = allUsersInfo,
+        userEmailState = userEmail,
+        userPhotoUrlState = userPhotoUrl,
+        userDisplayNameState = userDisplayName,
+        userUidState = userUid,
+        signInWithGoogle = myPageViewModel::signInWithGoogle,
+        fetchFriendRequests = friendViewModel::fetchFriendRequests,
+        fetchFriends = friendViewModel::fetchFriends,
+        fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
+        sendFriendRequest = friendViewModel::sendFriendRequest
     )
 }
 
 @Composable
-fun MyPageScreen(
-    friendViewModel: FriendViewModel,
+fun MyPageScreenContent(
     navigateToHome: () -> Unit,
     uiState: State<UiState>,
-    myFriends: List<FirebaseFriend>,
-    friendRequests: List<FirebaseFriendRequest>,
-    allUsersInfo: List<FirestoreUserWithStatus>,
-    userPhotoUrl: String?,
-    userEmail: String?,
-    userDisplayName: String?,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    userPhotoUrlState: State<String?>,
+    userEmailState: State<String?>,
+    userDisplayNameState: State<String?>,
+    userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
+    fetchFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
 
     Scaffold(topBar = {
@@ -128,15 +137,19 @@ fun MyPageScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize(),
-            friendViewModel = friendViewModel,
             uiState = uiState,
-            myFriends = myFriends,
-            friendRequests = friendRequests,
-            allUsersInfo = allUsersInfo,
-            userPhotoUrl = userPhotoUrl,
-            userEmail = userEmail,
-            userDisplayName = userDisplayName,
+            myFriendsState = myFriendsState,
+            friendRequestsState = friendRequestsState,
+            allUsersInfoState = allUsersInfoState,
+            userPhotoUrlState = userPhotoUrlState,
+            userEmailState = userEmailState,
+            userDisplayNameState = userDisplayNameState,
+            userUidState = userUidState,
             signInWithGoogle = signInWithGoogle,
+            fetchFriendRequests = fetchFriendRequests,
+            fetchFriends = fetchFriends,
+            fetchAllUsersInfo = fetchAllUsersInfo,
+            sendFriendRequest = sendFriendRequest
         )
     }
 }
@@ -144,15 +157,19 @@ fun MyPageScreen(
 @Composable
 private fun MyPageContent(
     modifier: Modifier,
-    friendViewModel: FriendViewModel,
     uiState: State<UiState>,
-    myFriends: List<FirebaseFriend>,
-    friendRequests: List<FirebaseFriendRequest>,
-    allUsersInfo: List<FirestoreUserWithStatus>,
-    userPhotoUrl: String?,
-    userEmail: String?,
-    userDisplayName: String?,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    userPhotoUrlState: State<String?>,
+    userEmailState: State<String?>,
+    userDisplayNameState: State<String?>,
+    userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
+    fetchFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -165,23 +182,26 @@ private fun MyPageContent(
         when (uiState.value) {
             is UiState.Success -> {
                 UserProfileContent(
-                    uri = userPhotoUrl,
-                    email = userEmail,
-                    displayName = userDisplayName,
+                    uriState = userPhotoUrlState,
+                    emailState = userEmailState,
+                    displayNameState = userDisplayNameState,
                 )
 
                 SocialContent(
                     modifier = Modifier.weight(1f),
-                    friendViewModel = friendViewModel,
-                    myFriends = myFriends,
-                    friendRequests = friendRequests,
-                    allUsersInfo = allUsersInfo,
-                    currentUid = UserManager.getUser()?.uid ?: "",
+                    userUidState = userUidState,
+                    myFriendsState = myFriendsState,
+                    friendRequestsState = friendRequestsState,
+                    allUsersInfoState = allUsersInfoState,
+                    fetchFriendRequests = fetchFriendRequests,
+                    fetchFriends = fetchFriends,
+                    fetchAllUsersInfo = fetchAllUsersInfo,
+                    sendFriendRequest = sendFriendRequest
                 )
             }
 
             else -> {
-                UserProfileContent()
+                UserProfileContent(null, null, null)
                 LoginContent { signInWithGoogle(context) }
             }
         }
@@ -190,12 +210,16 @@ private fun MyPageContent(
 
 @Composable
 private fun UserProfileContent(
-    uri: String? = null,
-    email: String? = null,
-    displayName: String? = null
+    uriState: State<String?>?,
+    emailState: State<String?>?,
+    displayNameState: State<String?>?,
 ) {
+    val uri = uriState?.value ?: ""
+    val email = emailState?.value ?: stringResource(R.string.my_page_default_user_email)
+    val displayName = displayNameState?.value ?: ""
+
     UserProfileImage(
-        uri = uri ?: "",
+        uri = uri,
         modifier = Modifier
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
@@ -254,20 +278,19 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun SocialContent(
     modifier: Modifier,
-    friendViewModel: FriendViewModel,
-    myFriends: List<FirebaseFriend>,
-    friendRequests: List<FirebaseFriendRequest>,
-    allUsersInfo: List<FirestoreUserWithStatus>,
-    currentUid: String,
+    userUidState: State<String?>,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    fetchFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
-    // TODO: 테스트용 친구 요청
-    friendViewModel.sendFriendRequest(currentUid, "yujin")
-
-    // TODO: 테스트용 친구 요청하고 수락해두기
-    friendViewModel.sendFriendRequest("and04", currentUid)
-    friendViewModel.sendFriendRequest("cat", currentUid)
-    friendViewModel.acceptFriendRequest("and04", currentUid)
-    friendViewModel.acceptFriendRequest("cat", currentUid)
+    val currentUid = userUidState.value ?: return
+    val myFriends = myFriendsState.value
+    val friendRequests = friendRequestsState.value
+    val allUsersInfo = allUsersInfoState.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
@@ -285,9 +308,9 @@ private fun SocialContent(
                 MyPageCustomTab(tabState, index, title) {
                     tabState = index
                     when (index) {
-                        SOCIAL_LIST_TAB_INDEX -> friendViewModel.fetchFriends(currentUid) // 친구 목록 가져오기
-                        SOCIAL_SEARCH_TAB_INDEX -> friendViewModel.fetchAllUsersInfo(currentUid) // 전체 사용자 정보 가져오기
-                        SOCIAL_ALARM_TAB_INDEX -> friendViewModel.fetchFriendRequests(currentUid) // 친구 요청 목록 가져오기
+                        SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
+                        SOCIAL_SEARCH_TAB_INDEX -> fetchAllUsersInfo(currentUid)
+                        SOCIAL_ALARM_TAB_INDEX -> fetchFriendRequests(currentUid)
                     }
                 }
             }
@@ -295,7 +318,11 @@ private fun SocialContent(
 
         when (tabState) {
             SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(allUsersInfo, currentUid, friendViewModel) // 전체 사용자 정보
+            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
+                allUsersInfo,
+                currentUid,
+                sendFriendRequest
+            ) // 전체 사용자 정보
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(friendRequests, {}, {}) // 친구 요청
         }
     }

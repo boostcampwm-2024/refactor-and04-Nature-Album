@@ -83,7 +83,7 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
 fun MyPageSearch(
     userWithStatusList: List<FirestoreUserWithStatus>,
     currentUid: String,
-    friendViewModel: FriendViewModel,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
     var textFieldState by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -123,7 +123,7 @@ fun MyPageSearch(
             RequestedList(
                 userWithStatusList = userWithStatusList,
                 currentUid = currentUid,
-                friendViewModel = friendViewModel,
+                sendFriendRequest = sendFriendRequest
             )
         }
 
@@ -131,7 +131,7 @@ fun MyPageSearch(
         RequestedList(
             userWithStatusList = userWithStatusList,
             currentUid = currentUid,
-            friendViewModel = friendViewModel,
+            sendFriendRequest = sendFriendRequest
         )
     }
 }
@@ -140,7 +140,7 @@ fun MyPageSearch(
 fun RequestedList(
     userWithStatusList: List<FirestoreUserWithStatus>,
     currentUid: String,
-    friendViewModel: FriendViewModel,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
     LazyColumn {
         items(
@@ -149,7 +149,7 @@ fun RequestedList(
             RequestedItem(
                 userWithStatus = userWithStatus,
                 currentUid = currentUid,
-                friendViewModel = friendViewModel,
+                sendFriendRequest = sendFriendRequest
             )
         }
     }
@@ -159,7 +159,7 @@ fun RequestedList(
 fun RequestedItem(
     userWithStatus: FirestoreUserWithStatus,
     currentUid: String,
-    friendViewModel: FriendViewModel,
+    sendFriendRequest: (String, String) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -187,25 +187,16 @@ fun RequestedItem(
 
         SuggestionChip(
             onClick = {
-                when (userWithStatus.status) {
-                    FriendStatus.NORMAL -> {
-                        // ViewModel의 sendFriendRequest 호출
-                        friendViewModel.sendFriendRequest(
-                            uid = currentUid,
-                            targetUid = userWithStatus.user.uid
-                        )
-                    }
-
-                    else -> {  /* 다른 상태는 여기에서 처리 x */
-                    }
+                if (userWithStatus.status == FriendStatus.NORMAL) {
+                    sendFriendRequest(currentUid, userWithStatus.user.uid)
                 }
             },
             label = {
                 val text = when (userWithStatus.status) {
-                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested) // 친구 요청을 보낸 상태
-                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received) // 친구 요청을 받은 상태
-                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend) // 친구 요청이 수락된 상태 = 친구
-                    else -> stringResource(R.string.my_page_friend_request) // 기본 상태
+                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
+                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
+                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
+                    else -> stringResource(R.string.my_page_friend_request)
                 }
 
                 Text(text = text)
