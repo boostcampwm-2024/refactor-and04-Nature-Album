@@ -12,6 +12,6 @@ data class FirebasePhotoInfo(
     val label: String,
     val latitude: Double?,
     val longitude: Double?,
-    val description: String?,
+    val description: String,
     val datetime: LocalDateTime
 )
