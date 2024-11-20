@@ -25,7 +25,6 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +43,6 @@ import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
-import com.and04.naturealbum.ui.friend.FriendViewModel
 
 @Composable
 fun MyPageSocialList(myFriends: List<FirebaseFriend>) {
@@ -194,17 +192,27 @@ fun RequestedItem(
             },
             label = {
                 val text = when (userWithStatus.status) {
-                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
-                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
+                    // 여기에서는 uid로부터 받은 상대방 기준
+                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_request_received)
+                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_requested)
                     FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
                     else -> stringResource(R.string.my_page_friend_request)
                 }
-
                 Text(text = text)
             },
             colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                labelColor = Color.White
+                containerColor = when (userWithStatus.status) {
+                    FriendStatus.SENT -> Color.LightGray
+                    FriendStatus.RECEIVED -> Color.Cyan
+                    FriendStatus.FRIEND -> Color.Green
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                labelColor = when (userWithStatus.status) {
+                    FriendStatus.SENT -> Color.Black
+                    FriendStatus.RECEIVED -> Color.White
+                    FriendStatus.FRIEND -> Color.White
+                    else -> Color.White
+                }
             )
         )
     }

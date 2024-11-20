@@ -195,7 +195,7 @@ private fun MyPageContent(
                     emailState = userEmailState,
                     displayNameState = userDisplayNameState,
                 )
-                LoginContent { signInWithGoogle(context) }
+                LoginContent { signInWithGoogle(context) } // TODO: 친구 기능 테스트 용도. 기능 픽스 후 삭제 예정
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUidState,
@@ -212,6 +212,7 @@ private fun MyPageContent(
             }
 
             else -> {
+                // 비회원일 때
                 UserProfileContent(null, null, null)
                 LoginContent { signInWithGoogle(context) }
             }
@@ -236,12 +237,12 @@ private fun UserProfileContent(
             .aspectRatio(1f)
     )
     Text(
-        text = displayName ?: "",
+        text = displayName,
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
     Text(
-        text = email ?: stringResource(R.string.my_page_default_user_email),
+        text = email,
         modifier = Modifier.fillMaxWidth(),
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
@@ -336,6 +337,7 @@ private fun SocialContent(
                 currentUid,
                 sendFriendRequest
             )
+
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
                 friendRequests,
                 acceptFriendRequest,
