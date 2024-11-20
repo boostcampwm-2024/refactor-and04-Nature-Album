@@ -7,13 +7,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,8 +34,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -223,21 +227,7 @@ fun BottomSheetScreen(
                 .fillMaxSize(),
         ) {
             CustomBottomSheetComponent {
-                Column { }
-                Box(
-                    modifier = Modifier
-                        .size(
-                            50.dp
-                        )
-                        .background(Color.Blue)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(
-                            50.dp
-                        )
-                        .background(Color.Black)
-                )
+
             }
         }
     }
@@ -260,10 +250,10 @@ fun CustomBottomSheetComponent(
     val decayAnimationSpec = rememberSplineBasedDecay<Float>()
     val screenHeight = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val handleHeight = with(density) { 40.dp.toPx() }
-
+    var currentState by remember { mutableStateOf(initialValue) }
     val state = remember {
         AnchoredDraggableState(
-            initialValue = initialValue,
+            initialValue = currentState,
             anchors = DraggableAnchors {
                 BottomSheetState.Collapsed at (screenHeight - handleHeight)
                 BottomSheetState.HalfExpanded at screenHeight * 0.5f
@@ -276,16 +266,16 @@ fun CustomBottomSheetComponent(
         )
     }
 
+    LaunchedEffect(currentState) {
+        state.animateTo(currentState)
+    }
+    LaunchedEffect(state.currentValue) {
+        currentState = state.currentValue
+    }
+
     Box(
         modifier = modifier
-            .offset {
-                IntOffset(
-                    0,
-                    state
-                        .requireOffset()
-                        .roundToInt()
-                )
-            }
+            .offset {IntOffset(0, state.requireOffset().roundToInt())}
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
@@ -296,14 +286,23 @@ fun CustomBottomSheetComponent(
             Icon(
                 imageVector = Icons.Default.DragHandle,
                 contentDescription = null,
-                modifier =
-                modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .height(36.dp)
                     .anchoredDraggable(
                         state = state,
                         orientation = Orientation.Vertical,
                     )
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        currentState = when (currentState) {
+                            BottomSheetState.Collapsed -> BottomSheetState.HalfExpanded
+                            BottomSheetState.HalfExpanded -> BottomSheetState.Collapsed
+                            BottomSheetState.Expanded -> BottomSheetState.HalfExpanded
+                        }
+                    }
             )
             Box(
                 modifier = modifier
