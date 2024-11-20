@@ -29,7 +29,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,9 +69,9 @@ fun MyPageScreen(
     friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
-    val myFriends = friendViewModel.friends.collectAsStateWithLifecycle() // FriendViewModel의 친구 목록
-    val friendRequests = friendViewModel.friendRequests.collectAsStateWithLifecycle()// 친구 요청 목록
-    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle() // 사용자 정보
+    val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
+    val friendRequests = friendViewModel.friendRequests.collectAsStateWithLifecycle()
+    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
 
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
 //       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
@@ -170,9 +169,6 @@ private fun MyPageContent(
                     email = userEmail,
                     displayName = userDisplayName,
                 )
-
-                // TODO: 친구 기능 테스트 용도로 로그인 전환에 필요 이후 삭제 예정
-                LoginContent { signInWithGoogle(context) }
 
                 SocialContent(
                     modifier = Modifier.weight(1f),
