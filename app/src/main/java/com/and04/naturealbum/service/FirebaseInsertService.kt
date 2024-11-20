@@ -46,7 +46,7 @@ class FirebaseInsertService : Service() {
             } else {
                 intent.getParcelableExtra<Location>(SERVICE_LOCATION)
             }
-            val description = intent.getStringExtra(SERVICE_DESCRIPTION)
+            val description = intent.getStringExtra(SERVICE_DESCRIPTION) as String
 
             val storageJob = scope.launch {
                 val storageUri = fireBaseRepository

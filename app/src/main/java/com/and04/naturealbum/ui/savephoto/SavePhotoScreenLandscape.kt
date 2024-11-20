@@ -1,7 +1,7 @@
 package com.and04.naturealbum.ui.savephoto
 
-import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,31 +20,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.service.FirebaseInsertService
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 
 @Composable
 fun SavePhotoScreenLandscape(
     innerPadding: PaddingValues,
-    model: Any,
+    model: Uri,
     fileName: String,
     label: Label?,
     location: Location?,
-    rememberDescription: MutableState<String>,
-    isRepresented: MutableState<Boolean>,
+    rememberDescription: State<String>,
+    onDescriptionChange: (String) -> Unit,
+    isRepresented: State<Boolean>,
+    onRepresentedChange: () -> Unit,
     photoSaveState: State<UiState>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    viewModel: SavePhotoViewModel = hiltViewModel(),
+    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
 ) {
     val context = LocalContext.current
     Row(
@@ -68,8 +63,8 @@ fun SavePhotoScreenLandscape(
             )
 
             ToggleButton(
-                selected = isRepresented.value,
-                onClick = { isRepresented.value = !isRepresented.value },
+                selected = isRepresented,
+                onClick = { onRepresentedChange() },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 12.dp)
@@ -83,9 +78,9 @@ fun SavePhotoScreenLandscape(
             LabelSelection(label = label, onClick = onLabelSelect)
 
             Description(
-                description = rememberDescription.value,
+                description = rememberDescription,
                 modifier = Modifier.weight(1f),
-                onValueChange = { newDescription -> rememberDescription.value = newDescription }
+                onValueChange = { newDescription -> onDescriptionChange(newDescription) }
             )
 
             Row(
@@ -106,13 +101,13 @@ fun SavePhotoScreenLandscape(
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
                     onClick = {
-                        viewModel.savePhoto(
-                            uri = model.toString(),
-                            label = label!!,
-                            fileName = fileName,
-                            description = rememberDescription.value,
-                            location = location!!, // TODO : Null 처리 필요
-                            isRepresented = isRepresented.value
+                        savePhoto(
+                            model.toString(),
+                            fileName,
+                            label!!,
+                            location!!, // TODO : Null 처리 필요
+                            rememberDescription.value,
+                            isRepresented.value
                         )
 
                         insertFirebaseService(

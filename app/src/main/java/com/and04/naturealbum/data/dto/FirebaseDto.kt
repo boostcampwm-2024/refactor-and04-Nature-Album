@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class FirebaseLabel(
     val backgroundColor: String,
-    val thumbnail: String
+    val thumbnailUri: String
 )
 
 data class FirebasePhotoInfo(
@@ -12,7 +12,7 @@ data class FirebasePhotoInfo(
     val label: String,
     val latitude: Double?,
     val longitude: Double?,
-    val description: String?,
+    val description: String,
     val datetime: LocalDateTime
 )
 

@@ -2,8 +2,10 @@ package com.and04.naturealbum.ui.home
 
 import android.content.Context
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -18,7 +20,7 @@ import com.and04.naturealbum.utils.GetTopbar
 @Composable
 fun HomeScreenPortrait(
     context: Context,
-    permissionHandler: PermissionHandler,
+    onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToMap: () -> Unit,
@@ -39,6 +41,10 @@ fun HomeScreenPortrait(
 
             ClippingButtonWithFile(
                 context = context,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
                 isFromAssets = true,
                 fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
                 text = stringResource(R.string.home_navigate_to_map),
@@ -47,14 +53,18 @@ fun HomeScreenPortrait(
                 onClick = onNavigateToMap
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             NavigateContent(
                 modifier = Modifier
                     .weight(1.17f)
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
-                permissionHandler = permissionHandler,
+                onClickCamera = onClickCamera,
                 onNavigateToAlbum = onNavigateToAlbum
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

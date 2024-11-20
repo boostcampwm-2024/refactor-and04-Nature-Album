@@ -60,4 +60,18 @@
     <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
     <string name="my_page_google_login_btn">구글</string>
     <string name="my_page_login_txt">로그인</string>
+    <string name="my_page_social_list">친구 목록</string>
+    <string name="my_page_social_search">친구 검색</string>
+    <string name="my_page_social_alarm">알림</string>
+    <string name="my_page_search_hint">이메일로 친구 찾기</string>
+    <string name="my_page_friend_requested">확인중</string>
+    <string name="my_page_friend_request">친구 요청</string>
+    <string name="my_page_alarm_txt">께서\n친구 신청을 요청했습니다.</string>
+    <string name="my_page_request_accept">수락</string>
+    <string name="my_page_request_deny">거절</string>
+    <string name="my_page_search_bar_search_icon">검색 바에서 검색 아이콘</string>
+
+    <!-- Top bar -->
+    <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
+    <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
 </resources>

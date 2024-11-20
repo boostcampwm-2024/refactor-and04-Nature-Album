@@ -3,6 +3,8 @@ package com.and04.naturealbum.ui.home
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,11 +24,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.component.NavigationImageButton
+import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.isPortrait
 
 const val MAP_BUTTON_BACKGROUND_OUTLINE_SVG = "btn_home_menu_map_background_outline.svg"
@@ -105,7 +109,7 @@ fun HomeScreen(
     if (context.isPortrait()) {
         HomeScreenPortrait(
             context = context,
-            permissionHandler = permissionHandler,
+            onClickCamera = { permissionHandler.onClickCamera() },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = onNavigateToMap,
@@ -113,7 +117,7 @@ fun HomeScreen(
     } else {
         HomeScreenLandscape(
             context = context,
-            permissionHandler = permissionHandler,
+            onClickCamera = { permissionHandler.onClickCamera() },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = onNavigateToMap,
@@ -147,7 +151,7 @@ fun MainBackground(modifier: Modifier) {
 @Composable
 fun NavigateContent(
     modifier: Modifier = Modifier,
-    permissionHandler: PermissionHandler,
+    onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
 ) {
     Row(
@@ -168,8 +172,21 @@ fun NavigateContent(
                 .weight(1f),
             textColor = Color.Black,
             imageVector = ImageVector.vectorResource(id = R.drawable.btn_camera_background)
-        ) { permissionHandler.onClickCamera() }
+        ) { onClickCamera() }
     }
 }
 
-
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
+@Composable
+private fun HomeScreenPreview() {
+    NatureAlbumTheme {
+        HomeScreenPortrait(
+            context = LocalContext.current,
+            onClickCamera = { },
+            onNavigateToAlbum = { },
+            onNavigateToMyPage = { },
+            onNavigateToMap = { },
+        )
+    }
+}
