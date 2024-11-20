@@ -3,16 +3,23 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -25,6 +32,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.ui.component.BottomSheetState
+import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
 import com.naver.maps.map.clustering.ClusterMarkerInfo
@@ -148,10 +157,13 @@ fun MapScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // AndroidView를 MapView로 바로 설정
-        AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize())
-
-        mapView.getMapAsync { naverMap ->
-            cluster.map = naverMap
+        AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
+            mapView.getMapAsync { naverMap ->
+                cluster.map = naverMap
+            }
+        }
+        PartialBottomSheet(initialState = BottomSheetState.Collapsed) {
+            PhotoGrid(modifier = modifier, photos = photos.value, onPhotoClick = {})
         }
     }
 }
@@ -162,9 +174,22 @@ fun PhotoGrid(
     photos: List<PhotoDetail>,
     onPhotoClick: (Int) -> Unit,
 ) {
-    LazyVerticalGrid(columns = GridCells.Adaptive(256.dp)) {
+    LazyVerticalGrid(
+        modifier = modifier,
+        columns = GridCells.Fixed(3),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         items(photos) { photo ->
-            AsyncImage(model = photo.photoUri, contentDescription = null)
+            AsyncImage(
+                model = photo.photoUri,
+                contentDescription = photo.description, // TODO: 해당 description 무엇으로 할지 확정
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.medium),
+                contentScale = ContentScale.Crop,
+            )
         }
     }
 }
