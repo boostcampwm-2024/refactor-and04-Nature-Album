@@ -50,7 +50,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.FirebaseInsertService"/>
+        <service android:name=".background.service.FirebaseInsertService"/>
     </application>
 
 </manifest>
