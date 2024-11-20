@@ -25,7 +25,7 @@ import com.and04.naturealbum.utils.GetTopbar
 @Composable
 fun HomeScreenLandscape(
     context: Context,
-    permissionHandler: PermissionHandler,
+    onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToMap: () -> Unit,
@@ -66,6 +66,7 @@ fun HomeScreenLandscape(
                     ) {
                         ClippingButtonWithFile(
                             context = context,
+                            modifier = Modifier,
                             isFromAssets = true,
                             fileNameOrResId = MAP_BUTTON_BACKGROUND_OUTLINE_SVG,
                             text = stringResource(R.string.home_navigate_to_map),
@@ -79,7 +80,7 @@ fun HomeScreenLandscape(
                     Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                         NavigateContent(
                             modifier = Modifier.fillMaxWidth(),
-                            permissionHandler = permissionHandler,
+                            onClickCamera = onClickCamera,
                             onNavigateToAlbum = onNavigateToAlbum
                         )
 

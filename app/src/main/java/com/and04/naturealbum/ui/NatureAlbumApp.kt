@@ -48,8 +48,6 @@ fun NatureAlbumNavHost(
 ) {
     val context = LocalContext.current
     var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
-    var selectedAlbumLabel: Int = remember { 0 }
-    var selectedPhotoDetail: Int = remember { 0 }
     val locationHandler = remember {
         LocationHandler(
             context = context
@@ -136,36 +134,38 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen { label ->
+            LabelSearchScreen(onSelected = { label ->
                 selectedLabel = label
                 navController.popBackStack()
-            }
+            })
         }
 
         composable(NavigateDestination.Album.route) {
             AlbumScreen(
                 onLabelClick = { labelId ->
-                    selectedAlbumLabel = labelId
-                    navController.navigate(NavigateDestination.AlbumFolder.route)
+                    navController.navigate("${NavigateDestination.AlbumFolder.route}/$labelId")
                 },
                 onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
-        composable(NavigateDestination.AlbumFolder.route) {
+        composable("${NavigateDestination.AlbumFolder.route}/{labelId}") { backStackEntry ->
+            val labelId = backStackEntry.arguments?.getString("labelId")?.toInt()!!
+
             AlbumFolderScreen(
-                selectedAlbumLabel,
-                onPhotoClick = { labelId ->
-                    selectedPhotoDetail = labelId
-                    navController.navigate(NavigateDestination.PhotoInfo.route)
+                selectedAlbumLabel = labelId,
+                onPhotoClick = { photoDetailId ->
+                    navController.navigate("${NavigateDestination.PhotoInfo.route}/$photoDetailId")
                 },
                 onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }
 
-        composable(NavigateDestination.PhotoInfo.route) {
+        composable("${NavigateDestination.PhotoInfo.route}/{photoDetailId}") { backStackEntry ->
+            val photoDetailId = backStackEntry.arguments?.getString("photoDetailId")?.toInt()!!
+
             PhotoInfo(
-                selectedPhotoDetail = selectedPhotoDetail,
+                selectedPhotoDetail = photoDetailId,
                 onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
             )
         }

@@ -11,9 +11,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -21,19 +23,23 @@ import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortraitTopAppBar(onClick: () -> Unit) {
+fun PortraitTopAppBar(navigationIcon: @Composable () -> Unit = { }, onClick: () -> Unit = { }) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.app_name))
         },
+        navigationIcon = navigationIcon,
         actions = {
             IconButton(onClick = { onClick() }) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
-                    contentDescription = null /* TODO */
+                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
                 )
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+        )
     )
 }
 
@@ -55,7 +61,7 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
-                    contentDescription = null, /* TODO */
+                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
                 )
             }
         }

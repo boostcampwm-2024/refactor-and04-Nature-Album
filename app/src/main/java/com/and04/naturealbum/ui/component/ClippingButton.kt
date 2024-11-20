@@ -12,12 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
@@ -74,6 +68,7 @@ private class SvgOutlineShape(
 @Composable
 fun ClippingButtonWithFile(
     context: Context,
+    modifier: Modifier,
     isFromAssets: Boolean = true,
     fileNameOrResId: Any,
     text: String,
@@ -81,54 +76,65 @@ fun ClippingButtonWithFile(
     imageResId: Int,
     onClick: () -> Unit,
 ) {
-    var parsedPathData by remember { mutableStateOf("") }
-    var parsedViewportWidth by remember { mutableFloatStateOf(1f) }
-    var parsedViewportHeight by remember { mutableFloatStateOf(1f) }
+    val svgData = when {
+        isFromAssets && fileNameOrResId is String -> parseSvgFile(context, fileNameOrResId)
+        !isFromAssets && fileNameOrResId is Int -> parseDrawableSvgFile(
+            context,
+            fileNameOrResId
+        )
 
-    LaunchedEffect(fileNameOrResId) {
-        val svgData = when {
-            isFromAssets && fileNameOrResId is String -> parseSvgFile(context, fileNameOrResId)
-            !isFromAssets && fileNameOrResId is Int -> parseDrawableSvgFile(
-                context,
-                fileNameOrResId
-            )
-
-            else -> null
-        }
-        if (svgData == null) return@LaunchedEffect
-
-        parsedPathData = svgData.pathData
-        parsedViewportWidth = svgData.viewportWidth
-        parsedViewportHeight = svgData.viewportHeight
+        else -> null
     }
+    
+    val parsedPathData = svgData?.pathData ?: ""
+    val parsedViewportWidth = svgData?.viewportWidth ?: 1f
+    val parsedViewportHeight = svgData?.viewportHeight ?: 1f
+
+    ClippingButton(
+        modifier = modifier,
+        text = text,
+        textColor = textColor,
+        imageResId = imageResId,
+        pathData = parsedPathData,
+        viewportWidth = parsedViewportWidth,
+        viewportHeight = parsedViewportHeight,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun ClippingButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    textColor: Color,
+    imageResId: Int,
+    pathData: String,
+    viewportWidth: Float,
+    viewportHeight: Float,
+    onClick: () -> Unit
+) {
+
+    val path = PathParser().parsePathString(pathData).toPath()
 
     Box(
-        modifier = Modifier
+        modifier = modifier
+            .aspectRatio(viewportWidth / viewportHeight)
+            .clip(SvgOutlineShape(path, viewportWidth, viewportHeight))
+            .clickable { onClick() }
     ) {
-        val path = PathParser().parsePathString(parsedPathData).toPath()
+        Image(
+            painter = painterResource(id = imageResId),
+            contentDescription = stringResource(R.string.cliping_button_navigate_to_map),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
 
-        Surface(
+        Text(
+            text = text,
             modifier = Modifier
-                .aspectRatio(parsedViewportWidth / parsedViewportHeight)
-                .clip(SvgOutlineShape(path, parsedViewportWidth, parsedViewportHeight))
-                .clickable { onClick() }
-        ) {
-
-            Image(
-                painter = painterResource(id = imageResId),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-
-            Text(
-                text = text,
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 36.dp),
-                color = textColor
-            )
-        }
+                .padding(start = 16.dp, top = 36.dp),
+            color = textColor
+        )
     }
 }
 
@@ -148,6 +154,7 @@ private fun ClippingButtonWithFilePreview() {
     val context = LocalContext.current
     ClippingButtonWithFile(
         context = context,
+        modifier = Modifier,
         isFromAssets = true,
         fileNameOrResId = "btn_home_menu_map_background_outline.svg",
         text = stringResource(R.string.home_navigate_to_map),

@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.savephoto
 
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
@@ -28,15 +29,8 @@ class SavePhotoViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
 
-    private val _photoLoadingUiState = MutableStateFlow<UiState>(UiState.Idle)
-    val photoLoadingUiState: StateFlow<UiState> = _photoLoadingUiState
-
     private val _photoSaveState = MutableStateFlow<UiState>(UiState.Idle)
     val photoSaveState: StateFlow<UiState> = _photoSaveState
-
-    fun setPhotoLoadingUiSate(uiState: UiState) {
-        _photoLoadingUiState.value = uiState
-    }
 
     fun savePhoto(
         uri: String,
@@ -46,46 +40,50 @@ class SavePhotoViewModel @Inject constructor(
         description: String,
         isRepresented: Boolean,
     ) {
-        _photoSaveState.value = UiState.Loading
+        _photoSaveState.value = UiState.Loading // 로딩 시작
+
         viewModelScope.launch {
-            val labelId =
-                if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
-                else label.id
+            try {
+                val labelId =
+                    if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
+                    else label.id
 
-            val album = async { repository.getAlbumByLabelId(labelId) }
-            val photoDetailId = async {
-                repository.insertPhoto(
-                    PhotoDetail(
-                        labelId = labelId,
-                        photoUri = uri,
-                        fileName = fileName,
-                        latitude = location.latitude,
-                        longitude = location.longitude,
-                        description = description,
-                        datetime = LocalDateTime.now(ZoneId.of("UTC")),
-                    )
-                )
-            }
-            album.await().run {
-                if (isEmpty()) {
-                    repository.insertPhotoInAlbum(
-                        Album(
+                val album = async { repository.getAlbumByLabelId(labelId) }
+                val photoDetailId = async {
+                    repository.insertPhoto(
+                        PhotoDetail(
                             labelId = labelId,
-                            photoDetailId = photoDetailId.await().toInt()
+                            photoUri = uri,
+                            fileName = fileName,
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            description = description,
+                            datetime = LocalDateTime.now(ZoneId.of("UTC")),
                         )
                     )
-                } else if (isRepresented) {
-                    repository.updateAlbum(
-                        first().copy(
-                            photoDetailId = photoDetailId.await().toInt()
-                        )
-                    )
-                } else {
-
                 }
+                album.await().run {
+                    if (isEmpty()) {
+                        repository.insertPhotoInAlbum(
+                            Album(
+                                labelId = labelId,
+                                photoDetailId = photoDetailId.await().toInt()
+                            )
+                        )
+                    } else if (isRepresented) {
+                        repository.updateAlbum(
+                            first().copy(
+                                photoDetailId = photoDetailId.await().toInt()
+                            )
+                        )
+                    } else {
+                    }
+                }
+                _photoSaveState.emit(UiState.Success) // 저장 완료
+            } catch (e: Exception) {
+                Log.e("SavePhotoViewModel", "Error saving photo: ${e.message}")
+                _photoSaveState.emit(UiState.Idle)
             }
-            _photoSaveState.emit(UiState.Success)
         }
     }
-
 }
