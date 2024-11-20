@@ -51,10 +51,4 @@ object RoomModule {
         albumDao: AlbumDao,
         photoDetailDao: PhotoDetailDao
     ): DataRepository = DataRepositoryImpl(labelDao, albumDao, photoDetailDao)
-
-    @Singleton
-    @Provides
-    fun providerAuthenticationManager(
-        fireBaseRepository: FireBaseRepository
-    ): AuthenticationManager = AuthenticationManager(fireBaseRepository)
 }
