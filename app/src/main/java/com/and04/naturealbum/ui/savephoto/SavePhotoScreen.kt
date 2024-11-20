@@ -122,7 +122,7 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, Label, Location, String, Boolean) -> Unit
+    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -314,7 +314,7 @@ fun Description(
 
 fun insertFirebaseService(
     context: Context,
-    model: Any,
+    model: Uri,
     fileName: String,
     label: Label,
     location: Location,
@@ -353,7 +353,7 @@ private fun ScreenPreview() {
             onNavigateToMyPage = { },
             onLabelSelect = { },
             onBack = { },
-            savePhoto = { _, _, _, _, _ -> },
+            savePhoto = { _, _, _, _, _, _ -> },
         )
     }
 }
