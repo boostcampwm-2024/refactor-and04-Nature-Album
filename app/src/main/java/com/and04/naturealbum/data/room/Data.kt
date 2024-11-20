@@ -18,6 +18,7 @@ data class Label(
     companion object {
         private const val DUMMY_LABEL_BACKGROUND_COLOR = "FFFFFF"
         private const val DUMMY_LABEL_NAME = "빈 라벨"
+        const val NEW_LABEL = 0
 
         fun emptyLabel(): Label {
             return Label(
@@ -67,6 +68,7 @@ data class PhotoDetail(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "label_id") val labelId: Int,
     @ColumnInfo(name = "photo_uri") val photoUri: String,
+    @ColumnInfo(name = "file_name") val fileName: String,
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "description") val description: String,
@@ -78,6 +80,7 @@ data class PhotoDetail(
                 id = 0,
                 labelId = 0,
                 photoUri = "",
+                fileName = "",
                 longitude = 0.0,
                 latitude = 0.0,
                 description = "",

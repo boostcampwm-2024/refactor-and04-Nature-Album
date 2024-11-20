@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.savephoto
 
 import android.location.Location
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -30,7 +29,8 @@ import com.and04.naturealbum.data.room.Label
 @Composable
 fun SavePhotoScreenPortrait(
     innerPadding: PaddingValues,
-    model: Any,
+    model: Uri,
+    fileName: String,
     label: Label?,
     location: Location?,
     rememberDescription: State<String>,
@@ -40,13 +40,14 @@ fun SavePhotoScreenPortrait(
     photoSaveState: State<UiState>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, Label, Location, String, Boolean) -> Unit
+    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.padding(innerPadding)
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(context)
                 .data(model)
                 .crossfade(true)
                 .build(),
@@ -95,13 +96,22 @@ fun SavePhotoScreenPortrait(
                 onClick = {
                     savePhoto(
                         model.toString(),
+                        fileName,
                         label!!,
                         location!!, // TODO : Null 처리 필요
                         rememberDescription.value,
                         isRepresented.value
                     )
+
+                    insertFirebaseService(
+                        context = context,
+                        model = model,
+                        fileName = fileName,
+                        label = label,
+                        location = location,
+                        description = rememberDescription.value
+                    )
                 })
         }
-
     }
 }

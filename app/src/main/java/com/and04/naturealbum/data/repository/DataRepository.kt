@@ -12,19 +12,14 @@ import javax.inject.Inject
 interface DataRepository {
     suspend fun getLabels(): List<Label>
     suspend fun getLabelById(id: Int): Label
-    suspend fun getIdByLabelName(label: Label): Int
-    suspend fun insertPhoto(photoDetail: PhotoDetail): Long
-    suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
-    suspend fun getALLAlbum(): List<Album>
-    suspend fun getLabelNameById(id: Int): String
-    suspend fun getPhotoDetailUriById(id: Int): String
-    suspend fun getLabelBackgroundColorById(id: Int): String
-    suspend fun insertLabel(label: Label): Long
     suspend fun getAllAlbum(): List<AlbumDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
+    suspend fun insertPhoto(photoDetail: PhotoDetail): Long
+    suspend fun insertPhotoInAlbum(album: Album): Long
+    suspend fun insertLabel(label: Label): Long
     suspend fun updateAlbum(album: Album)
 }
 
@@ -39,13 +34,6 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getLabelById(id: Int): Label {
         return labelDao.getLabelById(id)
-    }
-
-    override suspend fun getIdByLabelName(label: Label): Int {
-        return labelDao.getIdByName(label.name) ?: run {
-            labelDao.insertLabel(label)
-            labelDao.getIdByName(label.name) ?: error("INSERT LABEL FAIL")
-        }
     }
 
     override suspend fun insertLabel(label: Label): Long {
@@ -72,24 +60,8 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetailsUriByLabelId(labelId)
     }
 
-    override suspend fun getALLAlbum(): List<Album> {
-        return albumDao.getALLAlbum()
-    }
-
     override suspend fun getAlbumByLabelId(labelId: Int): List<Album> {
         return albumDao.getAlbumByLabelId(labelId)
-    }
-
-    override suspend fun getLabelNameById(id: Int): String {
-        return labelDao.getLabelNameById(id)
-    }
-
-    override suspend fun getLabelBackgroundColorById(id: Int): String {
-        return labelDao.getLabelBackgroundColorById(id)
-    }
-
-    override suspend fun getPhotoDetailUriById(id: Int): String {
-        return photoDetailDao.getPhotoDetailUriById(id)
     }
 
     override suspend fun getAllAlbum(): List<AlbumDto> {
