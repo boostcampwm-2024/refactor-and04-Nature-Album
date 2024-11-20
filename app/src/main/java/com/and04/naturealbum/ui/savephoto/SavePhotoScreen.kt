@@ -322,12 +322,14 @@ fun insertFirebaseService(
 ) {
     if (Firebase.auth.currentUser == null || !NetworkState.isActiveNetwork()) return
 
-    val intent = Intent(context, FirebaseInsertService::class.java)
-    intent.putExtra(SERVICE_URI, model.toString())
-    intent.putExtra(SERVICE_FILENAME, fileName)
-    intent.putExtra(SERVICE_LABEL, label)
-    intent.putExtra(SERVICE_LOCATION, location) //FIXME Location == null
-    intent.putExtra(SERVICE_DESCRIPTION, description)
+    val intent = Intent(context, FirebaseInsertService::class.java).apply {
+        putExtra(SERVICE_URI, model.toString())
+        putExtra(SERVICE_FILENAME, fileName)
+        putExtra(SERVICE_LABEL, label)
+        putExtra(SERVICE_LOCATION, location) //FIXME Location == null
+        putExtra(SERVICE_DESCRIPTION, description)
+    }
+
     context.startService(intent)
 }
 
