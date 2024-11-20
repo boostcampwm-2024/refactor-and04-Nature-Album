@@ -23,6 +23,9 @@ class FriendViewModel @Inject constructor(
     private val _friendRequests = MutableStateFlow<List<FirebaseFriendRequest>>(emptyList())
     val friendRequests: StateFlow<List<FirebaseFriendRequest>> = _friendRequests
 
+    private val _receivedFriendRequests = MutableStateFlow<List<FirebaseFriendRequest>>(emptyList())
+    val receivedFriendRequests: StateFlow<List<FirebaseFriendRequest>> = _receivedFriendRequests
+
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
 
@@ -60,6 +63,19 @@ class FriendViewModel @Inject constructor(
                 Log.d("FriendViewModel", "친구 요청 목록: ${_friendRequests.value}")
             } catch (e: Exception) {
                 _operationStatus.value = "친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
+                Log.d("FriendViewModel", _operationStatus.value)
+            }
+        }
+    }
+
+    fun fetchReceivedFriendRequests(uid: String) {
+        viewModelScope.launch {
+            try {
+                val requests = fireBaseRepository.getReceivedFriendRequests(uid)
+                _receivedFriendRequests.value = requests
+                Log.d("FriendViewModel", "받은 친구 요청 목록: ${_receivedFriendRequests.value}")
+            } catch (e: Exception) {
+                _operationStatus.value = "받은 친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
                 Log.d("FriendViewModel", _operationStatus.value)
             }
         }

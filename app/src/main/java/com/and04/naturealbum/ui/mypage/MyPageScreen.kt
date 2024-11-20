@@ -70,7 +70,7 @@ fun MyPageScreen(
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
-    val friendRequests = friendViewModel.friendRequests.collectAsStateWithLifecycle()
+    val receivedFriendRequests = friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
 
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
@@ -88,14 +88,14 @@ fun MyPageScreen(
         navigateToHome = navigateToHome,
         uiState = uiState,
         myFriendsState = myFriends,
-        friendRequestsState = friendRequests,
+        friendRequestsState = receivedFriendRequests,
         allUsersInfoState = allUsersInfo,
         userEmailState = userEmail,
         userPhotoUrlState = userPhotoUrl,
         userDisplayNameState = userDisplayName,
         userUidState = userUid,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
-        fetchFriendRequests = friendViewModel::fetchFriendRequests,
+        fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
         fetchFriends = friendViewModel::fetchFriends,
         fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
         sendFriendRequest = friendViewModel::sendFriendRequest
@@ -114,7 +114,7 @@ fun MyPageScreenContent(
     userDisplayNameState: State<String?>,
     userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
-    fetchFriendRequests: (String) -> Unit,
+    fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
@@ -146,7 +146,7 @@ fun MyPageScreenContent(
             userDisplayNameState = userDisplayNameState,
             userUidState = userUidState,
             signInWithGoogle = signInWithGoogle,
-            fetchFriendRequests = fetchFriendRequests,
+            fetchReceivedFriendRequests = fetchReceivedFriendRequests,
             fetchFriends = fetchFriends,
             fetchAllUsersInfo = fetchAllUsersInfo,
             sendFriendRequest = sendFriendRequest
@@ -166,7 +166,7 @@ private fun MyPageContent(
     userDisplayNameState: State<String?>,
     userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
-    fetchFriendRequests: (String) -> Unit,
+    fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
@@ -193,7 +193,7 @@ private fun MyPageContent(
                     myFriendsState = myFriendsState,
                     friendRequestsState = friendRequestsState,
                     allUsersInfoState = allUsersInfoState,
-                    fetchFriendRequests = fetchFriendRequests,
+                    fetchReceivedFriendRequests = fetchReceivedFriendRequests,
                     fetchFriends = fetchFriends,
                     fetchAllUsersInfo = fetchAllUsersInfo,
                     sendFriendRequest = sendFriendRequest
@@ -282,7 +282,7 @@ private fun SocialContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    fetchFriendRequests: (String) -> Unit,
+    fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
@@ -310,7 +310,7 @@ private fun SocialContent(
                     when (index) {
                         SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
                         SOCIAL_SEARCH_TAB_INDEX -> fetchAllUsersInfo(currentUid)
-                        SOCIAL_ALARM_TAB_INDEX -> fetchFriendRequests(currentUid)
+                        SOCIAL_ALARM_TAB_INDEX -> fetchReceivedFriendRequests(currentUid)
                     }
                 }
             }
