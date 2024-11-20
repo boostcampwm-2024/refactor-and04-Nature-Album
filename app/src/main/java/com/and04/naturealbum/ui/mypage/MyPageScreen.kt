@@ -70,9 +70,9 @@ fun MyPageScreen(
     friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
-    val myFriends = friendViewModel.friends.collectAsState() // FriendViewModel의 친구 목록
-    val friendRequests = friendViewModel.friendRequests.collectAsState() // 친구 요청 목록
-    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsState() // 사용자 정보
+    val myFriends = friendViewModel.friends.collectAsStateWithLifecycle() // FriendViewModel의 친구 목록
+    val friendRequests = friendViewModel.friendRequests.collectAsStateWithLifecycle()// 친구 요청 목록
+    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle() // 사용자 정보
 
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
 //       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
@@ -264,6 +264,15 @@ private fun SocialContent(
     allUsersInfo: List<FirestoreUserWithStatus>,
     currentUid: String,
 ) {
+    // TODO: 테스트용 친구 요청
+    friendViewModel.sendFriendRequest(currentUid, "yujin")
+
+    // TODO: 테스트용 친구 요청하고 수락해두기
+    friendViewModel.sendFriendRequest("and04", currentUid)
+    friendViewModel.sendFriendRequest("cat", currentUid)
+    friendViewModel.acceptFriendRequest("and04", currentUid)
+    friendViewModel.acceptFriendRequest("cat", currentUid)
+
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
     val titles = listOf(

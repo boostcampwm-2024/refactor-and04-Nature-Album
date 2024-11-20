@@ -35,6 +35,7 @@ interface FireBaseRepository {
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
     suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus>
+    suspend fun getReceivedFriendRequests(uid: String): List<FirebaseFriendRequest>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -56,6 +57,7 @@ interface FireBaseRepository {
     suspend fun rejectFriendRequest(uid: String, targetUid: String): Boolean
 
     //UPDATE
+
 
 }
 
@@ -141,6 +143,33 @@ class FireBaseRepositoryImpl @Inject constructor(
                 Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
                 null
             }
+        }
+    }
+
+    override suspend fun getReceivedFriendRequests(uid: String): List<FirebaseFriendRequest> {
+        val documents = fireStore.collection(USER)
+            .document(uid)
+            .collection(FRIEND_REQUESTS)
+            .get()
+            .await()
+            .documents
+
+        return documents.mapNotNull { document ->
+            try {
+                val friendRequest = document.toObject(FirebaseFriendRequest::class.java)
+                if (friendRequest == null) {
+                    Log.e("getReceivedFriendRequests", "Failed to map document: ${document.id}")
+                }
+                friendRequest
+            } catch (e: Exception) {
+                Log.e(
+                    "getReceivedFriendRequests",
+                    "Error mapping document: ${document.id}, ${e.message}"
+                )
+                null
+            }
+        }.filter { friendRequest ->
+            friendRequest.status == FriendStatus.RECEIVED
         }
     }
 
