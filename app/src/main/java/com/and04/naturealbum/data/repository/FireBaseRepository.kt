@@ -43,7 +43,7 @@ interface FireBaseRepository {
         uid: String,
         labelName: String,
         labelData: FirebaseLabel,
-        ): Boolean
+    ): Boolean
 
     suspend fun insertPhotoInfo(
         uid: String,
