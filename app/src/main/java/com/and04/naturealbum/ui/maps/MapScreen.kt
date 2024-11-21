@@ -49,6 +49,7 @@ import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
 import com.naver.maps.map.clustering.ClusterMarkerInfo
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
@@ -188,6 +189,10 @@ fun MapScreen(
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
             mapView.getMapAsync { naverMap ->
                 cluster.map = naverMap
+                naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
+                    displayPhotos.value = photos.value
+                    pick = null
+                }
             }
         }
 
