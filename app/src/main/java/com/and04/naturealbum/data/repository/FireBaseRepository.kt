@@ -217,9 +217,12 @@ class FireBaseRepositoryImpl @Inject constructor(
                             if (friendRequestDoc.exists()) {
                                 val request =
                                     friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
+                                // TODO: 로직 점검 필요 => RECEIVED로만 저장되고 있음
                                 friendStatus = if (request?.user?.uid == uid) {
+                                    Log.d("Test", "받은 것 uid ${request?.user?.email}")
                                     FriendStatus.RECEIVED
                                 } else {
+                                    Log.d("Test", "보낸 것 uid ${request?.user?.email}")
                                     FriendStatus.SENT
                                 }
                             }
