@@ -85,7 +85,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                     email = email,
                     photoUrl = photoUrl ?: ""
                 )
-                fireStore.collection(USER).document(uid).set(firestoreUser).await()
+                fireStore.collection(USER).document(uid).set(firestoreUser)
             }
             true
         } catch (e: Exception) {
