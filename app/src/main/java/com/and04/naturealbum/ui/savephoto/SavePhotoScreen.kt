@@ -1,10 +1,11 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.location.Location
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -34,7 +35,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -54,16 +54,26 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.service.FirebaseInsertService
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_FILENAME
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION
+import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.isPortrait
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SavePhotoScreen(
     location: Location?,
     model: Uri,
+    fileName: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onLabelSelect: () -> Unit,
@@ -83,6 +93,7 @@ fun SavePhotoScreen(
 
     SavePhotoScreen(
         model = model,
+        fileName = fileName,
         label = label,
         location = location,
         photoSaveState = photoSaveState,
@@ -100,6 +111,7 @@ fun SavePhotoScreen(
 @Composable
 fun SavePhotoScreen(
     model: Uri,
+    fileName: String,
     label: Label?,
     location: Location?,
     rememberDescription: State<String>,
@@ -110,7 +122,7 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, Label, Location, String, Boolean) -> Unit
+    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -121,6 +133,7 @@ fun SavePhotoScreen(
             SavePhotoScreenPortrait(
                 innerPadding = innerPadding,
                 model = model,
+                fileName = fileName,
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
@@ -136,6 +149,7 @@ fun SavePhotoScreen(
             SavePhotoScreenLandscape(
                 innerPadding = innerPadding,
                 model = model,
+                fileName = fileName,
                 label = label,
                 location = location,
                 rememberDescription = rememberDescription,
@@ -298,6 +312,27 @@ fun Description(
     }
 }
 
+fun insertFirebaseService(
+    context: Context,
+    model: Uri,
+    fileName: String,
+    label: Label,
+    location: Location,
+    description: String
+) {
+    if (Firebase.auth.currentUser == null || !NetworkState.isActiveNetwork()) return
+
+    val intent = Intent(context, FirebaseInsertService::class.java).apply {
+        putExtra(SERVICE_URI, model.toString())
+        putExtra(SERVICE_FILENAME, fileName)
+        putExtra(SERVICE_LABEL, label)
+        putExtra(SERVICE_LOCATION, location) //FIXME Location == null
+        putExtra(SERVICE_DESCRIPTION, description)
+    }
+
+    context.startService(intent)
+}
+
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
@@ -309,8 +344,9 @@ private fun ScreenPreview() {
 
         SavePhotoScreen(
             model = "".toUri(),
-            label = Label(0, "0000FF", "cat"),
             location = null,
+            fileName = "fileName.jpg",
+            label = Label(0, "0000FF", "cat"),
             rememberDescription = rememberDescription,
             onDescriptionChange = { },
             isRepresented = isRepresented,
@@ -319,7 +355,7 @@ private fun ScreenPreview() {
             onNavigateToMyPage = { },
             onLabelSelect = { },
             onBack = { },
-            savePhoto = { _, _, _, _, _ -> },
+            savePhoto = { _, _, _, _, _, _ -> },
         )
     }
 }

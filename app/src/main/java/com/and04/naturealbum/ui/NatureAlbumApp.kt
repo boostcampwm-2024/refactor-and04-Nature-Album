@@ -30,6 +30,7 @@ import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.ImageConvert
 import java.io.File
 
 @Composable
@@ -52,13 +53,22 @@ fun NatureAlbumNavHost(
             context = context
         )
     }
+
     var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
+    var fileName: String by rememberSaveable { mutableStateOf("") }
+    var imageFile: File? = remember { null }
+
     var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK) {
+                val resizePicture = ImageConvert.resizeImage(imageUri)!!
+                imageFile?.delete()
+                imageUri = resizePicture.uri
+                fileName = resizePicture.fileName
+
                 locationHandler.getLocation { location -> lastLocation = location }
                 navController.navigate(NavigateDestination.SavePhoto.route) {
                     launchSingleTop = true
@@ -74,10 +84,10 @@ fun NatureAlbumNavHost(
         }
     val takePicture = {
         // TODO: imageUri가 EMPTY가 아닐때 해당 파일 삭제
-        val fileName = "${System.currentTimeMillis()}.jpg"
-        val imageFile = File(context.filesDir, fileName)
+        fileName = "temp_${System.currentTimeMillis()}.jpg"
+        imageFile = File(context.filesDir, fileName)
         imageUri =
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile!!)
 
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
             putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
@@ -107,6 +117,7 @@ fun NatureAlbumNavHost(
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
+                fileName = fileName,
                 onBack = { takePicture() },
                 onSave = {
                     navController.navigate(NavigateDestination.Album.route) {

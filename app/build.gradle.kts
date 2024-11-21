@@ -127,6 +127,9 @@ dependencies {
     //firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage)
 
     //firebase google login
     implementation(libs.firebase.auth.ktx)
@@ -142,6 +145,9 @@ dependencies {
 
     // Naver Maps
     implementation(libs.map.sdk)
+
+    // Image Rotation
+    implementation(libs.androidx.exifinterface)
 }
 
 kapt {

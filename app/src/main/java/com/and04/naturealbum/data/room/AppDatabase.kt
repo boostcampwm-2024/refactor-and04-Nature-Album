@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [Label::class, Album::class, PhotoDetail::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 
