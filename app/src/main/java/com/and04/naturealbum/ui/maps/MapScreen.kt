@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,7 +71,7 @@ fun MapScreen(
     val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val marker = Marker()
+    val marker = remember { Marker() }
 
     val mapView = remember {
         MapView(context).apply {
@@ -86,33 +91,47 @@ fun MapScreen(
         }
     }
 
+    var pick by remember { mutableStateOf(null as PhotoDetail?) }
+    var photoDetailIds by remember { mutableStateOf(listOf<Int>()) }
+    val displayPhotos = remember { mutableStateOf(listOf<PhotoDetail>()) }
+
+    LaunchedEffect(photoDetailIds) {
+        displayPhotos.value = photoDetailIds.map { labelId -> idToPhoto[labelId]!! }
+    }
+
+    LaunchedEffect(pick) {
+        mapView.getMapAsync { naverMap ->
+            marker.map = pick?.let { pick ->
+                imageMarker.loadImage(pick.photoUri)
+                marker.position = LatLng(pick.latitude, pick.longitude)
+                naverMap
+            }
+        }
+    }
+
     val clusterImage = OverlayImage.fromResource(R.drawable.ic_cluster)
 
     val cluster: Clusterer<PhotoKey> = remember {
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
-                val photoDetailIds = info.tag as List<*>
-                val pick =
-                    photoDetailIds.map { id -> idToPhoto[id]!! } // id 리스트를 PhotoDetail 리스트로 변환
-                        .groupBy { photoDetail -> photoDetail.labelId } // labelId로 그룹화
-                        .maxBy { (_, photos) -> photos.size } // 그룹 중 가장 많은 사진을 가진 그룹 선택
-                        .value // 가장 많은 사진을 가진 그룹의 사진 리스트
-                        .maxBy { photoDetail -> photoDetail.datetime } // 가장 최근 사진 선택
-                imageMarker.loadImage(pick.photoUri)
-                marker.position = LatLng(pick.latitude, pick.longitude)
-                mapView.getMapAsync { naverMap -> marker.map = naverMap }
+                photoDetailIds = info.tag as List<Int>
+                pick = photoDetailIds.map { labelId -> idToPhoto[labelId]!! }
+                    .groupBy { photoDetail -> photoDetail.labelId }
+                    .maxBy { (_, photos) -> photos.size }.value.maxBy { photoDetail -> photoDetail.datetime }
                 true
             }
         }
         Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
-            // cluster의 tag는 해당 cluster에 포함된 사진들의 id 리스트
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
+                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
+                    info.tag as List<Int>
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
+                if (info.tag == pick?.id) photoDetailIds = listOf(pick!!.id)
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
@@ -171,12 +190,13 @@ fun MapScreen(
                 cluster.map = naverMap
             }
         }
+
         PartialBottomSheet(initialState = BottomSheetState.Collapsed) {
             PhotoGrid(
-                photos = photos.value,
+                photos = displayPhotos,
                 labels = labels.value,
                 modifier = modifier,
-                onPhotoClick = {})
+                onPhotoClick = { photo -> pick = photo })
         }
     }
 }
@@ -184,14 +204,15 @@ fun MapScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
-    photos: List<PhotoDetail>,
+    photos: State<List<PhotoDetail>>,
     labels: List<Label>,
     columnCount: Int = 3,
     modifier: Modifier = Modifier,
-    onPhotoClick: (Int) -> Unit,
+    onPhotoClick: (PhotoDetail) -> Unit,
 ) {
     val labelIdToLabel = labels.associateBy { label -> label.id }
     val groupByLabel = photos
+        .value
         .groupBy { photoDetail -> photoDetail.labelId }
         .toList()
         .sortedByDescending { (_, photoDetails) -> photoDetails.size }
@@ -229,7 +250,8 @@ fun PhotoGrid(
                                 .wrapContentSize(Alignment.Center)
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clip(MaterialTheme.shapes.medium),
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable { onPhotoClick(photo) },
                             contentScale = ContentScale.Crop,
                         )
                     }
