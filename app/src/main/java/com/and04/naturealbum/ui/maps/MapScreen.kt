@@ -3,15 +3,19 @@ package com.and04.naturealbum.ui.maps
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.View
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -31,9 +37,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
+import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
 import com.naver.maps.map.clustering.ClusterMarkerInfo
@@ -54,6 +62,7 @@ fun MapScreen(
     viewModel: MapScreenViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsStateWithLifecycle()
+    val labels = viewModel.labels.collectAsStateWithLifecycle()
     val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -163,33 +172,72 @@ fun MapScreen(
             }
         }
         PartialBottomSheet(initialState = BottomSheetState.Collapsed) {
-            PhotoGrid(modifier = modifier, photos = photos.value, onPhotoClick = {})
+            PhotoGrid(
+                photos = photos.value,
+                labels = labels.value,
+                modifier = modifier,
+                onPhotoClick = {})
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
-    modifier: Modifier = Modifier,
     photos: List<PhotoDetail>,
+    labels: List<Label>,
+    columnCount: Int = 3,
+    modifier: Modifier = Modifier,
     onPhotoClick: (Int) -> Unit,
 ) {
-    LazyVerticalGrid(
+    val labelIdToLabel = labels.associateBy { label -> label.id }
+    val groupByLabel = photos
+        .groupBy { photoDetail -> photoDetail.labelId }
+        .toList()
+        .sortedByDescending { (_, photoDetails) -> photoDetails.size }
+        .map { (labelId, photoDetails) ->
+            labelIdToLabel[labelId]!! to photoDetails.sortedByDescending { photoDetail -> photoDetail.datetime }
+        }
+
+    LazyColumn(
         modifier = modifier,
-        columns = GridCells.Fixed(3),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(photos) { photo ->
-            AsyncImage(
-                model = photo.photoUri,
-                contentDescription = photo.description, // TODO: 해당 description 무엇으로 할지 확정
-                modifier = Modifier
-                    .wrapContentSize(Alignment.Center)
-                    .aspectRatio(1f)
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop,
-            )
+        groupByLabel.forEach { (label, photos) ->
+            stickyHeader {
+                val backgroundColor = label.backgroundColor.toColor()
+                SuggestionChip(
+                    onClick = {},
+                    label = { Text(text = label.name) },
+                    modifier = modifier,
+                    colors = SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = backgroundColor,
+                        labelColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
+                    ),
+                )
+            }
+
+            items(photos.windowed(columnCount, columnCount, true)) { row ->
+                Row(
+                    modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    row.forEach { photo ->
+                        AsyncImage(
+                            model = photo.photoUri,
+                            contentDescription = photo.description, // TODO: 해당 description 무엇으로 할지 확정
+                            modifier = Modifier
+                                .wrapContentSize(Alignment.Center)
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clip(MaterialTheme.shapes.medium),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
+                    repeat(columnCount - row.size) {
+                        Box(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
         }
     }
 }
