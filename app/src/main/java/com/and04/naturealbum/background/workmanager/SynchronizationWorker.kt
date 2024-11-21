@@ -93,40 +93,35 @@ class SynchronizationWorker @AssistedInject constructor(
     //TODO 이미지 중복 저장 안할 수 있는 좋은 방법 찾기
     override suspend fun doWork(): Result {
         val currentUser = Firebase.auth.currentUser ?: return Result.failure()
-
+        val uid = currentUser.uid
         withContext(Dispatchers.IO) {
-            try {
-                // Label
-                launch {
-                    val labels = fireBaseRepository.getLabels(currentUser.uid)
-                    val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
+            // Label
+            launch {
+                val labels = fireBaseRepository.getLabels(uid)
+                val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
 
-                    synchronizedAlbums.forEach { album ->
-                        job.launch {
-                            insertLabel(currentUser.uid, album)
-                        }
+                synchronizedAlbums.forEach { album ->
+                    job.launch {
+                        insertLabel(uid, album)
                     }
                 }
-                // PhotoDetail
-                launch {
-                    val fileNames = fireBaseRepository.getPhotos(currentUser.uid)
-                    val synchronizedPhotoDetails =
-                        roomRepository.getSynchronizedPhotoDetails(fileNames)
+            }
+            // PhotoDetail
+            launch {
+                val fileNames = fireBaseRepository.getPhotos(uid)
+                val synchronizedPhotoDetails =
+                    roomRepository.getSynchronizedPhotoDetails(fileNames)
 
-                    synchronizedPhotoDetails.forEach { photo ->
-                        job.launch {
-                            insertPhotoDetail(currentUser.uid, photo)
-                        }
+                synchronizedPhotoDetails.forEach { photo ->
+                    job.launch {
+                        insertPhotoDetail(uid, photo)
                     }
                 }
-            } catch (e: Exception) {
-                Result.retry()
-            } finally {
-                supervisor.cancel()
-                runSync(applicationContext)
             }
         }
-
+        
+        supervisor.cancel()
+        runSync(applicationContext)
         return Result.success()
     }
 
