@@ -286,7 +286,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
         val requestTime = LocalDateTime.now().toString()
 
-        // 요청자와 대상자의 사용자 정보 가져오기
+        // TODO: 요청자와 대상자의 사용자 정보 가져오기 -> NoSQL 구조 확정 후 구조 동일하면 Firebase.auth.currentUser를 사용하는 방향 고려
         val currentUserSnapshot = fireStore.collection(USER).document(uid).get().await()
         val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
 
