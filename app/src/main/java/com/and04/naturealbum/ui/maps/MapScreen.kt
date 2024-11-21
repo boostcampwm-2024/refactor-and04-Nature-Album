@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
 import android.graphics.PointF
+import android.view.Gravity
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -193,10 +194,15 @@ fun MapScreen(
                     displayPhotos.value = photos.value
                     pick = null
                 }
+                val uiSettings = naverMap.uiSettings
+                uiSettings.logoGravity = Gravity.TOP or Gravity.START
             }
         }
 
-        PartialBottomSheet(initialState = BottomSheetState.Collapsed) {
+        PartialBottomSheet(
+            initialState = BottomSheetState.Collapsed,
+            fullExpansionSize = 0.95f
+        ) {
             PhotoGrid(
                 photos = displayPhotos,
                 labels = labels.value,
