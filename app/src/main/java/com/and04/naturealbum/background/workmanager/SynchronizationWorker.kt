@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -38,6 +37,8 @@ class SynchronizationWorker @AssistedInject constructor(
     private val roomRepository: DataRepository,
     private val fireBaseRepository: FireBaseRepository
 ) : CoroutineWorker(appContext, workerParams) {
+    private val supervisor = SupervisorJob()
+    private val job = CoroutineScope(Dispatchers.IO + supervisor)
 
     companion object {
         private const val WORKER_NAME = "MIDNIGHT_SYNCHRONIZATION"
@@ -87,21 +88,18 @@ class SynchronizationWorker @AssistedInject constructor(
         }
     }
 
-    private val supervisor = SupervisorJob()
-    private val job = CoroutineScope(Dispatchers.IO + supervisor)
-
-    //TODO 이미지 중복 저장 안할 수 있는 좋은 방법 찾기
     override suspend fun doWork(): Result {
         val currentUser = Firebase.auth.currentUser ?: return Result.failure()
         val uid = currentUser.uid
-        withContext(Dispatchers.IO) {
+
+        val doWorkJob = job.launch {
             // Label
             launch {
                 val labels = fireBaseRepository.getLabels(uid)
                 val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
 
                 synchronizedAlbums.forEach { album ->
-                    job.launch {
+                    launch {
                         insertLabel(uid, album)
                     }
                 }
@@ -113,14 +111,17 @@ class SynchronizationWorker @AssistedInject constructor(
                     roomRepository.getSynchronizedPhotoDetails(fileNames)
 
                 synchronizedPhotoDetails.forEach { photo ->
-                    job.launch {
+                    launch {
                         insertPhotoDetail(uid, photo)
                     }
                 }
             }
         }
-        
+
+        doWorkJob.join()
+        doWorkJob.cancel()
         supervisor.cancel()
+
         runSync(applicationContext)
         return Result.success()
     }
