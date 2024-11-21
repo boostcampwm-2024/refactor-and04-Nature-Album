@@ -18,8 +18,8 @@ interface DataRepository {
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
     suspend fun getAllAlbum(): List<AlbumDto>
-    suspend fun getSynchronizedAlbums(): List<SynchronizedAlbumsDto>
-    suspend fun getSynchronizedPhotoDetails(): List<SynchronizedPhotoDetailsDto>
+    suspend fun getSynchronizedAlbums(labels: List<String>): List<SynchronizedAlbumsDto>
+    suspend fun getSynchronizedPhotoDetails(fileNames: List<String>): List<SynchronizedPhotoDetailsDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
@@ -72,12 +72,12 @@ class DataRepositoryImpl @Inject constructor(
         return albumDao.getAllAlbum()
     }
 
-    override suspend fun getSynchronizedAlbums(): List<SynchronizedAlbumsDto> {
-        return albumDao.getSynchronizedAlbums()
+    override suspend fun getSynchronizedAlbums(labels: List<String>): List<SynchronizedAlbumsDto> {
+        return albumDao.getSynchronizedAlbums(labels)
     }
 
-    override suspend fun getSynchronizedPhotoDetails(): List<SynchronizedPhotoDetailsDto> {
-        return albumDao.getSynchronizedPhotos()
+    override suspend fun getSynchronizedPhotoDetails(fileNames: List<String>): List<SynchronizedPhotoDetailsDto> {
+        return albumDao.getSynchronizedPhotos(fileNames)
     }
 
     override suspend fun updateAlbum(album: Album) {

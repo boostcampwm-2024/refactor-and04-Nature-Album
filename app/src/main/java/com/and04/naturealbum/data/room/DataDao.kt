@@ -67,10 +67,10 @@ interface AlbumDao {
         FROM album
         JOIN label ON album.label_id = label.id
         JOIN photo_detail ON album.photo_detail_id = photo_detail.id
-            
+        WHERE label.name NOT IN (:labels)
     """
     )
-    suspend fun getSynchronizedAlbums(): List<SynchronizedAlbumsDto>
+    suspend fun getSynchronizedAlbums(labels: List<String>): List<SynchronizedAlbumsDto>
 
     @Query(
         """
@@ -85,10 +85,10 @@ interface AlbumDao {
         FROM album
         JOIN label ON album.label_id = label.id
         JOIN photo_detail ON album.photo_detail_id = photo_detail.id
-            
+        WHERE photo_detail.file_name NOT IN (:fileNames)
     """
     )
-    suspend fun getSynchronizedPhotos(): List<SynchronizedPhotoDetailsDto>
+    suspend fun getSynchronizedPhotos(fileNames: List<String>): List<SynchronizedPhotoDetailsDto>
 
     @Query("SELECT * FROM album")
     suspend fun getALLAlbum(): List<Album>

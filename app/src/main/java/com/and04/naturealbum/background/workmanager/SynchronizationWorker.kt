@@ -31,6 +31,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
     private val supervisor = SupervisorJob()
     private val job = CoroutineScope(Dispatchers.IO + supervisor)
+
     //TODO 이미지 중복 저장 안할 수 있는 좋은 방법 찾기
     override suspend fun doWork(): Result {
         val currentUser = Firebase.auth.currentUser ?: return Result.failure()
@@ -39,10 +40,7 @@ class SynchronizationWorker @AssistedInject constructor(
             // Label
             launch {
                 val labels = fireBaseRepository.getLabels(currentUser.uid)
-                val albums = roomRepository.getSynchronizedAlbums() //TODO 더 유용한 쿼리 있나 찾아보기
-
-                val synchronizedAlbums =
-                    albums.filter { album -> !labels.contains(album.labelName) }
+                val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
 
                 synchronizedAlbums.forEach { album ->
                     job.launch {
@@ -53,10 +51,7 @@ class SynchronizationWorker @AssistedInject constructor(
             // PhotoDetail
             launch {
                 val fileNames = fireBaseRepository.getPhotos(currentUser.uid)
-                val photoDetails = roomRepository.getSynchronizedPhotoDetails()
-
-                val synchronizedPhotoDetails =
-                    photoDetails.filter { photo -> !fileNames.contains(photo.fileName) }
+                val synchronizedPhotoDetails = roomRepository.getSynchronizedPhotoDetails(fileNames)
 
                 synchronizedPhotoDetails.forEach { photo ->
                     job.launch {
