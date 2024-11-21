@@ -217,13 +217,11 @@ class FireBaseRepositoryImpl @Inject constructor(
                             if (friendRequestDoc.exists()) {
                                 val request =
                                     friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                                // TODO: 로직 점검 필요 => RECEIVED로만 저장되고 있음
-                                friendStatus = if (request?.user?.uid == uid) {
-                                    Log.d("Test", "받은 것 uid ${request?.user?.email}")
-                                    FriendStatus.RECEIVED
+                                // 상대방(equest?.status) 기준 => 현재 uid 에게 보냈는지, 받았는지 확인
+                                friendStatus = if (request?.status == FriendStatus.RECEIVED) {
+                                    FriendStatus.SENT // 현재 uid 기준 [상대방 RECEIVED : 나  SENT]
                                 } else {
-                                    Log.d("Test", "보낸 것 uid ${request?.user?.email}")
-                                    FriendStatus.SENT
+                                    FriendStatus.RECEIVED // 현재 uid 기준 [상대방 SENT : 나  RECEIVED]
                                 }
                             }
                             if (friendDoc.exists()) {

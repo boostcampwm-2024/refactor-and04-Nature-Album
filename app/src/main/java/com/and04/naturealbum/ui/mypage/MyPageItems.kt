@@ -192,9 +192,9 @@ fun RequestedItem(
             },
             label = {
                 val text = when (userWithStatus.status) {
-                    // 여기에서는 uid로부터 받은 상대방 기준
-                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_request_received)
-                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_requested)
+                    // 현재 uid 기준 상대방에게 [SENT: 요청 보낸 상태, RECEIVED: 요청 받은 상태, FRIEND: 친구 상태]
+                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
+                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
                     FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
                     else -> stringResource(R.string.my_page_friend_request)
                 }
