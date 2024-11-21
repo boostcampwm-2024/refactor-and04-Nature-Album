@@ -15,3 +15,33 @@ data class FirebasePhotoInfo(
     val description: String,
     val datetime: LocalDateTime
 )
+
+data class FirebaseFriend(
+    val user: FirestoreUser = FirestoreUser(),
+    val addedAt: String = ""
+)
+
+data class FirebaseFriendRequest(
+    val user: FirestoreUser = FirestoreUser(),
+    val requestedAt: String = "",
+    val status: FriendStatus = FriendStatus.NORMAL,
+)
+
+data class FirestoreUser(
+    val uid: String = "",
+    val displayName: String = "",
+    val email: String = "",
+    val photoUrl: String = "",
+)
+
+data class FirestoreUserWithStatus(
+    val user: FirestoreUser = FirestoreUser(),
+    val status: FriendStatus = FriendStatus.NORMAL,
+)
+
+enum class FriendStatus() {
+    NORMAL,
+    SENT,
+    RECEIVED,
+    FRIEND;
+}

@@ -4,10 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -41,19 +39,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.dto.MyFriend
+import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
 
 @Composable
-fun MyPageSocialList(myFriends: List<MyFriend>) {
+fun MyPageSocialList(myFriends: List<FirebaseFriend>) {
     LazyColumn {
-        items(items = myFriends, key = { myFriend -> myFriend.email }) { myFriend ->
+        items(items = myFriends, key = { myFriend -> myFriend.user.email }) { myFriend ->
             MyPageSocialItem(myFriend)
         }
     }
 }
 
 @Composable
-fun MyPageSocialItem(myFriend: MyFriend) {
+fun MyPageSocialItem(myFriend: FirebaseFriend) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,11 +67,11 @@ fun MyPageSocialItem(myFriend: MyFriend) {
                 .size(40.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
-            model = myFriend.uri,
+            model = myFriend.user.photoUrl,
             contentDescription = stringResource(R.string.my_page_user_profile_image),
         )
 
-        Text(text = myFriend.email)
+        Text(text = myFriend.user.displayName)
     }
 
     HorizontalDivider(thickness = 1.dp)
@@ -78,7 +79,11 @@ fun MyPageSocialItem(myFriend: MyFriend) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyPageSearch(myFriends: List<MyFriend>) {
+fun MyPageSearch(
+    userWithStatusList: List<FirestoreUserWithStatus>,
+    currentUid: String,
+    sendFriendRequest: (String, String) -> Unit,
+) {
     var textFieldState by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -114,25 +119,47 @@ fun MyPageSearch(myFriends: List<MyFriend>) {
             },
         ) {
             // 검색 결과 리스트
-            RequestedList(myFriends)
+            RequestedList(
+                userWithStatusList = userWithStatusList,
+                currentUid = currentUid,
+                sendFriendRequest = sendFriendRequest
+            )
         }
 
         // 요청된 친구 리스트
-        RequestedList(myFriends)
+        RequestedList(
+            userWithStatusList = userWithStatusList,
+            currentUid = currentUid,
+            sendFriendRequest = sendFriendRequest
+        )
     }
 }
 
 @Composable
-fun RequestedList(myFriends: List<MyFriend>) {
+fun RequestedList(
+    userWithStatusList: List<FirestoreUserWithStatus>,
+    currentUid: String,
+    sendFriendRequest: (String, String) -> Unit,
+) {
     LazyColumn {
-        items(items = myFriends, key = { myFriend -> myFriend.email }) { myFriend ->
-            RequestedItem(myFriend)
+        items(
+            items = userWithStatusList,
+            key = { myFriend -> myFriend.user.email }) { userWithStatus ->
+            RequestedItem(
+                userWithStatus = userWithStatus,
+                currentUid = currentUid,
+                sendFriendRequest = sendFriendRequest
+            )
         }
     }
 }
 
 @Composable
-fun RequestedItem(myFriend: MyFriend) {
+fun RequestedItem(
+    userWithStatus: FirestoreUserWithStatus,
+    currentUid: String,
+    sendFriendRequest: (String, String) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -149,27 +176,43 @@ fun RequestedItem(myFriend: MyFriend) {
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = myFriend.uri,
+                model = userWithStatus.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = myFriend.email)
+            Text(text = userWithStatus.user.email)
         }
 
 
         SuggestionChip(
-            onClick = { /* TODO */ },
+            onClick = {
+                if (userWithStatus.status == FriendStatus.NORMAL) {
+                    sendFriendRequest(currentUid, userWithStatus.user.uid)
+                }
+            },
             label = {
-                val text = if (myFriend.isRequest)
-                    stringResource(R.string.my_page_friend_requested)
-                else
-                    stringResource(R.string.my_page_friend_request)
-
+                val text = when (userWithStatus.status) {
+                    // 현재 uid 기준 상대방에게 [SENT: 요청 보낸 상태, RECEIVED: 요청 받은 상태, FRIEND: 친구 상태]
+                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
+                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
+                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
+                    else -> stringResource(R.string.my_page_friend_request)
+                }
                 Text(text = text)
             },
             colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                labelColor = Color.White
+                containerColor = when (userWithStatus.status) {
+                    FriendStatus.SENT -> Color.LightGray
+                    FriendStatus.RECEIVED -> Color.Cyan
+                    FriendStatus.FRIEND -> Color.Green
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                labelColor = when (userWithStatus.status) {
+                    FriendStatus.SENT -> Color.Black
+                    FriendStatus.RECEIVED -> Color.White
+                    FriendStatus.FRIEND -> Color.White
+                    else -> Color.White
+                }
             )
         )
     }
@@ -178,16 +221,25 @@ fun RequestedItem(myFriend: MyFriend) {
 }
 
 @Composable
-fun MyPageAlarm(myAlarms: List<MyFriend>, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarm(
+    myAlarms: List<FirebaseFriendRequest>,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
+    currentUid: String,
+) {
     LazyColumn {
-        items(items = myAlarms, key = { myFriend -> myFriend.email }) { myFriend ->
-            MyPageAlarmItem(myFriend, onDenied, onAccept)
+        items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
+            MyPageAlarmItem(
+                myFriend = myFriend,
+                onAccept = { acceptFriendRequest(currentUid, myFriend.user.uid) },
+                onDenied = { rejectFriendRequest(currentUid, myFriend.user.uid) }
+            )
         }
     }
 }
 
 @Composable
-fun MyPageAlarmItem(myFriend: MyFriend, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAccept: () -> Unit) {
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -202,11 +254,11 @@ fun MyPageAlarmItem(myFriend: MyFriend, onDenied: () -> Unit, onAccept: () -> Un
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = myFriend.uri,
+                model = myFriend.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = "${myFriend.email}${stringResource(R.string.my_page_alarm_txt)}")
+            Text(text = "${myFriend.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
         }
 
         Row(

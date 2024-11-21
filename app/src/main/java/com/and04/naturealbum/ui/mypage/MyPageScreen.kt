@@ -3,7 +3,6 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,8 +49,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
@@ -63,25 +66,65 @@ const val SOCIAL_ALARM_TAB_INDEX = 2
 fun MyPageScreen(
     navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
+    friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
-    val myFriends = myPageViewModel.myFriend.collectAsStateWithLifecycle()
+    val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
+    val receivedFriendRequests =
+        friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
+    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
 
-    MyPageScreen(
+// TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
+//       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
+//       - UiState.Success에 사용자 정보(email, photoUrl, displayName)를 포함시켜 단일 상태로 관리.
+//       - UI는 UiState만 구독하도록 변경하여 코드 복잡도를 줄이고 상태 관리를 단순화.
+//       - 현재 로직은 친구 추가 기능 테스트를 위한 임시 구현이며, 이후 사용자 상태 관리 구조 재설계 시 수정해야 함.
+
+    val userEmail = myPageViewModel.userEmail.collectAsStateWithLifecycle()
+    val userPhotoUrl = myPageViewModel.userPhotoUrl.collectAsStateWithLifecycle()
+    val userDisplayName = myPageViewModel.userDisplayName.collectAsStateWithLifecycle()
+    val userUid = myPageViewModel.userUid.collectAsStateWithLifecycle()
+
+    MyPageScreenContent(
         navigateToHome = navigateToHome,
         uiState = uiState,
-        myFriends = myFriends,
-        signInWithGoogle = myPageViewModel::signInWithGoogle
+        myFriendsState = myFriends,
+        friendRequestsState = receivedFriendRequests,
+        allUsersInfoState = allUsersInfo,
+        userEmailState = userEmail,
+        userPhotoUrlState = userPhotoUrl,
+        userDisplayNameState = userDisplayName,
+        userUidState = userUid,
+        signInWithGoogle = myPageViewModel::signInWithGoogle,
+        fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
+        fetchFriends = friendViewModel::fetchFriends,
+        fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
+        sendFriendRequest = friendViewModel::sendFriendRequest,
+        acceptFriendRequest = friendViewModel::acceptFriendRequest,
+        rejectFriendRequest = friendViewModel::rejectFriendRequest,
     )
 }
 
 @Composable
-fun MyPageScreen(
+fun MyPageScreenContent(
     navigateToHome: () -> Unit,
     uiState: State<UiState>,
-    myFriends: State<List<MyFriend>>,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    userPhotoUrlState: State<String?>,
+    userEmailState: State<String?>,
+    userDisplayNameState: State<String?>,
+    userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
+    fetchReceivedFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
+
     Scaffold(topBar = {
         PortraitTopAppBar(
             navigationIcon = {
@@ -100,8 +143,20 @@ fun MyPageScreen(
                 .padding(horizontal = 16.dp)
                 .fillMaxSize(),
             uiState = uiState,
-            myFriends = myFriends,
+            myFriendsState = myFriendsState,
+            friendRequestsState = friendRequestsState,
+            allUsersInfoState = allUsersInfoState,
+            userPhotoUrlState = userPhotoUrlState,
+            userEmailState = userEmailState,
+            userDisplayNameState = userDisplayNameState,
+            userUidState = userUidState,
             signInWithGoogle = signInWithGoogle,
+            fetchReceivedFriendRequests = fetchReceivedFriendRequests,
+            fetchFriends = fetchFriends,
+            fetchAllUsersInfo = fetchAllUsersInfo,
+            sendFriendRequest = sendFriendRequest,
+            acceptFriendRequest = acceptFriendRequest,
+            rejectFriendRequest = rejectFriendRequest,
         )
     }
 }
@@ -110,8 +165,20 @@ fun MyPageScreen(
 private fun MyPageContent(
     modifier: Modifier,
     uiState: State<UiState>,
-    myFriends: State<List<MyFriend>>,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    userPhotoUrlState: State<String?>,
+    userEmailState: State<String?>,
+    userDisplayNameState: State<String?>,
+    userUidState: State<String?>,
     signInWithGoogle: (Context) -> Unit,
+    fetchReceivedFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -120,22 +187,33 @@ private fun MyPageContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
+        // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
         when (uiState.value) {
             is UiState.Success -> {
-                val user = UserManager.getUser()
-                val email = user?.email
-                val photoUri = user?.photoUrl
-
-                UserProfileContent(uri = photoUri, email = email)
-
+                UserProfileContent(
+                    uriState = userPhotoUrlState,
+                    emailState = userEmailState,
+                    displayNameState = userDisplayNameState,
+                )
+                LoginContent { signInWithGoogle(context) } // TODO: 친구 기능 테스트 용도. 기능 픽스 후 삭제 예정
                 SocialContent(
                     modifier = Modifier.weight(1f),
-                    myFriends = myFriends,
+                    userUidState = userUidState,
+                    myFriendsState = myFriendsState,
+                    friendRequestsState = friendRequestsState,
+                    allUsersInfoState = allUsersInfoState,
+                    fetchReceivedFriendRequests = fetchReceivedFriendRequests,
+                    fetchFriends = fetchFriends,
+                    fetchAllUsersInfo = fetchAllUsersInfo,
+                    sendFriendRequest = sendFriendRequest,
+                    acceptFriendRequest = acceptFriendRequest,
+                    rejectFriendRequest = rejectFriendRequest,
                 )
             }
 
             else -> {
-                UserProfileContent()
+                // 비회원일 때
+                UserProfileContent(null, null, null)
                 LoginContent { signInWithGoogle(context) }
             }
         }
@@ -143,16 +221,28 @@ private fun MyPageContent(
 }
 
 @Composable
-private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
+private fun UserProfileContent(
+    uriState: State<String?>?,
+    emailState: State<String?>?,
+    displayNameState: State<String?>?,
+) {
+    val uri = uriState?.value ?: ""
+    val email = emailState?.value ?: stringResource(R.string.my_page_default_user_email)
+    val displayName = displayNameState?.value ?: ""
+
     UserProfileImage(
-        uri = uri?.toString(),
+        uri = uri,
         modifier = Modifier
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
     )
-
     Text(
-        text = email ?: stringResource(R.string.my_page_default_user_email),
+        text = displayName,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = email,
         modifier = Modifier.fillMaxWidth(),
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
@@ -200,8 +290,22 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun SocialContent(
     modifier: Modifier,
-    myFriends: State<List<MyFriend>>,
+    userUidState: State<String?>,
+    myFriendsState: State<List<FirebaseFriend>>,
+    friendRequestsState: State<List<FirebaseFriendRequest>>,
+    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
+    fetchReceivedFriendRequests: (String) -> Unit,
+    fetchFriends: (String) -> Unit,
+    fetchAllUsersInfo: (String) -> Unit,
+    sendFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String, String) -> Unit,
+    rejectFriendRequest: (String, String) -> Unit,
 ) {
+    val currentUid = userUidState.value ?: return
+    val myFriends = myFriendsState.value
+    val friendRequests = friendRequestsState.value
+    val allUsersInfo = allUsersInfoState.value
+
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
     val titles = listOf(
@@ -215,14 +319,31 @@ private fun SocialContent(
     ) {
         PrimaryTabRow(selectedTabIndex = tabState) {
             titles.forEachIndexed { index, title ->
-                MyPageCustomTab(tabState, index, title) { tabState = index }
+                MyPageCustomTab(tabState, index, title) {
+                    tabState = index
+                    when (index) {
+                        SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
+                        SOCIAL_SEARCH_TAB_INDEX -> fetchAllUsersInfo(currentUid)
+                        SOCIAL_ALARM_TAB_INDEX -> fetchReceivedFriendRequests(currentUid)
+                    }
+                }
             }
         }
 
         when (tabState) {
-            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends.value)
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(myFriends.value)
-            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(myFriends.value, {}, {})
+            SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
+            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
+                allUsersInfo,
+                currentUid,
+                sendFriendRequest
+            )
+
+            SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
+                friendRequests,
+                acceptFriendRequest,
+                rejectFriendRequest,
+                currentUid
+            )
         }
     }
 }
@@ -272,12 +393,20 @@ private fun MyPageScreenPreview() {
         )
     }
 
+    // 테스트용 사용자 정보
+    val userEmail = remember { mutableStateOf("test@example.com") }
+    val userPhotoUrl = remember { mutableStateOf("https://via.placeholder.com/150") }
+    val userDisplayName = remember { mutableStateOf("Test User") }
+
     NatureAlbumTheme {
-        MyPageScreen(
-            navigateToHome = {},
-            uiState = uiState,
-            myFriends = myFriends,
-            signInWithGoogle = {}
-        )
+//        MyPageScreen(
+//            navigateToHome = {},
+//            uiState = uiState,
+//            myFriends = myFriends,
+//            userEmail = userEmail.value,
+//            userPhotoUrl = userPhotoUrl.value,
+//            userDisplayName = userDisplayName.value,
+//            signInWithGoogle = {}
+//        )
     }
 }
