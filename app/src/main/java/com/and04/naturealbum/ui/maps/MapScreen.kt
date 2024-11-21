@@ -117,9 +117,10 @@ fun MapScreen(
         val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
             Overlay.OnClickListener {
                 photoDetailIds = info.tag as List<Int>
-                pick = photoDetailIds.map { labelId -> idToPhoto[labelId]!! }
+                pick = photoDetailIds.map { labelId -> idToPhoto.getValue(labelId) }
                     .groupBy { photoDetail -> photoDetail.labelId }
-                    .maxBy { (_, photos) -> photos.size }.value.maxBy { photoDetail -> photoDetail.datetime }
+                    .maxBy { (_, photos) -> photos.size }.value
+                    .maxBy { photoDetail -> photoDetail.datetime }
                 true
             }
         }
@@ -127,13 +128,14 @@ fun MapScreen(
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
-                    info.tag as List<Int>
+                if ((info.tag as List<Int>).contains(pick?.id))
+                    photoDetailIds = info.tag as List<Int>
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                if (info.tag == pick?.id) photoDetailIds = listOf(pick!!.id)
+                if ((info.tag as List<Int>).contains(pick?.id))
+                    photoDetailIds = info.tag as List<Int>
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
@@ -149,7 +151,7 @@ fun MapScreen(
     }.build()
 
     LaunchedEffect(photos.value) {
-        if(displayPhotos.value.isEmpty()) displayPhotos.value = photos.value
+        if (displayPhotos.value.isEmpty()) displayPhotos.value = photos.value
         photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
         cluster.addAll(photos.value.associate { photoDetail ->
             PhotoKey(
