@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -93,7 +95,7 @@ fun MapScreen(
         }
     }
 
-    var pick by remember { mutableStateOf(null as PhotoDetail?) }
+    var pick by remember { mutableStateOf<PhotoDetail?>(null) }
     var photoDetailIds by remember { mutableStateOf(listOf<Int>()) }
     val displayPhotos = remember { mutableStateOf(listOf<PhotoDetail>()) }
 
@@ -204,6 +206,7 @@ fun MapScreen(
 
         PartialBottomSheet(
             initialState = BottomSheetState.Collapsed,
+            modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f
         ) {
             PhotoGrid(

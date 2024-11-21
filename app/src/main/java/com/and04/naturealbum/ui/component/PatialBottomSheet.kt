@@ -56,7 +56,7 @@ enum class BottomSheetState {
 @Composable
 fun PartialBottomSheet(
     initialState: BottomSheetState = BottomSheetState.Collapsed,
-    horizontalPadding: Dp = 16.dp,
+    modifier: Modifier = Modifier,
     handleIcon: ImageVector = Icons.Default.DragHandle,
     handleHeight: Dp = 36.dp,
     showHandleCollapsed: Boolean = true,
@@ -69,7 +69,6 @@ fun PartialBottomSheet(
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp),
     content: @Composable () -> Unit
 ) {
-    val modifier = Modifier
     val density = LocalDensity.current
     val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val handleHeightPx = if (showHandleCollapsed) with(density) { handleHeight.toPx() } else 0f
@@ -109,13 +108,12 @@ fun PartialBottomSheet(
 
         ElevatedCard(
             modifier = modifier
-                .padding(horizontal = horizontalPadding)
                 .offset { IntOffset(0, state.requireOffset().roundToInt()) },
             shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
         ) {
             Icon(imageVector = handleIcon,
                 contentDescription = null,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(handleHeight)
                     .anchoredDraggable(
@@ -133,7 +131,7 @@ fun PartialBottomSheet(
                         }
                     })
             Box(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding)
                     .padding(bottom = bottomPadding),
@@ -201,6 +199,7 @@ fun BottomSheetScreenExpandedPreView(
             .background(Color.White),
     ) {
         PartialBottomSheet(
+            modifier = Modifier.padding(horizontal = 16.dp),
             initialState = BottomSheetState.Expanded
         ) {
             Column {
