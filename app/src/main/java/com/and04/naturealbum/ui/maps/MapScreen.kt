@@ -149,6 +149,7 @@ fun MapScreen(
     }.build()
 
     LaunchedEffect(photos.value) {
+        if(displayPhotos.value.isEmpty()) displayPhotos.value = photos.value
         photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
         cluster.addAll(photos.value.associate { photoDetail ->
             PhotoKey(
