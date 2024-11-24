@@ -20,9 +20,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
@@ -37,8 +36,6 @@ class SynchronizationWorker @AssistedInject constructor(
     private val roomRepository: DataRepository,
     private val fireBaseRepository: FireBaseRepository
 ) : CoroutineWorker(appContext, workerParams) {
-    private val supervisor = SupervisorJob()
-    private val job = CoroutineScope(Dispatchers.IO + supervisor)
 
     companion object {
         private const val WORKER_NAME = "MIDNIGHT_SYNCHRONIZATION"
@@ -88,13 +85,12 @@ class SynchronizationWorker @AssistedInject constructor(
         }
     }
 
-    override suspend fun doWork(): Result {
-        val currentUser = Firebase.auth.currentUser ?: return Result.failure()
-        val uid = currentUser.uid
+    override suspend fun doWork(): Result = coroutineScope {
+        try {
+            val currentUser = Firebase.auth.currentUser ?: return@coroutineScope Result.failure()
+            val uid = currentUser.uid
 
-        val doWorkJob = job.launch {
-            // Label
-            launch {
+            val label = async {
                 val labels = fireBaseRepository.getLabels(uid)
                 val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
 
@@ -104,8 +100,8 @@ class SynchronizationWorker @AssistedInject constructor(
                     }
                 }
             }
-            // PhotoDetail
-            launch {
+
+            val photoDetail = async {
                 val fileNames = fireBaseRepository.getPhotos(uid)
                 val synchronizedPhotoDetails =
                     roomRepository.getSynchronizedPhotoDetails(fileNames)
@@ -116,14 +112,17 @@ class SynchronizationWorker @AssistedInject constructor(
                     }
                 }
             }
+
+            label.await()
+            photoDetail.await()
+
+            Result.success()
+        } catch (e: Exception) {
+            //TODO FireStore와 LocalDB 비교 후 같이면 Result.success() 다르면 retry()
+            Result.retry()
+        } finally {
+            runSync(applicationContext)
         }
-
-        doWorkJob.join()
-        doWorkJob.cancel()
-        supervisor.cancel()
-
-        runSync(applicationContext)
-        return Result.success()
     }
 
     private suspend fun insertLabel(uid: String, album: SynchronizedAlbumsDto) {

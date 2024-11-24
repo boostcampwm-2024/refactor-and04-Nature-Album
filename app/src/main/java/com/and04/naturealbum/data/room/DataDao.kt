@@ -87,7 +87,7 @@ interface AlbumDao {
         JOIN photo_detail ON album.photo_detail_id = photo_detail.id
         WHERE photo_detail.file_name NOT IN (:fileNames)
     """
-    )
+    )//FIXME 잘못된 쿼리 >> 라벨 별 대표 이미지에 대한 Photo Detail만 나옴
     suspend fun getSynchronizedPhotos(fileNames: List<String>): List<SynchronizedPhotoDetailsDto>
 
     @Query("SELECT * FROM album")
