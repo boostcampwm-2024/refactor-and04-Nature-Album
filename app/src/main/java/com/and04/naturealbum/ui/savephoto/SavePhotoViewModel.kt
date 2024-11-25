@@ -10,6 +10,7 @@ import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.ui.model.UiState
 import com.google.firebase.vertexai.type.content
 import com.google.firebase.vertexai.vertexAI
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,25 +21,17 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
-
-sealed class UiState {
-    data object Idle : UiState()
-    data object Loading : UiState()
-    data object Success : UiState()
-}
+import com.google.firebase.Firebase
 
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
-    private val _geminiApiUiState = MutableStateFlow<UiState>(UiState.Idle)
-    val geminiApiUiState: StateFlow<UiState> = _geminiApiUiState
+    private val _geminiApiUiState = MutableStateFlow<UiState<String>>(UiState.Idle)
+    val geminiApiUiState: StateFlow<UiState<String>> = _geminiApiUiState
 
-    private val _generatedLabelByGemini = MutableStateFlow<String>("")
-    val generatedLabelByGemini: StateFlow<String> = _generatedLabelByGemini
-
-    private val _photoSaveState = MutableStateFlow<UiState>(UiState.Idle)
-    val photoSaveState: StateFlow<UiState> = _photoSaveState
+    private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
 
     fun savePhoto(
         uri: String,
@@ -87,7 +80,7 @@ class SavePhotoViewModel @Inject constructor(
                     } else {
                     }
                 }
-                _photoSaveState.emit(UiState.Success) // 저장 완료
+                _photoSaveState.emit(UiState.Success(Unit)) // 저장 완료
             } catch (e: Exception) {
                 Log.e("SavePhotoViewModel", "Error saving photo: ${e.message}")
                 _photoSaveState.emit(UiState.Idle)
@@ -96,17 +89,17 @@ class SavePhotoViewModel @Inject constructor(
     }
 
     fun getGeneratedContent(bitmap: Bitmap?) {
-        bitmap?.let { bitmap ->
+        bitmap?.let { nonNullBitmap ->
             viewModelScope.launch {
-                val model = com.google.firebase.Firebase.vertexAI.generativeModel("gemini-1.5-pro")
+                val model = Firebase.vertexAI.generativeModel("gemini-1.5-pro")
                 val content = content {
-                    image(bitmap)
+                    image(nonNullBitmap)
                     text("이 이미지는 어떤 생물인지 알려줘. 종까지 말해주면 좋아. 단 문장이 아닌, 제일 유사성이 높은 한 단어로만 알려줘")
                 }
 
                 val result = model.generateContent(content)
-                _geminiApiUiState.emit(UiState.Success)
-                _generatedLabelByGemini.emit(result.text ?: "없음")
+                Log.d("SavePhotoViewModel", "Error saving photo: ${result.text}")
+                _geminiApiUiState.emit(UiState.Success(result.text ?: ""))
             }
         }
     }

@@ -25,6 +25,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.model.UiState
 
 @Composable
 fun SavePhotoScreenLandscape(
@@ -37,7 +38,7 @@ fun SavePhotoScreenLandscape(
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
-    photoSaveState: State<UiState>,
+    photoSaveState: State<UiState<Unit>>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit

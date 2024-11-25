@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -39,7 +38,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +65,7 @@ import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.labelsearch.getRandomColor
+import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.NetworkState
@@ -89,16 +88,15 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
-    // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
     val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
-    val generatedLabelByGemini = viewModel.generatedLabelByGemini.collectAsStateWithLifecycle()
 
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    if (photoSaveState.value == UiState.Success) {
-        onSave()
+    when(photoSaveState.value){
+        is UiState.Success -> onSave()
+        else -> { /* Error */ }
     }
 
     SavePhotoScreen(
@@ -115,7 +113,6 @@ fun SavePhotoScreen(
         onBack = onBack,
         savePhoto = viewModel::savePhoto,
         geminiApiState = geminiApiState,
-        generatedLabelByGemini = generatedLabelByGemini,
         getLabelFromGemini = viewModel::getGeneratedContent,
     )
 }
@@ -129,13 +126,12 @@ fun SavePhotoScreen(
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
-    photoSaveState: State<UiState>,
+    photoSaveState: State<UiState<Unit>>,
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
-    geminiApiState: State<UiState>,
-    generatedLabelByGemini: State<String>,
+    geminiApiState: State<UiState<String>>,
     getLabelFromGemini: (Bitmap?) -> Unit
 ) {
     val context = LocalContext.current
@@ -145,10 +141,11 @@ fun SavePhotoScreen(
 
     when (geminiApiState.value) {
         is UiState.Success -> {
+            val labelName = (geminiApiState.value as UiState.Success).data
             val geminiLabel =
                 Label(
                     backgroundColor = getRandomColor(),
-                    name = generatedLabelByGemini.value
+                    name = labelName
                 )
 
             Scaffold(
@@ -383,10 +380,10 @@ fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
-        val uiState = rememberSaveable { mutableStateOf(UiState.Success) }
+        val uiState = rememberSaveable { mutableStateOf(UiState.Success(Unit)) }
+        val geminiUiState = rememberSaveable { mutableStateOf(UiState.Success("Label")) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
-        val generatedLabelByGemini = remember { mutableStateOf("") }
 
         SavePhotoScreen(
             model = "".toUri(),
@@ -401,8 +398,7 @@ private fun ScreenPreview() {
             onLabelSelect = { },
             onBack = { },
             savePhoto = { _, _, _, _, _, _ -> },
-            geminiApiState =  uiState,
-            generatedLabelByGemini = generatedLabelByGemini,
+            geminiApiState =  geminiUiState,
             getLabelFromGemini = { },
         )
     }
