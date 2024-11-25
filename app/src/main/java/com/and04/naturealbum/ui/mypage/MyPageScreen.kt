@@ -196,7 +196,6 @@ private fun MyPageContent(
                     emailState = userEmailState,
                     displayNameState = userDisplayNameState,
                 )
-                LoginContent { signInWithGoogle(context) } // TODO: 친구 기능 테스트 용도. 기능 픽스 후 삭제 예정
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUidState,
