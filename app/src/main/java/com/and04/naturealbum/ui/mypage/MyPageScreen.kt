@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -195,7 +196,6 @@ private fun MyPageContent(
                     emailState = userEmailState,
                     displayNameState = userDisplayNameState,
                 )
-                LoginContent { signInWithGoogle(context) } // TODO: 친구 기능 테스트 용도. 기능 픽스 후 삭제 예정
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUidState,
@@ -313,6 +313,10 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_search),
         stringResource(R.string.my_page_social_alarm)
     )
+
+    LaunchedEffect(Unit) {
+        fetchFriends(currentUid)
+    }
 
     Column(
         modifier = modifier
