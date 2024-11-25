@@ -48,7 +48,11 @@ class PhotoInfoViewModel @Inject constructor(
         val coords = "${photoDetail.longitude}%2C${photoDetail.latitude}"
         reverseGeocodeRepository.convertCoordsToAddress(coords = coords)
             .onSuccess { dto ->
-                val region = dto.results?.get(0)?.region
+                if (dto.results.isNullOrEmpty()) {
+                    _address.emit("${photoDetail.latitude}, ${photoDetail.longitude}")
+                    return
+                }
+                val region = dto.results[0].region
                 val address = buildString {
                     append("${region?.area1?.name} ")
                     append("${region?.area2?.name} ")
