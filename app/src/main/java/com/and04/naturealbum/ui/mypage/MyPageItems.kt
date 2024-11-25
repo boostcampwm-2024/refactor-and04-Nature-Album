@@ -127,7 +127,7 @@ fun MyPageSearch(
             )
         }
 
-        // 요청된 친구 리스트
+        // 검색 결과 리스트
         RequestedList(
             userWithStatusList = userWithStatusList,
             currentUid = currentUid,
