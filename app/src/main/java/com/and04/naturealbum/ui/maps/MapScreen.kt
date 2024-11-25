@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.Gravity
 import android.view.View
+import androidx.annotation.IntRange
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -60,9 +61,24 @@ import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.DefaultMarkerManager
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.clustering.MarkerInfo
+import com.naver.maps.map.overlay.Align
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
+
+
+fun sizeToTint(
+    size: Int,
+    min: Color = Color(10,0,0),
+    max: Color = Color(255,0,0),
+    @IntRange(from = 1) threshold: Int = 20
+): Int {
+    val t = minOf(size, threshold)
+    val r = min.red + t * (max.red - min.red) * 255 / threshold
+    val g = min.green + t * (max.green - min.green) * 255 / threshold
+    val b = min.blue + t * (max.blue - min.blue) * 255 / threshold
+    return (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
+}
 
 @SuppressLint("NewApi")
 @Composable
@@ -132,12 +148,16 @@ fun MapScreen(
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 if ((info.tag as List<Int>).contains(pick?.id))
                     photoDetailIds = info.tag as List<Int>
+                marker.captionText = info.size.toString()
+                marker.iconTintColor = sizeToTint(info.size)
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 if ((info.tag as List<Int>).contains(pick?.id))
                     photoDetailIds = info.tag as List<Int>
+                marker.captionText = "1"
+                marker.iconTintColor = sizeToTint(1)
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
@@ -147,6 +167,8 @@ fun MapScreen(
                     icon = clusterImage
                     isFlat = true
                     anchor = PointF(0.5f, 0.5f)
+                    setCaptionAligns(Align.Center, Align.Center)
+                    captionTextSize = 24f
                 }
             }
         })
