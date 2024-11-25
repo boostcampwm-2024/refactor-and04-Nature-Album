@@ -88,33 +88,51 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
     val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
 
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    when(photoSaveState.value){
-        is UiState.Success -> onSave()
-        else -> { /* Error */ }
+    when (geminiApiState.value) {
+        is UiState.Success -> {
+            SavePhotoScreen(
+                model = model,
+                fileName = fileName,
+                location = location,
+                photoSaveState = photoSaveState,
+                rememberDescription = rememberDescription,
+                onDescriptionChange = { newDescription ->
+                    rememberDescription.value = newDescription
+                },
+                isRepresented = isRepresented,
+                onRepresentedChange = { isRepresented.value = !isRepresented.value },
+                onNavigateToMyPage = onNavigateToMyPage,
+                onLabelSelect = onLabelSelect,
+                onBack = onBack,
+                savePhoto = viewModel::savePhoto,
+                geminiApiState = geminiApiState,
+            )
+        }
+
+        is UiState.Loading -> {
+            RotatingImageLoading(
+                drawableRes = R.drawable.fish_loading_image,
+                stringRes = R.string.save_photo_screen_loading,
+            )
+        }
+
+        is UiState.Idle -> {
+            val bitmap = loadImageFromUri(context, model)
+            viewModel.getGeneratedContent(bitmap)
+        }
     }
 
-    SavePhotoScreen(
-        model = model,
-        fileName = fileName,
-        location = location,
-        photoSaveState = photoSaveState,
-        rememberDescription = rememberDescription,
-        onDescriptionChange = { newDescription -> rememberDescription.value = newDescription },
-        isRepresented = isRepresented,
-        onRepresentedChange = { isRepresented.value = !isRepresented.value },
-        onNavigateToMyPage = onNavigateToMyPage,
-        onLabelSelect = onLabelSelect,
-        onBack = onBack,
-        savePhoto = viewModel::savePhoto,
-        geminiApiState = geminiApiState,
-        getLabelFromGemini = viewModel::getGeneratedContent,
-    )
+    if (photoSaveState.value is UiState.Success) {
+        onSave()
+    }
 }
 
 @Composable
@@ -132,67 +150,52 @@ fun SavePhotoScreen(
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
     geminiApiState: State<UiState<String>>,
-    getLabelFromGemini: (Bitmap?) -> Unit
 ) {
-    val context = LocalContext.current
-    val bitmap = loadImageFromUri(context, model)
 
-    getLabelFromGemini(bitmap)
 
-    when (geminiApiState.value) {
-        is UiState.Success -> {
-            val labelName = (geminiApiState.value as UiState.Success).data
-            val geminiLabel =
-                Label(
-                    backgroundColor = getRandomColor(),
-                    name = labelName
-                )
+    val labelName = (geminiApiState.value as UiState.Success).data
+    val geminiLabel =
+        Label(
+            backgroundColor = getRandomColor(),
+            name = labelName
+        )
 
-            Scaffold(
-                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
-            ) { innerPadding ->
-                BackgroundImage()
+    Scaffold(
+        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
+    ) { innerPadding ->
+        BackgroundImage()
 
-                if (LocalContext.current.isPortrait()) {
-                    SavePhotoScreenPortrait(
-                        innerPadding = innerPadding,
-                        model = model,
-                        fileName = fileName,
-                        label = geminiLabel,
-                        location = location,
-                        rememberDescription = rememberDescription,
-                        onDescriptionChange = onDescriptionChange,
-                        isRepresented = isRepresented,
-                        onRepresentedChange = onRepresentedChange,
-                        photoSaveState = photoSaveState,
-                        onLabelSelect = onLabelSelect,
-                        onBack = onBack,
-                        savePhoto = savePhoto,
-                    )
-                } else {
-                    SavePhotoScreenLandscape(
-                        innerPadding = innerPadding,
-                        model = model,
-                        fileName = fileName,
-                        label = geminiLabel,
-                        location = location,
-                        rememberDescription = rememberDescription,
-                        onDescriptionChange = onDescriptionChange,
-                        isRepresented = isRepresented,
-                        onRepresentedChange = onRepresentedChange,
-                        photoSaveState = photoSaveState,
-                        onLabelSelect = onLabelSelect,
-                        onBack = onBack,
-                        savePhoto = savePhoto,
-                    )
-                }
-            }
-        }
-
-        else -> {
-            RotatingImageLoading(
-                drawableRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading,
+        if (LocalContext.current.isPortrait()) {
+            SavePhotoScreenPortrait(
+                innerPadding = innerPadding,
+                model = model,
+                fileName = fileName,
+                label = geminiLabel,
+                location = location,
+                rememberDescription = rememberDescription,
+                onDescriptionChange = onDescriptionChange,
+                isRepresented = isRepresented,
+                onRepresentedChange = onRepresentedChange,
+                photoSaveState = photoSaveState,
+                onLabelSelect = onLabelSelect,
+                onBack = onBack,
+                savePhoto = savePhoto,
+            )
+        } else {
+            SavePhotoScreenLandscape(
+                innerPadding = innerPadding,
+                model = model,
+                fileName = fileName,
+                label = geminiLabel,
+                location = location,
+                rememberDescription = rememberDescription,
+                onDescriptionChange = onDescriptionChange,
+                isRepresented = isRepresented,
+                onRepresentedChange = onRepresentedChange,
+                photoSaveState = photoSaveState,
+                onLabelSelect = onLabelSelect,
+                onBack = onBack,
+                savePhoto = savePhoto,
             )
         }
     }
@@ -398,8 +401,7 @@ private fun ScreenPreview() {
             onLabelSelect = { },
             onBack = { },
             savePhoto = { _, _, _, _, _, _ -> },
-            geminiApiState =  geminiUiState,
-            getLabelFromGemini = { },
+            geminiApiState = geminiUiState,
         )
     }
 }
