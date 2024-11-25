@@ -64,8 +64,6 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-
-
 @SuppressLint("NewApi")
 @Composable
 fun MapScreen(
