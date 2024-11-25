@@ -101,11 +101,12 @@ class SavePhotoViewModel @Inject constructor(
                 val model = com.google.firebase.Firebase.vertexAI.generativeModel("gemini-1.5-pro")
                 val content = content {
                     image(bitmap)
-                    text("이 이미지의 생물이 뭔지 알려줘.")
+                    text("이 이미지는 어떤 생물인지 알려줘. 종까지 말해주면 좋아. 단 문장이 아닌, 제일 유사성이 높은 한 단어로만 알려줘")
                 }
 
                 val result = model.generateContent(content)
-
+                _geminiApiUiState.emit(UiState.Success)
+                _generatedLabelByGemini.emit(result.text ?: "없음")
             }
         }
     }

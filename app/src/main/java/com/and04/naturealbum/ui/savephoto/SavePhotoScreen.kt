@@ -66,6 +66,7 @@ import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOC
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
+import com.and04.naturealbum.ui.labelsearch.getRandomColor
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.NetworkState
@@ -91,7 +92,7 @@ fun SavePhotoScreen(
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
     val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
-    val generatedLabelByGemini =  viewModel.generatedLabelByGemini.collectAsStateWithLifecycle()
+    val generatedLabelByGemini = viewModel.generatedLabelByGemini.collectAsStateWithLifecycle()
 
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
@@ -103,7 +104,6 @@ fun SavePhotoScreen(
     SavePhotoScreen(
         model = model,
         fileName = fileName,
-        label = label,
         location = location,
         photoSaveState = photoSaveState,
         rememberDescription = rememberDescription,
@@ -124,7 +124,6 @@ fun SavePhotoScreen(
 fun SavePhotoScreen(
     model: Uri,
     fileName: String,
-    label: Label?,
     location: Location?,
     rememberDescription: State<String>,
     onDescriptionChange: (String) -> Unit,
@@ -144,9 +143,13 @@ fun SavePhotoScreen(
 
     getLabelFromGemini(bitmap)
 
-    when(geminiApiState.value){
+    when (geminiApiState.value) {
         is UiState.Success -> {
-            val geminiLabel = generatedLabelByGemini.value
+            val geminiLabel =
+                Label(
+                    backgroundColor = getRandomColor(),
+                    name = generatedLabelByGemini.value
+                )
 
             Scaffold(
                 topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -158,7 +161,7 @@ fun SavePhotoScreen(
                         innerPadding = innerPadding,
                         model = model,
                         fileName = fileName,
-                        label = label,
+                        label = geminiLabel,
                         location = location,
                         rememberDescription = rememberDescription,
                         onDescriptionChange = onDescriptionChange,
@@ -174,7 +177,7 @@ fun SavePhotoScreen(
                         innerPadding = innerPadding,
                         model = model,
                         fileName = fileName,
-                        label = label,
+                        label = geminiLabel,
                         location = location,
                         rememberDescription = rememberDescription,
                         onDescriptionChange = onDescriptionChange,
@@ -188,7 +191,13 @@ fun SavePhotoScreen(
                 }
             }
         }
-        else -> {}
+
+        else -> {
+            RotatingImageLoading(
+                drawableRes = R.drawable.fish_loading_image,
+                stringRes = R.string.save_photo_screen_loading,
+            )
+        }
     }
 
     if (photoSaveState.value == UiState.Loading) {
@@ -363,10 +372,8 @@ fun insertFirebaseService(
 fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
     return try {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        Log.e("TensorFlow Lite", "image load success")
         BitmapFactory.decodeStream(inputStream)
     } catch (e: IOException) {
-        Log.e("TensorFlow Lite", "Error loading image from URI: ${e.message}")
         null
     }
 }
@@ -381,21 +388,22 @@ private fun ScreenPreview() {
         val isRepresented = rememberSaveable { mutableStateOf(false) }
         val generatedLabelByGemini = remember { mutableStateOf("") }
 
-//        SavePhotoScreen(
-//            model = "".toUri(),
-//            location = null,
-//            fileName = "fileName.jpg",
-//            label = Label(0, "0000FF", "cat"),
-//            rememberDescription = rememberDescription,
-//            onDescriptionChange = { },
-//            isRepresented = isRepresented,
-//            onRepresentedChange = { },
-//            photoSaveState = uiState,
-//            onNavigateToMyPage = { },
-//            onLabelSelect = { },
-//            onBack = { },
-//            savePhoto = { _, _, _, _, _, _ -> },
-//            getLabelFromGemini = { }
-//        )
+        SavePhotoScreen(
+            model = "".toUri(),
+            location = null,
+            fileName = "fileName.jpg",
+            rememberDescription = rememberDescription,
+            onDescriptionChange = { },
+            isRepresented = isRepresented,
+            onRepresentedChange = { },
+            photoSaveState = uiState,
+            onNavigateToMyPage = { },
+            onLabelSelect = { },
+            onBack = { },
+            savePhoto = { _, _, _, _, _, _ -> },
+            geminiApiState =  uiState,
+            generatedLabelByGemini = generatedLabelByGemini,
+            getLabelFromGemini = { },
+        )
     }
 }
