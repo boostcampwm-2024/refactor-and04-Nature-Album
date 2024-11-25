@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -313,6 +314,10 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_search),
         stringResource(R.string.my_page_social_alarm)
     )
+
+    LaunchedEffect(Unit) {
+        fetchFriends(currentUid)
+    }
 
     Column(
         modifier = modifier
