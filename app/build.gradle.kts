@@ -148,6 +148,10 @@ dependencies {
 
     // Image Rotation
     implementation(libs.androidx.exifinterface)
+
+    // tensorflow lite
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.task.vision)
 }
 
 kapt {
