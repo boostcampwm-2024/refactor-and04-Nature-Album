@@ -191,10 +191,7 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
         if (snackBarHostState != null && context != null) {
-            SyncContent(
-                context = context,
-                snackBarHostState = snackBarHostState
-            )
+            SyncContent(snackBarHostState = snackBarHostState)
         }
     }
 }
@@ -298,11 +295,10 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
 
 @Composable
 private fun SyncContent(
-    context: Context,
     snackBarHostState: SnackbarHostState
 ) {
     val coroutineScope = rememberCoroutineScope()
-
+    val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
