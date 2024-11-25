@@ -1,11 +1,17 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.location.Location
 import android.net.Uri
+import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -68,6 +74,8 @@ import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import java.io.IOException
+import java.io.InputStream
 
 @Composable
 fun SavePhotoScreen(
@@ -128,6 +136,24 @@ fun SavePhotoScreen(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
         BackgroundImage()
+
+        val context = LocalContext.current
+        val bitmap = loadImageFromUri(context, model)
+
+        if (bitmap != null) {
+            val detector = ObjectDetectorHelper(context, "EfficientDet.tflite")
+            val results = detector.detectObjects(bitmap)
+
+            // 결과 출력
+            for (detection in results) {
+                val category = detection.categories.firstOrNull()?.label ?: "Unknown"
+                val confidence = detection.categories.firstOrNull()?.score ?: 0f
+                Log.d("TensorFlow Lite", "Detected: $category (${confidence * 100}%)")
+            }
+        } else {
+            Log.d("TensorFlow Lite", "Detected Fail")
+        }
+
 
         if (LocalContext.current.isPortrait()) {
             SavePhotoScreenPortrait(
@@ -331,6 +357,17 @@ fun insertFirebaseService(
     }
 
     context.startService(intent)
+}
+
+private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        Log.e("TensorFlow Lite", "image load success")
+        BitmapFactory.decodeStream(inputStream)
+    } catch (e: IOException) {
+        Log.e("TensorFlow Lite", "Error loading image from URI: ${e.message}")
+        null
+    }
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
