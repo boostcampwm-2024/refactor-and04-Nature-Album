@@ -16,7 +16,7 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val authenticationManager: AuthenticationManager
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState>(setInitUiState())
+    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
     private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
@@ -34,26 +34,34 @@ class MyPageViewModel @Inject constructor(
     private val _userUid = MutableStateFlow<String?>(null)
     val userUid: StateFlow<String?> = _userUid
 
+    init {
+        setInitUiState()
+    }
+
     fun signInWithGoogle(context: Context) {
+        _uiState.value = UiState.Loading
         authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
-                    val user = UserManager.getUser()
-                    _userEmail.value = user?.email
-                    _userPhotoUrl.value = user?.photoUrl.toString()
-                    _userDisplayName.value = user?.displayName
-                    _userUid.value = user?.uid
+                    setUserInfo()
                     _uiState.emit(UiState.Success)
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    private fun setInitUiState(): UiState {
-        return if (UserManager.isSignIn()) {
-            UiState.Success
-        } else {
-            UiState.Idle
+    private fun setInitUiState() {
+        if (UserManager.isSignIn()) {
+            setUserInfo()
+            _uiState.value = UiState.Success
         }
+    }
+
+    private fun setUserInfo() {
+        val user = UserManager.getUser()
+        _userEmail.value = user?.email
+        _userPhotoUrl.value = user?.photoUrl.toString()
+        _userDisplayName.value = user?.displayName
+        _userUid.value = user?.uid
     }
 }
