@@ -1,5 +1,7 @@
 package com.and04.naturealbum.di
 
+import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_ID
+import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_SECRET
 import com.and04.naturealbum.data.retorifit.ReverseGeocodeAPI
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -28,8 +30,8 @@ object RetrofitModule {
     private val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
-                .addHeader("x-ncp-apigw-api-key-id", "sv6bz27w3a")
-                .addHeader("x-ncp-apigw-api-key", "h2Jd4k43CtJV6P8BwwBMmwB6VSbvAg8UoMpCGJNL")
+                .addHeader("x-ncp-apigw-api-key-id", NAVER_MAP_CLIENT_ID)
+                .addHeader("x-ncp-apigw-api-key", NAVER_MAP_CLIENT_SECRET)
                 .build()
             chain.proceed(request)
         }
