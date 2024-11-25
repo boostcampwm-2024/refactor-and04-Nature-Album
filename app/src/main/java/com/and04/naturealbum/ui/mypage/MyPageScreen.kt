@@ -19,13 +19,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +61,12 @@ import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.NetworkState
+import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
+import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
+import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 const val SOCIAL_LIST_TAB_INDEX = 0
 const val SOCIAL_SEARCH_TAB_INDEX = 1
@@ -82,18 +95,22 @@ fun MyPageScreen(
     myFriends: State<List<MyFriend>>,
     signInWithGoogle: (Context) -> Unit,
 ) {
-    Scaffold(topBar = {
-        PortraitTopAppBar(
-            navigationIcon = {
-                IconButton(onClick = { navigateToHome() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
-                    )
+    val snackBarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        topBar = {
+            PortraitTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { navigateToHome() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
+                        )
+                    }
                 }
-            }
-        )
-    }) { innerPadding ->
+            )
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+    ) { innerPadding ->
         MyPageContent(
             modifier = Modifier
                 .padding(innerPadding)
@@ -102,6 +119,7 @@ fun MyPageScreen(
             uiState = uiState,
             myFriends = myFriends,
             signInWithGoogle = signInWithGoogle,
+            snackBarHostState = snackBarHostState
         )
     }
 }
@@ -112,6 +130,7 @@ private fun MyPageContent(
     uiState: State<UiState>,
     myFriends: State<List<MyFriend>>,
     signInWithGoogle: (Context) -> Unit,
+    snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
 
@@ -126,7 +145,12 @@ private fun MyPageContent(
                 val email = user?.email
                 val photoUri = user?.photoUrl
 
-                UserProfileContent(uri = photoUri, email = email)
+                UserProfileContent(
+                    uri = photoUri,
+                    email = email,
+                    context = context,
+                    snackBarHostState = snackBarHostState
+                )
 
                 SocialContent(
                     modifier = Modifier.weight(1f),
@@ -143,7 +167,12 @@ private fun MyPageContent(
 }
 
 @Composable
-private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
+private fun UserProfileContent(
+    uri: Uri? = null,
+    email: String? = null,
+    context: Context? = null,
+    snackBarHostState: SnackbarHostState? = null
+) {
     UserProfileImage(
         uri = uri?.toString(),
         modifier = Modifier
@@ -151,12 +180,23 @@ private fun UserProfileContent(uri: Uri? = null, email: String? = null) {
             .aspectRatio(1f)
     )
 
-    Text(
-        text = email ?: stringResource(R.string.my_page_default_user_email),
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center
-    )
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = email ?: stringResource(R.string.my_page_default_user_email),
+            modifier = Modifier.fillMaxWidth(),
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        if (snackBarHostState != null && context != null) {
+            SyncContent(
+                context = context,
+                snackBarHostState = snackBarHostState
+            )
+        }
+    }
 }
 
 @Composable
@@ -256,6 +296,76 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
     )
 }
 
+@Composable
+private fun SyncContent(
+    context: Context,
+    snackBarHostState: SnackbarHostState
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(stringResource(R.string.my_page_sync))
+        IconButton(
+            onClick = {
+                when (NetworkState.isActiveNetwork()) {
+                    CONNECTED_WIFI -> {
+                        //TODO WorkManager Add
+                    }
+
+                    CONNECTED_DATA -> {
+                        startSnackBar(
+                            coroutineScope = coroutineScope,
+                            snackBarHostState = snackBarHostState,
+                            message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
+                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button)
+                        )
+                    }
+
+                    DISCONNECTED -> {
+                        startSnackBar(
+                            coroutineScope = coroutineScope,
+                            snackBarHostState = snackBarHostState,
+                            message = context.getString(R.string.my_page_snackbar_network_state_disconnect),
+                            actionLabel = null
+                        )
+                    }
+                }
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Sync,
+                contentDescription = stringResource(R.string.my_page_sync_icon_content_description)
+            )
+        }
+    }
+    Text(
+        style = MaterialTheme.typography.bodySmall,
+        text = stringResource(R.string.my_page_not_yet_sync)
+    )
+
+}
+
+private fun startSnackBar(
+    coroutineScope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+    message: String,
+    actionLabel: String?
+) {
+    coroutineScope.launch {
+        val result = snackBarHostState.showSnackbar(
+            message = message,
+            actionLabel = actionLabel,
+            duration = SnackbarDuration.Long,
+        )
+
+        if (result == SnackbarResult.ActionPerformed) {
+            //TODO WorkManager Add
+        }
+    }
+}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)

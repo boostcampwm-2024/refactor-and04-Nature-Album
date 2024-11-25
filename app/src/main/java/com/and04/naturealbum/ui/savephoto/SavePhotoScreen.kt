@@ -65,6 +65,7 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.NetworkState
+import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -320,7 +321,7 @@ fun insertFirebaseService(
     location: Location,
     description: String
 ) {
-    if (Firebase.auth.currentUser == null || !NetworkState.isActiveNetwork()) return
+    if (Firebase.auth.currentUser == null || NetworkState.isActiveNetwork() == DISCONNECTED) return
 
     val intent = Intent(context, FirebaseInsertService::class.java).apply {
         putExtra(SERVICE_URI, model.toString())
