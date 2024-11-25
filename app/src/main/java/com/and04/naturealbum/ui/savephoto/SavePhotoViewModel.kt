@@ -92,7 +92,7 @@ class SavePhotoViewModel @Inject constructor(
         bitmap?.let { nonNullBitmap ->
             viewModelScope.launch {
                 _geminiApiUiState.emit(UiState.Loading)
-                val model = Firebase.vertexAI.generativeModel("gemini-1.5-pro")
+                val model = Firebase.vertexAI.generativeModel("gemini-1.5-flash")
                 val content = content {
                     image(nonNullBitmap)
                     text("이 이미지는 어떤 생물인지 알려줘. 종까지 말해주면 좋아. 단 문장이 아닌, 제일 유사성이 높은 한 단어로만 알려줘")
