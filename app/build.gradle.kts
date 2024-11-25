@@ -148,6 +148,10 @@ dependencies {
 
     // Image Rotation
     implementation(libs.androidx.exifinterface)
+
+    //retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
 }
 
 kapt {
