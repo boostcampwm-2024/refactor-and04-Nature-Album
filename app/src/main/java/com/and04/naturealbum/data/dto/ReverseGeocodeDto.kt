@@ -18,13 +18,13 @@ data class Status(
 @Serializable
 data class Result(
     val name: String?,
-    val myCode: MyCode? = null,
+    val code: Code? = null,
     val region: Region?,
     val land: Land?,
 )
 
 @Serializable
-data class MyCode(
+data class Code(
     val id: String?,
     val type: String?,
     val mappingId: String? = null,
