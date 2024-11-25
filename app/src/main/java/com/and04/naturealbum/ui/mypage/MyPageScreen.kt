@@ -310,7 +310,7 @@ private fun SyncContent(
         Text(stringResource(R.string.my_page_sync))
         IconButton(
             onClick = {
-                when (NetworkState.isActiveNetwork()) {
+                when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
                         //TODO WorkManager Add
                     }

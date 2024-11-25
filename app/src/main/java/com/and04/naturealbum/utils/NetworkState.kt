@@ -11,7 +11,7 @@ object NetworkState {
     private val connectivityManager =
         NatureAlbum.getInstance().getSystemService(ConnectivityManager::class.java)
 
-    fun isActiveNetwork(): Int {
+    fun getNetWorkCode(): Int {
         val currentNetwork = connectivityManager.activeNetwork
 
         val caps = connectivityManager.getNetworkCapabilities(currentNetwork) ?: return DISCONNECTED

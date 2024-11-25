@@ -321,7 +321,7 @@ fun insertFirebaseService(
     location: Location,
     description: String
 ) {
-    if (Firebase.auth.currentUser == null || NetworkState.isActiveNetwork() == DISCONNECTED) return
+    if (Firebase.auth.currentUser == null || NetworkState.getNetWorkCode() == DISCONNECTED) return
 
     val intent = Intent(context, FirebaseInsertService::class.java).apply {
         putExtra(SERVICE_URI, model.toString())
