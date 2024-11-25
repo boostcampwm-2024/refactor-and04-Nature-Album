@@ -152,6 +152,9 @@ dependencies {
     // tensorflow lite
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.task.vision)
+
+    // gemini
+    implementation(libs.firebase.vertexai)
 }
 
 kapt {
