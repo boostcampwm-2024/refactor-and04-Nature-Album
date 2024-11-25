@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
@@ -65,7 +64,8 @@ import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.home.PermissionDialogState
 import com.and04.naturealbum.ui.home.PermissionDialogs
-import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.ui.model.AlbumFolderData
+import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.gridColumnCount
@@ -81,8 +81,6 @@ fun AlbumFolderScreen(
     val context = LocalContext.current
 
     val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
-    val label = albumFolderViewModel.label.collectAsStateWithLifecycle()
-    val photoDetails = albumFolderViewModel.photoDetails.collectAsStateWithLifecycle()
 
     val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
     val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
@@ -132,8 +130,6 @@ fun AlbumFolderScreen(
     AlbumFolderScreen(
         context = context,
         uiState = uiState,
-        photoDetails = photoDetails,
-        label = label,
         onPhotoClick = onPhotoClick,
         switchEditMode = switchEditMode,
         editMode = state.editMode,
@@ -166,9 +162,7 @@ fun AlbumFolderScreen(
 @Composable
 fun AlbumFolderScreen(
     context: Context,
-    uiState: State<UiState>,
-    photoDetails: State<List<PhotoDetail>>,
-    label: State<Label>,
+    uiState: State<UiState<AlbumFolderData>>,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
@@ -184,8 +178,6 @@ fun AlbumFolderScreen(
         ItemContainer(
             innerPaddingValues = innerPadding,
             uiState = uiState,
-            photoDetails = photoDetails,
-            label = label,
             onPhotoClick = onPhotoClick,
             switchEditMode = switchEditMode,
             editMode = editMode,
@@ -200,9 +192,7 @@ fun AlbumFolderScreen(
 @Composable
 private fun ItemContainer(
     innerPaddingValues: PaddingValues,
-    uiState: State<UiState>,
-    photoDetails: State<List<PhotoDetail>>,
-    label: State<Label>,
+    uiState: State<UiState<AlbumFolderData>>,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
@@ -217,7 +207,10 @@ private fun ItemContainer(
         }
 
         is UiState.Success -> {
+            val label = (uiState.value as UiState.Success).data.label
+            val photoDetails = (uiState.value as UiState.Success).data.photoDetails
             setLoading(false)
+
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -230,12 +223,12 @@ private fun ItemContainer(
                     AlbumLabel(
                         modifier = Modifier
                             .background(
-                                color = Color(parseColor("#${label.value.backgroundColor}")),
+                                color = Color(parseColor("#${label.backgroundColor}")),
                                 shape = CircleShape
                             )
                             .fillMaxWidth(0.9f),
-                        text = label.value.name,
-                        backgroundColor = Color(parseColor("#${label.value.backgroundColor}")),
+                        text = label.name,
+                        backgroundColor = Color(parseColor("#${label.backgroundColor}")),
                     )
 
                     Box(
@@ -249,7 +242,7 @@ private fun ItemContainer(
                             verticalItemSpacing = 16.dp
                         ) {
                             items(
-                                items = photoDetails.value,
+                                items = photoDetails,
                                 key = { item -> item.id }
                             ) { photoDetail ->
                                 PhotoDetailItem(
@@ -267,7 +260,7 @@ private fun ItemContainer(
                             selectAll = { isAllSelected: Boolean ->
                                 selectAll.value = isAllSelected
                                 if (isAllSelected)
-                                    checkList.value = photoDetails.value.toSet() // TODO
+                                    checkList.value = photoDetails.toSet() // TODO
                                 else checkList.value = emptySet() // TODO
                             },
                             savePhotos = savePhotos,
@@ -381,9 +374,16 @@ fun ImageOverlay(modifier: Modifier = Modifier) {
 @Composable
 private fun AlbumFolderScreenPreview() {
     NatureAlbumTheme {
-        val uiState = remember { mutableStateOf(UiState.Success) }
-        val photoDetails = remember { mutableStateOf<List<PhotoDetail>>(emptyList()) }
-        val label = remember { mutableStateOf(Label.emptyLabel()) }
+        val uiState = remember {
+            mutableStateOf(
+                UiState.Success(
+                    AlbumFolderData(
+                        Label.emptyLabel(),
+                        listOf()
+                    )
+                )
+            )
+        }
         val editMode = remember { mutableStateOf(false) }
         val selectAll = remember { mutableStateOf(false) }
         val checkList = remember { mutableStateOf<Set<PhotoDetail>>(setOf()) }
@@ -391,8 +391,6 @@ private fun AlbumFolderScreenPreview() {
         AlbumFolderScreen(
             context = LocalContext.current,
             uiState = uiState,
-            photoDetails = photoDetails,
-            label = label,
             onPhotoClick = { },
             switchEditMode = { _ -> },
             editMode = editMode,
