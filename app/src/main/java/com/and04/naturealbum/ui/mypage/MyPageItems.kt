@@ -80,6 +80,7 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPageSearch(
+    onSearchQueryChange: (String) -> Unit,
     userWithStatusList: List<FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
@@ -108,14 +109,14 @@ fun MyPageSearch(
                             contentDescription = stringResource(R.string.my_page_search_bar_search_icon)
                         )
                     },
-                    onQueryChange = { textField ->
-                        textFieldState = textField
-                    }
+                    onQueryChange = { query ->
+                        textFieldState = query
+                        onSearchQueryChange(query) // 검색 쿼리 변경 시 호출
+                    },
                 )
             },
-            expanded = expanded,
-            onExpandedChange = { expandedChange ->
-                expanded = expandedChange
+            expanded = false,
+            onExpandedChange = {
             },
         ) {
             // 검색 결과 리스트

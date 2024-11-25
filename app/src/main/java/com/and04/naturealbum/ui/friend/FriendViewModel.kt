@@ -3,17 +3,24 @@ package com.and04.naturealbum.ui.friend
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.util.query
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.ui.mypage.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class FriendViewModel @Inject constructor(
     private val fireBaseRepository: FireBaseRepository,
@@ -33,6 +40,46 @@ class FriendViewModel @Inject constructor(
 
     private val _operationStatus = MutableStateFlow<String>("")
     val operationStatus: StateFlow<String> = _operationStatus
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _searchResults = MutableStateFlow<List<FirestoreUserWithStatus>>(emptyList())
+    val searchResults: StateFlow<List<FirestoreUserWithStatus>> = _searchResults
+
+    private val debouncePeriod = 300L
+
+    init {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(debouncePeriod) // debouncePeriod 동안 입력 없을 때만 처리
+                .filter { query -> query.isNotBlank() } // 빈 쿼리 무시
+                .distinctUntilChanged() // 중복 값 방지
+                .collect { query ->
+                    val currentUid = UserManager.getUser()?.uid
+                    if (currentUid != null) {
+                        fetchFilteredUsers(currentUid = currentUid, query = query)
+                    } else {
+                        Log.e("FriendViewModel", "UID is null, skipping search.")
+                    }
+                }
+
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    private suspend fun fetchFilteredUsers(currentUid: String, query: String) {
+        try {
+            val filteredUsers = fireBaseRepository.searchUsers(uid = currentUid, query = query)
+            _searchResults.value = filteredUsers
+        } catch (e: Exception) {
+            _searchResults.value = emptyList()
+        }
+    }
+
 
     fun fetchAllUsersInfo(uid: String) {
         viewModelScope.launch {

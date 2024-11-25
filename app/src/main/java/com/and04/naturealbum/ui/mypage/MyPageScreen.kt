@@ -72,7 +72,8 @@ fun MyPageScreen(
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
-    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
+    //val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
+    val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
 
 // TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
 //       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
@@ -90,19 +91,20 @@ fun MyPageScreen(
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
-        allUsersInfoState = allUsersInfo,
         userEmailState = userEmail,
         userPhotoUrlState = userPhotoUrl,
         userDisplayNameState = userDisplayName,
         userUidState = userUid,
+        searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
         fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
         fetchFriends = friendViewModel::fetchFriends,
-        fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
         sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
-    )
+        onSearchQueryChange = friendViewModel::updateSearchQuery,
+
+        )
 }
 
 @Composable
@@ -111,7 +113,6 @@ fun MyPageScreenContent(
     uiState: State<UiState>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
     userPhotoUrlState: State<String?>,
     userEmailState: State<String?>,
     userDisplayNameState: State<String?>,
@@ -119,7 +120,8 @@ fun MyPageScreenContent(
     signInWithGoogle: (Context) -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
+    searchResults: State<List<FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
@@ -145,7 +147,6 @@ fun MyPageScreenContent(
             uiState = uiState,
             myFriendsState = myFriendsState,
             friendRequestsState = friendRequestsState,
-            allUsersInfoState = allUsersInfoState,
             userPhotoUrlState = userPhotoUrlState,
             userEmailState = userEmailState,
             userDisplayNameState = userDisplayNameState,
@@ -153,10 +154,11 @@ fun MyPageScreenContent(
             signInWithGoogle = signInWithGoogle,
             fetchReceivedFriendRequests = fetchReceivedFriendRequests,
             fetchFriends = fetchFriends,
-            fetchAllUsersInfo = fetchAllUsersInfo,
             sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
+            searchResults = searchResults,
+            onSearchQueryChange = onSearchQueryChange,
         )
     }
 }
@@ -167,7 +169,6 @@ private fun MyPageContent(
     uiState: State<UiState>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
     userPhotoUrlState: State<String?>,
     userEmailState: State<String?>,
     userDisplayNameState: State<String?>,
@@ -175,10 +176,11 @@ private fun MyPageContent(
     signInWithGoogle: (Context) -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
+    searchResults: State<List<FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -201,13 +203,13 @@ private fun MyPageContent(
                     userUidState = userUidState,
                     myFriendsState = myFriendsState,
                     friendRequestsState = friendRequestsState,
-                    allUsersInfoState = allUsersInfoState,
                     fetchReceivedFriendRequests = fetchReceivedFriendRequests,
                     fetchFriends = fetchFriends,
-                    fetchAllUsersInfo = fetchAllUsersInfo,
                     sendFriendRequest = sendFriendRequest,
                     acceptFriendRequest = acceptFriendRequest,
                     rejectFriendRequest = rejectFriendRequest,
+                    searchResults = searchResults,
+                    onSearchQueryChange = onSearchQueryChange,
                 )
             }
 
@@ -293,18 +295,18 @@ private fun SocialContent(
     userUidState: State<String?>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
+    searchResults: State<List<FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
 ) {
     val currentUid = userUidState.value ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
-    val allUsersInfo = allUsersInfoState.value
+    val searchResultsList = searchResults.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
@@ -323,7 +325,7 @@ private fun SocialContent(
                     tabState = index
                     when (index) {
                         SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
-                        SOCIAL_SEARCH_TAB_INDEX -> fetchAllUsersInfo(currentUid)
+                        //SOCIAL_SEARCH_TAB_INDEX -> 검색 탭은 onSearchQueryChange와 searchResults로 관리
                         SOCIAL_ALARM_TAB_INDEX -> fetchReceivedFriendRequests(currentUid)
                     }
                 }
@@ -333,16 +335,17 @@ private fun SocialContent(
         when (tabState) {
             SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
             SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
-                allUsersInfo,
-                currentUid,
-                sendFriendRequest
+                userWithStatusList = searchResultsList,
+                currentUid = currentUid,
+                sendFriendRequest = sendFriendRequest,
+                onSearchQueryChange = onSearchQueryChange
             )
 
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
-                friendRequests,
-                acceptFriendRequest,
-                rejectFriendRequest,
-                currentUid
+                myAlarms = friendRequests,
+                acceptFriendRequest = acceptFriendRequest,
+                rejectFriendRequest = rejectFriendRequest,
+                currentUid = currentUid
             )
         }
     }
