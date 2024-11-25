@@ -67,11 +67,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
+import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
@@ -89,6 +91,9 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
+const val USER_SELECT_MAX = 4
+
+
 fun sizeToTint(
     size: Int,
     min: Color = Color(10, 0, 0),
@@ -102,7 +107,10 @@ fun sizeToTint(
 fun MapScreen(
     modifier: Modifier = Modifier,
     viewModel: MapScreenViewModel = hiltViewModel(),
+    friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
+    val friends = friendViewModel.friends.collectAsStateWithLifecycle()
+    val openAlertDialog = remember { mutableStateOf(false) }
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val labels = viewModel.labels.collectAsStateWithLifecycle()
     val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
@@ -154,8 +162,7 @@ fun MapScreen(
                 photoDetailIds = info.tag as List<Int>
                 pick = photoDetailIds.map { labelId -> idToPhoto.getValue(labelId) }
                     .groupBy { photoDetail -> photoDetail.labelId }
-                    .maxBy { (_, photos) -> photos.size }.value
-                    .maxBy { photoDetail -> photoDetail.datetime }
+                    .maxBy { (_, photos) -> photos.size }.value.maxBy { photoDetail -> photoDetail.datetime }
                 true
             }
         }
@@ -163,16 +170,16 @@ fun MapScreen(
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
+                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
+                    info.tag as List<Int>
                 marker.captionText = info.size.toString()
                 marker.iconTintColor = sizeToTint(info.size)
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
+                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
+                    info.tag as List<Int>
                 marker.captionText = "1"
                 marker.iconTintColor = sizeToTint(1)
                 marker.onClickListener = onClickMarker(info)
@@ -245,7 +252,10 @@ fun MapScreen(
 
         if (UserManager.isSignIn()) {
             IconButton(
-                onClick = { },
+                onClick = {
+                    friendViewModel.fetchFriends(UserManager.getUser()!!.uid)
+                    openAlertDialog.value = true
+                },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
@@ -264,70 +274,88 @@ fun MapScreen(
             modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f
         ) {
-            PhotoGrid(
-                photos = displayPhotos,
+            PhotoGrid(photos = displayPhotos,
                 labels = labels.value,
                 modifier = modifier,
                 onPhotoClick = { photo -> pick = photo })
         }
     }
+    FriendDialog(
+        isOpen = openAlertDialog,
+        friends = friends,
+        onDismiss = { openAlertDialog.value = false }
+    )
 }
 
 @Composable
 fun FriendDialog(
-    friends: List<FirestoreUser> = emptyList(),
+    isOpen: State<Boolean> = remember { mutableStateOf(true) },
+    friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
     modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {}
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    var selectedFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
 
-    Dialog(
-        onDismissRequest = { },
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .sizeIn(maxHeight = screenHeight * 0.7f),
-            shape = RoundedCornerShape(16.dp),
+    if (isOpen.value) {
+        Dialog(
+            onDismissRequest = { onDismiss() },
         ) {
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .sizeIn(maxHeight = screenHeight * 0.7f),
+                shape = RoundedCornerShape(16.dp),
             ) {
-                Text(
-                    text = "친구 지도 같이 보기",
-                )
-                Text(
-                    text = "친구의 지도를 함께 봐봅시다\n" +
-                            "총 4명의 친구 선택 가능해요!"
-                )
-            }
-
-            LazyColumn(
-                modifier = modifier.padding(horizontal = 16.dp),
-            ) {
-                items(friends) { friend ->
-                    FriendDialogItem(friend = friend, isSelect = false)
-                    HorizontalDivider()
-                }
-            }
-
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-
-                Button(onClick = { /*TODO*/ }) {
-                    Text(text = "취소")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = "친구 지도 같이 보기",
+                    )
+                    Text(
+                        text = "친구의 지도를 함께 봐봅시다\n" + "총 4명의 친구 선택 가능해요!"
+                    )
                 }
 
-                Spacer(modifier = Modifier.size(8.dp))
+                LazyColumn(
+                    modifier = modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                ) {
+                    items(friends.value) { friend ->
+                        FriendDialogItem(friend = friend,
+                            isSelect = selectedFriends.contains(friend),
+                            onSelect = {
+                                if (selectedFriends.contains(friend)) {
+                                    selectedFriends = selectedFriends.filter { it != friend }
+                                } else if (selectedFriends.size < USER_SELECT_MAX) {
+                                    selectedFriends = selectedFriends + friend
+                                }
+                            })
+                        HorizontalDivider()
+                    }
+                }
 
-                Button(onClick = { /*TODO*/ }) {
-                    Text(text = "적용")
+                Row(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+
+                    Button(onClick = { onDismiss() }) {
+                        Text(text = "취소")
+                    }
+
+                    Spacer(modifier = Modifier.size(8.dp))
+
+                    Button(onClick = { /*TODO*/ }) {
+                        Text(text = "적용")
+                    }
                 }
             }
         }
@@ -336,9 +364,10 @@ fun FriendDialog(
 
 @Composable
 fun FriendDialogItem(
-    friend: FirestoreUser,
+    friend: FirebaseFriend,
     isSelect: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSelect: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -349,32 +378,32 @@ fun FriendDialogItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            modifier = modifier.size(40.dp),
-            model = friend.photoUrl,
-            contentDescription = null
+            modifier = modifier.size(40.dp), model = friend.user.photoUrl, contentDescription = null
         )
         Text(
-            modifier = modifier
-                .weight(1f),
-            text = friend.email,
+            modifier = modifier.weight(1f),
+            text = friend.user.email,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Checkbox(checked = isSelect, onCheckedChange = {})
+        Checkbox(checked = isSelect, onCheckedChange = { onSelect() })
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun FriendDialogPreview() {
+    val friends = remember {
+        mutableStateOf(
+            listOf(
+                FirebaseFriend(FirestoreUser(email = "12312131u2i3b1823g812g31d123")),
+                FirebaseFriend()
+            )
+        )
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         FriendDialog(
-            friends = listOf(
-                FirestoreUser(
-                    email = "12312131u2i3b1823g812g31d123"
-                ),
-                FirestoreUser()
-            )
+            friends = friends
         )
     }
 }
@@ -390,10 +419,7 @@ fun PhotoGrid(
     onPhotoClick: (PhotoDetail) -> Unit,
 ) {
     val labelIdToLabel = labels.associateBy { label -> label.id }
-    val groupByLabel = photos
-        .value
-        .groupBy { photoDetail -> photoDetail.labelId }
-        .toList()
+    val groupByLabel = photos.value.groupBy { photoDetail -> photoDetail.labelId }.toList()
         .sortedByDescending { (_, photoDetails) -> photoDetails.size }
         .map { (labelId, photoDetails) ->
             labelIdToLabel[labelId]!! to photoDetails.sortedByDescending { photoDetail -> photoDetail.datetime }
