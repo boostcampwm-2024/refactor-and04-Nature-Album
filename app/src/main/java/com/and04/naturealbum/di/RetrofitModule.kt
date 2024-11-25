@@ -7,10 +7,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNamingStrategy
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -20,12 +16,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
     private const val BASE_URL = "https://naveropenapi.apigw.ntruss.com/"
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json {
-        //ignoreUnknownKeys = true // data class에 없는 key 무시
-        namingStrategy = JsonNamingStrategy.SnakeCase   // 스네이크 -> 카멜 자동 변환
-    }
 
     private val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
@@ -37,19 +27,6 @@ object RetrofitModule {
         }
         .build()
 
-    private val mediaType =
-        requireNotNull("application/json".toMediaTypeOrNull()) { Exception("mediaType null") }
-
-    /*@OptIn(ExperimentalSerializationApi::class)
-    @Provides
-    @Singleton
-    fun convertCoordsToAddress(): ReverseGeocodeAPI = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .client(client)
-        .addConverterFactory(json.asConverterFactory(mediaType))
-        .build()
-        .create(ReverseGeocodeAPI::class.java)*/
-    
     @Provides
     @Singleton
     fun convertCoordsToAddress(): ReverseGeocodeAPI = Retrofit.Builder()

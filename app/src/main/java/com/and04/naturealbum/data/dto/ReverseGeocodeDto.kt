@@ -35,7 +35,7 @@ data class Region(
 data class Area(
     val name: String?,
     val coords: Coords?,
-    val alias: String?,
+    val alias: String?, // name이 전라남도였다면 alias 는 전남으로 온다
 )
 
 data class Coords(
