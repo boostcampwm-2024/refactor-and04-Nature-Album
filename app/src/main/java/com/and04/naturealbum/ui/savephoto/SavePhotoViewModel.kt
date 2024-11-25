@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,8 @@ import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.google.firebase.vertexai.type.content
+import com.google.firebase.vertexai.vertexAI
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +31,11 @@ sealed class UiState {
 class SavePhotoViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
+    private val _geminiApiUiState = MutableStateFlow<UiState>(UiState.Idle)
+    val geminiApiUiState: StateFlow<UiState> = _geminiApiUiState
+
+    private val _generatedLabelByGemini = MutableStateFlow<String>("")
+    val generatedLabelByGemini: StateFlow<String> = _generatedLabelByGemini
 
     private val _photoSaveState = MutableStateFlow<UiState>(UiState.Idle)
     val photoSaveState: StateFlow<UiState> = _photoSaveState
@@ -83,6 +91,21 @@ class SavePhotoViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("SavePhotoViewModel", "Error saving photo: ${e.message}")
                 _photoSaveState.emit(UiState.Idle)
+            }
+        }
+    }
+
+    fun getGeneratedContent(bitmap: Bitmap?) {
+        bitmap?.let { bitmap ->
+            viewModelScope.launch {
+                val model = com.google.firebase.Firebase.vertexAI.generativeModel("gemini-1.5-pro")
+                val content = content {
+                    image(bitmap)
+                    text("이 이미지의 생물이 뭔지 알려줘.")
+                }
+
+                val result = model.generateContent(content)
+
             }
         }
     }

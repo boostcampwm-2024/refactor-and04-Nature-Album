@@ -1,16 +1,13 @@
 package com.and04.naturealbum.ui.savephoto
 
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.location.Location
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
@@ -42,6 +39,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +90,9 @@ fun SavePhotoScreen(
 ) {
     // TODO : 상태 변경시 로딩화면등 화면 변경, 없으면 이름 변경 고려
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
+    val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
+    val generatedLabelByGemini =  viewModel.generatedLabelByGemini.collectAsStateWithLifecycle()
+
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
@@ -112,7 +113,10 @@ fun SavePhotoScreen(
         onNavigateToMyPage = onNavigateToMyPage,
         onLabelSelect = onLabelSelect,
         onBack = onBack,
-        savePhoto = viewModel::savePhoto
+        savePhoto = viewModel::savePhoto,
+        geminiApiState = geminiApiState,
+        generatedLabelByGemini = generatedLabelByGemini,
+        getLabelFromGemini = viewModel::getGeneratedContent,
     )
 }
 
@@ -130,64 +134,61 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
+    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
+    geminiApiState: State<UiState>,
+    generatedLabelByGemini: State<String>,
+    getLabelFromGemini: (Bitmap?) -> Unit
 ) {
-    Scaffold(
-        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
-    ) { innerPadding ->
-        BackgroundImage()
+    val context = LocalContext.current
+    val bitmap = loadImageFromUri(context, model)
 
-        val context = LocalContext.current
-        val bitmap = loadImageFromUri(context, model)
+    getLabelFromGemini(bitmap)
 
-        if (bitmap != null) {
-            val detector = ObjectDetectorHelper(context, "EfficientDet.tflite")
-            val results = detector.detectObjects(bitmap)
+    when(geminiApiState.value){
+        is UiState.Success -> {
+            val geminiLabel = generatedLabelByGemini.value
 
-            // 결과 출력
-            for (detection in results) {
-                val category = detection.categories.firstOrNull()?.label ?: "Unknown"
-                val confidence = detection.categories.firstOrNull()?.score ?: 0f
-                Log.d("TensorFlow Lite", "Detected: $category (${confidence * 100}%)")
+            Scaffold(
+                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
+            ) { innerPadding ->
+                BackgroundImage()
+
+                if (LocalContext.current.isPortrait()) {
+                    SavePhotoScreenPortrait(
+                        innerPadding = innerPadding,
+                        model = model,
+                        fileName = fileName,
+                        label = label,
+                        location = location,
+                        rememberDescription = rememberDescription,
+                        onDescriptionChange = onDescriptionChange,
+                        isRepresented = isRepresented,
+                        onRepresentedChange = onRepresentedChange,
+                        photoSaveState = photoSaveState,
+                        onLabelSelect = onLabelSelect,
+                        onBack = onBack,
+                        savePhoto = savePhoto,
+                    )
+                } else {
+                    SavePhotoScreenLandscape(
+                        innerPadding = innerPadding,
+                        model = model,
+                        fileName = fileName,
+                        label = label,
+                        location = location,
+                        rememberDescription = rememberDescription,
+                        onDescriptionChange = onDescriptionChange,
+                        isRepresented = isRepresented,
+                        onRepresentedChange = onRepresentedChange,
+                        photoSaveState = photoSaveState,
+                        onLabelSelect = onLabelSelect,
+                        onBack = onBack,
+                        savePhoto = savePhoto,
+                    )
+                }
             }
-        } else {
-            Log.d("TensorFlow Lite", "Detected Fail")
         }
-
-
-        if (LocalContext.current.isPortrait()) {
-            SavePhotoScreenPortrait(
-                innerPadding = innerPadding,
-                model = model,
-                fileName = fileName,
-                label = label,
-                location = location,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = onDescriptionChange,
-                isRepresented = isRepresented,
-                onRepresentedChange = onRepresentedChange,
-                photoSaveState = photoSaveState,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = savePhoto
-            )
-        } else {
-            SavePhotoScreenLandscape(
-                innerPadding = innerPadding,
-                model = model,
-                fileName = fileName,
-                label = label,
-                location = location,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = onDescriptionChange,
-                isRepresented = isRepresented,
-                onRepresentedChange = onRepresentedChange,
-                photoSaveState = photoSaveState,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = savePhoto
-            )
-        }
+        else -> {}
     }
 
     if (photoSaveState.value == UiState.Loading) {
@@ -359,7 +360,7 @@ fun insertFirebaseService(
     context.startService(intent)
 }
 
-private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
+fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
     return try {
         val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
         Log.e("TensorFlow Lite", "image load success")
@@ -378,21 +379,23 @@ private fun ScreenPreview() {
         val uiState = rememberSaveable { mutableStateOf(UiState.Success) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
+        val generatedLabelByGemini = remember { mutableStateOf("") }
 
-        SavePhotoScreen(
-            model = "".toUri(),
-            location = null,
-            fileName = "fileName.jpg",
-            label = Label(0, "0000FF", "cat"),
-            rememberDescription = rememberDescription,
-            onDescriptionChange = { },
-            isRepresented = isRepresented,
-            onRepresentedChange = { },
-            photoSaveState = uiState,
-            onNavigateToMyPage = { },
-            onLabelSelect = { },
-            onBack = { },
-            savePhoto = { _, _, _, _, _, _ -> },
-        )
+//        SavePhotoScreen(
+//            model = "".toUri(),
+//            location = null,
+//            fileName = "fileName.jpg",
+//            label = Label(0, "0000FF", "cat"),
+//            rememberDescription = rememberDescription,
+//            onDescriptionChange = { },
+//            isRepresented = isRepresented,
+//            onRepresentedChange = { },
+//            photoSaveState = uiState,
+//            onNavigateToMyPage = { },
+//            onLabelSelect = { },
+//            onBack = { },
+//            savePhoto = { _, _, _, _, _, _ -> },
+//            getLabelFromGemini = { }
+//        )
     }
 }
