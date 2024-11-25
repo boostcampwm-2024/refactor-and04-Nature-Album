@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.ui.model.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,22 +15,17 @@ import javax.inject.Inject
 class AlbumViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState
-
-    private val _albumList = MutableStateFlow<List<AlbumDto>>(emptyList())
-    val albumList: StateFlow<List<AlbumDto>> = _albumList
+    private val _uiState = MutableStateFlow<UiState<List<AlbumDto>>>(UiState.Idle)
+    val uiState: StateFlow<UiState<List<AlbumDto>>> = _uiState
 
     init {
         loadAlbums()
     }
 
-
     fun loadAlbums() {
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
-            _albumList.emit(repository.getAllAlbum())
-            _uiState.emit(UiState.Success)
+            _uiState.emit(UiState.Success(data = repository.getAllAlbum()))
         }
     }
 }
