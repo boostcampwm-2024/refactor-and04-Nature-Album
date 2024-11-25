@@ -72,10 +72,8 @@ fun sizeToTint(
     min: Color = Color(10, 0, 0),
     max: Color = Color(255, 0, 0),
     @IntRange(from = 1) threshold: Int = 20
-): Int {
-    val t = minOf(size, threshold)
-    return lerp(min, max, t / threshold.toFloat()).toArgb()
-}
+): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
+
 
 @SuppressLint("NewApi")
 @Composable
