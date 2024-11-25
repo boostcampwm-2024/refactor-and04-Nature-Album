@@ -9,16 +9,26 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -42,9 +52,13 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -53,6 +67,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.BottomSheetState
@@ -257,6 +272,113 @@ fun MapScreen(
         }
     }
 }
+
+@Composable
+fun FriendDialog(
+    friends: List<FirestoreUser> = emptyList(),
+    modifier: Modifier = Modifier,
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+    Dialog(
+        onDismissRequest = { },
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .sizeIn(maxHeight = screenHeight * 0.7f),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "친구 지도 같이 보기",
+                )
+                Text(
+                    text = "친구의 지도를 함께 봐봅시다\n" +
+                            "총 4명의 친구 선택 가능해요!"
+                )
+            }
+
+            LazyColumn(
+                modifier = modifier.padding(horizontal = 16.dp),
+            ) {
+                items(friends) { friend ->
+                    FriendDialogItem(friend = friend, isSelect = false)
+                    HorizontalDivider()
+                }
+            }
+
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = "취소")
+                }
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = "적용")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendDialogItem(
+    friend: FirestoreUser,
+    isSelect: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            modifier = modifier.size(40.dp),
+            model = friend.photoUrl,
+            contentDescription = null
+        )
+        Text(
+            modifier = modifier
+                .weight(1f),
+            text = friend.email,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Checkbox(checked = isSelect, onCheckedChange = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FriendDialogPreview() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        FriendDialog(
+            friends = listOf(
+                FirestoreUser(
+                    email = "12312131u2i3b1823g812g31d123"
+                ),
+                FirestoreUser()
+            )
+        )
+    }
+}
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
