@@ -3,7 +3,6 @@ package com.and04.naturealbum.di
 import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_ID
 import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_SECRET
 import com.and04.naturealbum.data.retorifit.ReverseGeocodeAPI
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +13,7 @@ import kotlinx.serialization.json.JsonNamingStrategy
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -23,7 +23,7 @@ object RetrofitModule {
 
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json {
-        ignoreUnknownKeys = true // data class에 없는 key 무시
+        //ignoreUnknownKeys = true // data class에 없는 key 무시
         namingStrategy = JsonNamingStrategy.SnakeCase   // 스네이크 -> 카멜 자동 변환
     }
 
@@ -40,13 +40,22 @@ object RetrofitModule {
     private val mediaType =
         requireNotNull("application/json".toMediaTypeOrNull()) { Exception("mediaType null") }
 
-    @OptIn(ExperimentalSerializationApi::class)
+    /*@OptIn(ExperimentalSerializationApi::class)
     @Provides
     @Singleton
     fun convertCoordsToAddress(): ReverseGeocodeAPI = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(client)
         .addConverterFactory(json.asConverterFactory(mediaType))
+        .build()
+        .create(ReverseGeocodeAPI::class.java)*/
+    
+    @Provides
+    @Singleton
+    fun convertCoordsToAddress(): ReverseGeocodeAPI = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create()) // Gson 컨버터 추가
         .build()
         .create(ReverseGeocodeAPI::class.java)
 }

@@ -152,6 +152,9 @@ dependencies {
     //retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
+
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
 }
 
 kapt {

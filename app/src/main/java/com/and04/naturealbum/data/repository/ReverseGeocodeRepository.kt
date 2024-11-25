@@ -21,6 +21,7 @@ class ReverseGeocodeRepositoryImpl @Inject constructor(private val reverseGeocod
 
     private suspend fun <T> runRemote(block: suspend () -> T): Result<T> {
         return try {
+            Log.d("F11", "${block.invoke().toString()}")
             Result.success(block.invoke())
         } catch (e: retrofit2.HttpException) { // HTTP 응답 코드가 4xx 또는 5xx일 때
             Log.e("ERROR", "HTTP Exception: ${e.code()} - ${e.message()}")
