@@ -32,11 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -66,18 +67,14 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-
 fun sizeToTint(
     size: Int,
-    min: Color = Color(10,0,0),
-    max: Color = Color(255,0,0),
+    min: Color = Color(10, 0, 0),
+    max: Color = Color(255, 0, 0),
     @IntRange(from = 1) threshold: Int = 20
 ): Int {
     val t = minOf(size, threshold)
-    val r = min.red + t * (max.red - min.red) * 255 / threshold
-    val g = min.green + t * (max.green - min.green) * 255 / threshold
-    val b = min.blue + t * (max.blue - min.blue) * 255 / threshold
-    return (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
+    return lerp(min, max, t / threshold.toFloat()).toArgb()
 }
 
 @SuppressLint("NewApi")
