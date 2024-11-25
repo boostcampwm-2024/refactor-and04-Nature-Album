@@ -9,7 +9,7 @@ data class AlbumDto(
     val photoDetailUri: String
 )
 
-data class SynchronizedAlbumsDto(
+data class UnSynchronizedAlbumsDto(
     val labelId: Int,
     val labelName: String,
     val labelBackgroundColor: String,
@@ -17,7 +17,7 @@ data class SynchronizedAlbumsDto(
     val fileName: String
 )
 
-data class SynchronizedPhotoDetailsDto(
+data class UnSynchronizedPhotoDetailsDto(
     val photoDetailUri: String,
     val labelName: String,
     val fileName: String,

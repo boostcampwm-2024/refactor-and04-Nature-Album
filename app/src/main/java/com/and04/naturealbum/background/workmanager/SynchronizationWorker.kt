@@ -12,8 +12,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.SynchronizedAlbumsDto
-import com.and04.naturealbum.data.dto.SynchronizedPhotoDetailsDto
+import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
+import com.and04.naturealbum.data.dto.UnSynchronizedPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.google.firebase.auth.ktx.auth
@@ -92,9 +92,9 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val label = async {
                 val labels = fireBaseRepository.getLabels(uid)
-                val synchronizedAlbums = roomRepository.getSynchronizedAlbums(labels)
+                val unSynchronizedAlbums = roomRepository.getUnSynchronizedAlbums(labels)
 
-                synchronizedAlbums.forEach { album ->
+                unSynchronizedAlbums.forEach { album ->
                     launch {
                         insertLabel(uid, album)
                     }
@@ -103,10 +103,10 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val photoDetail = async {
                 val fileNames = fireBaseRepository.getPhotos(uid)
-                val synchronizedPhotoDetails =
-                    roomRepository.getSynchronizedPhotoDetails(fileNames)
+                val unSynchronizedPhotoDetails =
+                    roomRepository.getUnSynchronizedPhotoDetails(fileNames)
 
-                synchronizedPhotoDetails.forEach { photo ->
+                unSynchronizedPhotoDetails.forEach { photo ->
                     launch {
                         insertPhotoDetail(uid, photo)
                     }
@@ -125,7 +125,7 @@ class SynchronizationWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun insertLabel(uid: String, album: SynchronizedAlbumsDto) {
+    private suspend fun insertLabel(uid: String, album: UnSynchronizedAlbumsDto) {
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
@@ -145,7 +145,7 @@ class SynchronizationWorker @AssistedInject constructor(
             )
     }
 
-    private suspend fun insertPhotoDetail(uid: String, photo: SynchronizedPhotoDetailsDto) {
+    private suspend fun insertPhotoDetail(uid: String, photo: UnSynchronizedPhotoDetailsDto) {
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
