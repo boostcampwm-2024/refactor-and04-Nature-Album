@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.mypage
 
-import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
@@ -117,7 +116,7 @@ fun MyPageScreenContent(
     userEmailState: State<String?>,
     userDisplayNameState: State<String?>,
     userUidState: State<String?>,
-    signInWithGoogle: (Context) -> Unit,
+    signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -173,7 +172,7 @@ private fun MyPageContent(
     userEmailState: State<String?>,
     userDisplayNameState: State<String?>,
     userUidState: State<String?>,
-    signInWithGoogle: (Context) -> Unit,
+    signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -214,7 +213,7 @@ private fun MyPageContent(
             else -> {
                 // 비회원일 때
                 UserProfileContent(null, null, null)
-                LoginContent { signInWithGoogle(context) }
+                LoginContent { signInWithGoogle() }
             }
         }
     }

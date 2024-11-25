@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.mypage
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.MyFriend
@@ -14,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val authenticationManager: AuthenticationManager
+    private val authenticationManager: AuthenticationManager,
+    private val userManager: UserManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
@@ -38,9 +38,9 @@ class MyPageViewModel @Inject constructor(
         setInitUiState()
     }
 
-    fun signInWithGoogle(context: Context) {
+    fun signInWithGoogle() {
         _uiState.value = UiState.Loading
-        authenticationManager.signInWithGoogle(context).onEach { response ->
+        authenticationManager.signInWithGoogle().onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
                     setUserInfo()
@@ -51,14 +51,14 @@ class MyPageViewModel @Inject constructor(
     }
 
     private fun setInitUiState() {
-        if (UserManager.isSignIn()) {
+        if (userManager.isSignIn()) {
             setUserInfo()
             _uiState.value = UiState.Success
         }
     }
 
     private fun setUserInfo() {
-        val user = UserManager.getUser()
+        val user = userManager.getUser()
         _userEmail.value = user?.email
         _userPhotoUrl.value = user?.photoUrl.toString()
         _userDisplayName.value = user?.displayName

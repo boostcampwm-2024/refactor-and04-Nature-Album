@@ -21,7 +21,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 interface AuthResponse {
@@ -30,11 +29,12 @@ interface AuthResponse {
 }
 
 class AuthenticationManager @Inject constructor(
+    private val context: Context,
     private val fireBaseRepository: FireBaseRepository
 ) {
     private val auth = Firebase.auth
 
-    fun signInWithGoogle(context: Context): Flow<AuthResponse> = callbackFlow {
+    fun signInWithGoogle(): Flow<AuthResponse> = callbackFlow {
         try {
             val credential = getCredential(context)
             val firebaseCredential = getFirebaseCredential(credential) ?: return@callbackFlow
