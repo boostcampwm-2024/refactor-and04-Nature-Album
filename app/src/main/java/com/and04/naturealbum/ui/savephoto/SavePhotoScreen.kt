@@ -371,8 +371,9 @@ fun insertFirebaseService(
 
 fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
     return try {
-        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        BitmapFactory.decodeStream(inputStream)
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
     } catch (e: IOException) {
         null
     }
