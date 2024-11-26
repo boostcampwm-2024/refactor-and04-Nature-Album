@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.LabelDocument
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.ui.maps.LabelItem
 import com.and04.naturealbum.ui.maps.PhotoItem
-import com.and04.naturealbum.ui.maps.toPhotoItems
+import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -184,5 +187,20 @@ class FriendViewModel @Inject constructor(
                 )
             }
         }
+    }
+}
+
+// FireBase Data -> UI Data
+fun LabelDocument.toLabelItem() = LabelItem(labelName, labelData.backgroundColor)
+fun List<FirebasePhotoInfo>.toPhotoItems(labels: List<LabelDocument>): List<PhotoItem> {
+    val labelMap =
+        labels.associate { firebaseLabel -> firebaseLabel.labelName to firebaseLabel.toLabelItem() }
+    return map { firebasePhotoInfo ->
+        PhotoItem(
+            firebasePhotoInfo.uri,
+            LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
+            labelMap.getValue(firebasePhotoInfo.label),
+            firebasePhotoInfo.datetime
+        )
     }
 }

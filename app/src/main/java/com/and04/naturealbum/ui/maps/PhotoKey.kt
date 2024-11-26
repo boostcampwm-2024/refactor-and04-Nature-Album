@@ -1,9 +1,5 @@
 package com.and04.naturealbum.ui.maps
 
-import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.LabelDocument
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.clustering.ClusteringKey
 import java.time.LocalDateTime
@@ -33,32 +29,3 @@ data class PhotoItem(
     val label: LabelItem,
     val time: LocalDateTime,
 )
-
-// Room Data -> UI Data
-fun Label.toLabelItem() = LabelItem(name, backgroundColor)
-fun List<PhotoDetail>.toPhotoItems(labels: List<Label>): List<PhotoItem> {
-    val labelMap = labels.associate { roomLabel -> roomLabel.id to roomLabel.toLabelItem() }
-    return map { photoDetail ->
-        PhotoItem(
-            photoDetail.photoUri,
-            LatLng(photoDetail.latitude, photoDetail.longitude),
-            labelMap.getValue(photoDetail.labelId),
-            photoDetail.datetime
-        )
-    }
-}
-
-// FireBase Data -> UI Data
-fun LabelDocument.toLabelItem() = LabelItem(labelName, labelData.backgroundColor)
-fun List<FirebasePhotoInfo>.toPhotoItems(labels: List<LabelDocument>): List<PhotoItem> {
-    val labelMap =
-        labels.associate { firebaseLabel -> firebaseLabel.labelName to firebaseLabel.toLabelItem() }
-    return map { firebasePhotoInfo ->
-        PhotoItem(
-            firebasePhotoInfo.uri,
-            LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
-            labelMap.getValue(firebasePhotoInfo.label),
-            firebasePhotoInfo.datetime
-        )
-    }
-}
