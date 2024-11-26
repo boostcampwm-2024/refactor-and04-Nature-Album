@@ -63,18 +63,18 @@ class SynchronizationWorker @AssistedInject constructor(
             val duration = getDurationTime()
 
             val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.UNMETERED) //Wifi 연결 시 실행
+                .setRequiredNetworkType(NetworkType.UNMETERED)
                 .build()
 
             val workRequest = OneTimeWorkRequestBuilder<SynchronizationWorker>()
-                .setInitialDelay(duration.seconds, TimeUnit.SECONDS) // 지금부터 정각까지 지연 후 실행
+                .setInitialDelay(duration.seconds, TimeUnit.SECONDS)
                 .setConstraints(constraints)
                 .build()
 
             WorkManager.getInstance(context)
                 .enqueueUniqueWork(
                     WORKER_NAME,
-                    ExistingWorkPolicy.REPLACE, //기존 작업을 새 작업으로 전환
+                    ExistingWorkPolicy.REPLACE,
                     workRequest
                 )
         }
@@ -98,7 +98,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 .withHour(newSyncTime.hour)
                 .withMinute(newSyncTime.minute)
 
-            return Duration.between(LocalDateTime.now(), nextTriggerTime) //다음 정각까지 남은 시간
+            return Duration.between(LocalDateTime.now(), nextTriggerTime)
         }
     }
 
@@ -115,28 +115,24 @@ class SynchronizationWorker @AssistedInject constructor(
                 val labels = fireBaseRepository.getLabels(uid)
                 val allLocalLabels = roomRepository.getSyncCheckAlbums()
 
-                // 서버에 없는 Local Data
                 val unSynchronizedLabelsToServer = allLocalLabels.filter { label ->
                     labels.none { firebaseLabel ->
                         firebaseLabel.labelName == label.labelName
                     }
                 }
 
-                // 로컬에 없는 서버 데이터
                 val unSynchronizedLabelsToLocal = labels.filter { label ->
                     allLocalLabels.none { localLabel ->
                         localLabel.labelName == label.labelName
                     }
                 }
 
-                // 로컬 > 서버
                 unSynchronizedLabelsToServer.forEach { label ->
                     launch {
                         insertLabelToServer(uid, label)
                     }
                 }
 
-                // 서버 > 로컬
                 unSynchronizedLabelsToLocal.forEach { label ->
                     launch {
                         fileNameToLabelUid[label.labelName] =
@@ -155,7 +151,6 @@ class SynchronizationWorker @AssistedInject constructor(
                     }
                 }
 
-                // 로컬 > 서버
                 unSynchronizedPhotoDetailsToServer.forEach { photo ->
                     launch {
                         insertPhotoDetail(uid, photo)
@@ -174,15 +169,13 @@ class SynchronizationWorker @AssistedInject constructor(
             label.await()
             photoDetail.await()
 
-            // 서버 > 로컬
-            val saveJob = async {
+            async {
                 unSynchronizedPhotoDetailsToLocal.forEach { photo ->
                     launch {
                         insertPhotoDetailAndAlbumToLocal(photo, fileNameToLabelUid)
                     }
                 }
-            }
-            saveJob.await()
+            }.await()
 
             Result.success()
         } catch (e: Exception) {
@@ -228,13 +221,12 @@ class SynchronizationWorker @AssistedInject constructor(
         photo: FirebasePhotoInfoResponse,
         fileNameToLabelUid: HashMap<String, Pair<Int, String>>
     ) = withContext(Dispatchers.IO + SupervisorJob()) {
-        // 라벨 대표 이미지에 대한 처리
+
         val valueList = fileNameToLabelUid.values.toList()
         val findAlbumData = valueList.find { value -> value.second == photo.fileName }
         val uri = makeFileToUri(photo.uri, photo.fileName)
 
         if (findAlbumData != null) {
-            // 사진 상세 추가
             val labelId = findAlbumData.first
             val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
 
