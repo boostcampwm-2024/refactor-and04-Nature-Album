@@ -1,10 +1,8 @@
 package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
-import android.graphics.PointF
 import android.view.Gravity
 import android.view.View
-import androidx.annotation.IntRange
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,9 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -68,36 +64,18 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
-import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
-import com.naver.maps.map.clustering.ClusterMarkerInfo
-import com.naver.maps.map.clustering.Clusterer
-import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
-import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
-import com.naver.maps.map.clustering.DefaultMarkerManager
-import com.naver.maps.map.clustering.LeafMarkerInfo
-import com.naver.maps.map.clustering.MarkerInfo
-import com.naver.maps.map.overlay.Align
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
 private const val USER_SELECT_MAX = 4
-private const val LEAF_NODE_SIZE = 1
-
-fun sizeToTint(
-    size: Int,
-    min: Color = Color(63, 0, 0),
-    max: Color = Color(255, 0, 0),
-    @IntRange(from = 1) threshold: Int = 20
-): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
 
 @SuppressLint("NewApi")
 @Composable
@@ -110,11 +88,12 @@ fun MapScreen(
     val openAlertDialog = remember { mutableStateOf(false) }
     var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
 
-    val photos = viewModel.photos.collectAsStateWithLifecycle()
-    val labels = viewModel.labels.collectAsStateWithLifecycle()
-    val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
+    val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
+    val myLabels = viewModel.labels.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+
     val marker = remember { Marker() }
 
     val mapView = remember {
@@ -135,77 +114,44 @@ fun MapScreen(
         }
     }
 
-    var pick by remember { mutableStateOf<PhotoDetail?>(null) }
-    var photoDetailIds by remember { mutableStateOf(listOf<Int>()) }
-    val displayPhotos = remember { mutableStateOf(listOf<PhotoDetail>()) }
-
-    LaunchedEffect(photoDetailIds) {
-        displayPhotos.value = photoDetailIds.map { labelId -> idToPhoto[labelId]!! }
-    }
+    var pick by remember { mutableStateOf<PhotoItem?>(null) }
+    val displayPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
 
     LaunchedEffect(pick) {
         mapView.getMapAsync { naverMap ->
             marker.map = pick?.let { pick ->
-                imageMarker.loadImage(pick.photoUri)
-                marker.position = LatLng(pick.latitude, pick.longitude)
+                imageMarker.loadImage(pick.uri)
+                marker.position = pick.position
                 naverMap
             }
         }
     }
 
-    val clusterImage = OverlayImage.fromResource(R.drawable.ic_cluster)
-
-    val cluster: Clusterer<PhotoKey> = remember {
-        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
-            Overlay.OnClickListener {
-                photoDetailIds = info.tag as List<Int>
-                pick = photoDetailIds.map { labelId -> idToPhoto.getValue(labelId) }
-                    .groupBy { photoDetail -> photoDetail.labelId }
-                    .maxBy { (_, photos) -> photos.size }.value
-                    .maxBy { photoDetail -> photoDetail.datetime }
-                true
-            }
-        }
-        Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
-            cluster.children.flatMap { node -> node.tag as List<*> }
-        }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
-            override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
-                marker.captionText = info.size.toString()
-                marker.iconTintColor = sizeToTint(info.size)
-                marker.onClickListener = onClickMarker(info)
-            }
-        }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
-            override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
-                marker.captionText = LEAF_NODE_SIZE.toString()
-                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
-                marker.onClickListener = onClickMarker(info)
-            }
-        }).markerManager(object : DefaultMarkerManager() {
-            override fun createMarker(): Marker {
-                return Marker().apply {
-                    zIndex = -1
-                    icon = clusterImage
-                    isFlat = true
-                    anchor = PointF(0.5f, 0.5f)
-                    setCaptionAligns(Align.Center, Align.Center)
-                    captionTextSize = 24f
+    val cluster: ClusterManager = remember {
+        ClusterManager(
+            colorRange = ColorRange.RED,
+            onMarkerClick = { info ->
+                Overlay.OnClickListener {
+                    displayPhotos.value = info.tag as List<PhotoItem>
+                    pick = displayPhotos.value
+                        .groupBy { photoItem -> photoItem.label }
+                        .maxBy { (_, photoItems) -> photoItems.size }.value
+                        .maxBy { photoItem -> photoItem.time }
+                    true
                 }
+            },
+            onClusterChange = { info ->
+                val changedCluster = info.tag as List<PhotoItem>
+                if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
             }
-        })
-    }.build()
+        )
+    }
 
-    LaunchedEffect(photos.value) {
-        if (displayPhotos.value.isEmpty()) displayPhotos.value = photos.value
-        photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
-        cluster.addAll(photos.value.associate { photoDetail ->
-            PhotoKey(
-                photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)
-            ) to listOf(photoDetail.id)
-        })
+    LaunchedEffect(myPhotos.value, myLabels.value) {
+        if (myLabels.value.isEmpty()) return@LaunchedEffect
+        if (displayPhotos.value.isEmpty()) displayPhotos.value =
+            myPhotos.value.toPhotoItems(myLabels.value)
+        cluster.setPhotoItems(myPhotos.value.toPhotoItems(myLabels.value))
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -231,7 +177,6 @@ fun MapScreen(
         onDispose {
             lifecycle.removeObserver(observer)
             cluster.clear()
-            cluster.map = null
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
         }
     }
@@ -240,9 +185,9 @@ fun MapScreen(
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
             mapView.getMapAsync { naverMap ->
-                cluster.map = naverMap
+                cluster.setMap(naverMap)
                 naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
-                    displayPhotos.value = photos.value
+                    displayPhotos.value = emptyList()
                     pick = null
                 }
                 val uiSettings = naverMap.uiSettings
@@ -276,7 +221,6 @@ fun MapScreen(
         ) {
             PhotoGrid(
                 photos = displayPhotos,
-                labels = labels.value,
                 modifier = modifier,
                 onPhotoClick = { photo -> pick = photo }
             )
@@ -402,21 +346,16 @@ fun FriendDialogItem(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
-    photos: State<List<PhotoDetail>>,
-    labels: List<Label>,
+    photos: State<List<PhotoItem>>,
     columnCount: Int = 3,
     modifier: Modifier = Modifier,
-    onPhotoClick: (PhotoDetail) -> Unit,
+    onPhotoClick: (PhotoItem) -> Unit,
 ) {
-    val labelIdToLabel = labels.associateBy { label -> label.id }
     val groupByLabel = photos
         .value
-        .groupBy { photoDetail -> photoDetail.labelId }
+        .groupBy { photoItem -> photoItem.label }
         .toList()
-        .sortedByDescending { (_, photoDetails) -> photoDetails.size }
-        .map { (labelId, photoDetails) ->
-            labelIdToLabel[labelId]!! to photoDetails.sortedByDescending { photoDetail -> photoDetail.datetime }
-        }
+        .sortedByDescending { (_, photoItem) -> photoItem.size }
 
     LazyColumn(
         modifier = modifier,
@@ -424,7 +363,7 @@ fun PhotoGrid(
     ) {
         groupByLabel.forEach { (label, photos) ->
             stickyHeader {
-                val backgroundColor = label.backgroundColor.toColor()
+                val backgroundColor = label.color.toColor()
                 SuggestionChip(
                     onClick = {},
                     label = { Text(text = label.name) },
@@ -442,8 +381,8 @@ fun PhotoGrid(
                 ) {
                     row.forEach { photo ->
                         AsyncImage(
-                            model = photo.photoUri,
-                            contentDescription = photo.description, // TODO: 해당 description 무엇으로 할지 확정
+                            model = photo.uri,
+                            contentDescription = photo.label.name, // TODO: 해당 description 무엇으로 할지 확정
                             modifier = Modifier
                                 .wrapContentSize(Alignment.Center)
                                 .aspectRatio(1f)
