@@ -102,6 +102,8 @@ private fun Content(
 
             PhotoDetailInfo(innerPadding, photoDetail, label)
         }
+
+        is UiState.Error -> { /* TODO ERROR */ }
     }
 }
 

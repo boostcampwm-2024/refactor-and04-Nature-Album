@@ -59,9 +59,9 @@ import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-const val SOCIAL_LIST_TAB_INDEX = 0
-const val SOCIAL_SEARCH_TAB_INDEX = 1
-const val SOCIAL_ALARM_TAB_INDEX = 2
+private const val SOCIAL_LIST_TAB_INDEX = 0
+private const val SOCIAL_SEARCH_TAB_INDEX = 1
+private const val SOCIAL_ALARM_TAB_INDEX = 2
 
 @Composable
 fun MyPageScreen(

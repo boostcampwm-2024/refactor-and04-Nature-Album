@@ -64,10 +64,6 @@ fun AlbumScreen(
     onNavigateToMyPage: () -> Unit,
 ) {
     when (uiState.value) {
-        is UiState.Loading, UiState.Idle -> {
-            // TODO: loading
-        }
-
         is UiState.Success -> {
             val albumList = (uiState.value as UiState.Success).data
 
@@ -86,6 +82,10 @@ fun AlbumScreen(
                     )
                 }
             }
+        }
+
+        else -> {
+            // TODO: loading
         }
     }
 }

@@ -73,7 +73,6 @@ import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import java.io.IOException
-import java.io.InputStream
 
 @Composable
 fun SavePhotoScreen(
@@ -98,6 +97,13 @@ fun SavePhotoScreen(
 
     when (geminiApiState.value) {
         is UiState.Success -> {
+            val labelName = (geminiApiState.value as UiState.Success).data
+            val geminiLabel =
+                Label(
+                    backgroundColor = getRandomColor(),
+                    name = labelName
+                )
+
             SavePhotoScreen(
                 model = model,
                 fileName = fileName,
@@ -113,7 +119,7 @@ fun SavePhotoScreen(
                 onLabelSelect = onLabelSelect,
                 onBack = onBack,
                 savePhoto = viewModel::savePhoto,
-                geminiApiState = geminiApiState,
+                label = geminiLabel,
             )
         }
 
@@ -128,6 +134,8 @@ fun SavePhotoScreen(
             val bitmap = loadImageFromUri(context, model)
             viewModel.getGeneratedContent(bitmap)
         }
+
+        is UiState.Error -> { /* TODO ERROR */ }
     }
 
     if (photoSaveState.value is UiState.Success) {
@@ -149,17 +157,8 @@ fun SavePhotoScreen(
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
-    geminiApiState: State<UiState<String>>,
+    label: Label,
 ) {
-
-
-    val labelName = (geminiApiState.value as UiState.Success).data
-    val geminiLabel =
-        Label(
-            backgroundColor = getRandomColor(),
-            name = labelName
-        )
-
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
     ) { innerPadding ->
@@ -170,7 +169,7 @@ fun SavePhotoScreen(
                 innerPadding = innerPadding,
                 model = model,
                 fileName = fileName,
-                label = geminiLabel,
+                label = label,
                 location = location,
                 rememberDescription = rememberDescription,
                 onDescriptionChange = onDescriptionChange,
@@ -186,7 +185,7 @@ fun SavePhotoScreen(
                 innerPadding = innerPadding,
                 model = model,
                 fileName = fileName,
-                label = geminiLabel,
+                label = label,
                 location = location,
                 rememberDescription = rememberDescription,
                 onDescriptionChange = onDescriptionChange,
@@ -402,7 +401,7 @@ private fun ScreenPreview() {
             onLabelSelect = { },
             onBack = { },
             savePhoto = { _, _, _, _, _, _ -> },
-            geminiApiState = geminiUiState,
+            label = Label.emptyLabel(),
         )
     }
 }

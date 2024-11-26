@@ -279,6 +279,8 @@ private fun ItemContainer(
                 checkList.value = setOf()
             }
         }
+
+        is UiState.Error -> { /* TODO ERROR */ }
     }
 }
 
