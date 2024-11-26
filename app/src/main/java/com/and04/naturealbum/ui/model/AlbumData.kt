@@ -7,3 +7,8 @@ data class AlbumData(
     val label: Label,
     val photoDetails: PhotoDetail
 )
+
+data class AlbumFolderData(
+    val label: Label,
+    val photoDetails: List<PhotoDetail>
+)
