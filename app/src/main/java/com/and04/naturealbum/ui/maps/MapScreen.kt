@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.view.Gravity
 import android.view.View
+import androidx.annotation.IntRange
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -32,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -60,9 +62,19 @@ import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
 import com.naver.maps.map.clustering.DefaultMarkerManager
 import com.naver.maps.map.clustering.LeafMarkerInfo
 import com.naver.maps.map.clustering.MarkerInfo
+import com.naver.maps.map.overlay.Align
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
+
+private const val LEAF_NODE_SIZE = 1
+
+fun sizeToTint(
+    size: Int,
+    min: Color = Color(10, 0, 0),
+    max: Color = Color(255, 0, 0),
+    @IntRange(from = 1) threshold: Int = 20
+): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
 
 @SuppressLint("NewApi")
 @Composable
@@ -132,12 +144,16 @@ fun MapScreen(
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 if ((info.tag as List<Int>).contains(pick?.id))
                     photoDetailIds = info.tag as List<Int>
+                marker.captionText = info.size.toString()
+                marker.iconTintColor = sizeToTint(info.size)
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 if ((info.tag as List<Int>).contains(pick?.id))
                     photoDetailIds = info.tag as List<Int>
+                marker.captionText = LEAF_NODE_SIZE.toString()
+                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
@@ -147,6 +163,8 @@ fun MapScreen(
                     icon = clusterImage
                     isFlat = true
                     anchor = PointF(0.5f, 0.5f)
+                    setCaptionAligns(Align.Center, Align.Center)
+                    captionTextSize = 24f
                 }
             }
         })
