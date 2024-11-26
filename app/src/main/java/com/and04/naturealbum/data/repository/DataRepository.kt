@@ -1,6 +1,8 @@
 package com.and04.naturealbum.data.repository
 
 import com.and04.naturealbum.data.dto.AlbumDto
+import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
+import com.and04.naturealbum.data.dto.UnSynchronizedPhotoDetailsDto
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.Label
@@ -16,6 +18,8 @@ interface DataRepository {
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
     suspend fun getAllAlbum(): List<AlbumDto>
+    suspend fun getUnSynchronizedAlbums(labels: List<String>): List<UnSynchronizedAlbumsDto>
+    suspend fun getUnSynchronizedPhotoDetails(fileNames: List<String>): List<UnSynchronizedPhotoDetailsDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
@@ -66,6 +70,14 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getAllAlbum(): List<AlbumDto> {
         return albumDao.getAllAlbum()
+    }
+
+    override suspend fun getUnSynchronizedAlbums(labels: List<String>): List<UnSynchronizedAlbumsDto> {
+        return albumDao.getUnSynchronizedAlbums(labels)
+    }
+
+    override suspend fun getUnSynchronizedPhotoDetails(fileNames: List<String>): List<UnSynchronizedPhotoDetailsDto> {
+        return albumDao.getUnSynchronizedPhotos(fileNames)
     }
 
     override suspend fun updateAlbum(album: Album) {

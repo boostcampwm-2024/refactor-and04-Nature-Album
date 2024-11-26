@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
+import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
+import com.and04.naturealbum.data.dto.UnSynchronizedPhotoDetailsDto
 
 @Dao
 interface LabelDao {
@@ -53,6 +55,39 @@ interface AlbumDao {
     """
     )
     suspend fun getAllAlbum(): List<AlbumDto>
+
+    @Query(
+        """
+        SELECT
+            label.id AS labelId,
+            label.name AS labelName,
+            label.background_color AS labelBackgroundColor,
+            photo_detail.photo_uri AS photoDetailUri,
+            photo_detail.file_name As fileName
+        FROM album
+        JOIN label ON album.label_id = label.id
+        JOIN photo_detail ON album.photo_detail_id = photo_detail.id
+        WHERE label.name NOT IN (:labels)
+    """
+    )
+    suspend fun getUnSynchronizedAlbums(labels: List<String>): List<UnSynchronizedAlbumsDto>
+
+    @Query(
+        """
+        SELECT
+            label.name AS labelName,
+            photo_detail.photo_uri AS photoDetailUri,
+            photo_detail.file_name As fileName,
+            photo_detail.longitude As longitude,
+            photo_detail.latitude As latitude,
+            photo_detail.description As description,
+            photo_detail.datetime As datetime
+        FROM label
+        JOIN photo_detail ON label.id == photo_detail.label_id
+        WHERE photo_detail.file_name NOT IN (:fileNames)
+    """
+    )
+    suspend fun getUnSynchronizedPhotos(fileNames: List<String>): List<UnSynchronizedPhotoDetailsDto>
 
     @Query("SELECT * FROM album")
     suspend fun getALLAlbum(): List<Album>

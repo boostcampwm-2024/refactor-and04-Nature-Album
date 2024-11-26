@@ -1,4 +1,4 @@
-package com.and04.naturealbum.service
+package com.and04.naturealbum.background.service
 
 import android.app.Service
 import android.content.Intent

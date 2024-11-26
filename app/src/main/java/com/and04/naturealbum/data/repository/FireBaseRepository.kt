@@ -6,7 +6,6 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -14,7 +13,8 @@ import javax.inject.Inject
 interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
-    suspend fun getLabels(uid: String): Task<QuerySnapshot>
+    suspend fun getLabels(uid: String): List<String>
+    suspend fun getPhotos(uid: String): List<String>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -43,9 +43,18 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).document(label).get()
     }
 
-    override suspend fun getLabels(uid: String): Task<QuerySnapshot> {
+    override suspend fun getLabels(uid: String): List<String> {
 
-        return fireStore.collection(USER).document(uid).collection(LABEL).get()
+        val querySnapshot = fireStore.collection(USER).document(uid).collection(LABEL).get().await()
+
+        return querySnapshot.documents.map { document -> document.id }
+    }
+
+    override suspend fun getPhotos(uid: String): List<String> {
+        val photosQuerySet =
+            fireStore.collection(USER).document(uid).collection(PHOTOS).get().await()
+
+        return photosQuerySet.documents.map { document -> document.id }
     }
 
     override suspend fun saveImageFile(

@@ -117,9 +117,11 @@ dependencies {
 
     //Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.work)
     kapt(libs.hilt.android.compiler)
     kapt(libs.kotlinx.metadata.jvm)
-    implementation(libs.androidx.hilt.navigation.compose)
+    kapt(libs.androidx.hilt.compiler)
 
     //location
     implementation(libs.play.services.location)
@@ -147,6 +149,9 @@ dependencies {
 
     // Image Rotation
     implementation(libs.androidx.exifinterface)
+
+    //WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
 }
 
 kapt {
