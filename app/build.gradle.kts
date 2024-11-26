@@ -149,10 +149,16 @@ dependencies {
     // Image Rotation
     implementation(libs.androidx.exifinterface)
 
+    // tensorflow lite
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.task.vision)
+
+    // gemini
+    implementation(libs.firebase.vertexai)
+    
     //retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
-
 }
 
 kapt {

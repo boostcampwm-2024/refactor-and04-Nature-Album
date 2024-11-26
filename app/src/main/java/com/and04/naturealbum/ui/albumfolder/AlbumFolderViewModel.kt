@@ -3,9 +3,8 @@ package com.and04.naturealbum.ui.albumfolder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.ui.model.AlbumFolderData
+import com.and04.naturealbum.ui.model.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,36 +16,25 @@ import javax.inject.Inject
 class AlbumFolderViewModel @Inject constructor(
     private val roomRepository: DataRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState
-
-    private val _label = MutableStateFlow(Label.emptyLabel())
-    val label: StateFlow<Label> = _label
-
-    private val _photoDetails = MutableStateFlow<List<PhotoDetail>>(emptyList())
-    val photoDetails: StateFlow<List<PhotoDetail>> = _photoDetails
-
+    private val _uiState = MutableStateFlow<UiState<AlbumFolderData>>(UiState.Idle)
+    val uiState: StateFlow<UiState<AlbumFolderData>> = _uiState
 
     fun loadFolderData(labelId: Int) {
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
 
-            val labelData = async {
-                _label.emit(roomRepository.getLabelById(id = labelId))
+            val labelJob = async {
+                roomRepository.getLabelById(id = labelId)
             }
 
-            val photoDetailsData = async {
-                _photoDetails.emit(
-                    roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
-                )
+            val photoDetailsJob = async {
+                roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
             }
 
-            labelData.await()
-            photoDetailsData.await()
+            val labelData = labelJob.await()
+            val photoDetailsData = photoDetailsJob.await()
 
-            if (labelData.isCompleted && photoDetailsData.isCompleted) {
-                _uiState.emit(UiState.Success)
-            }
+            _uiState.emit(UiState.Success(AlbumFolderData(labelData, photoDetailsData)))
         }
     }
 }
