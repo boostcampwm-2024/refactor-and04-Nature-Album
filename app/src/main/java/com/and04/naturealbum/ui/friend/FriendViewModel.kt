@@ -40,8 +40,8 @@ class FriendViewModel @Inject constructor(
     private val _operationStatus = MutableStateFlow<String>("")
     val operationStatus: StateFlow<String> = _operationStatus
 
-    private val _friendsPhotos = MutableStateFlow<Map<String, List<PhotoItem>>>(emptyMap())
-    val friendsPhotos: StateFlow<Map<String, List<PhotoItem>>> = _friendsPhotos
+    private val _friendsPhotos = MutableStateFlow<List<List<PhotoItem>>>(emptyList())
+    val friendsPhotos: StateFlow<List<List<PhotoItem>>> = _friendsPhotos
 
     fun fetchFriendsPhotos(friends: List<String>) {
         viewModelScope.launch {
@@ -50,7 +50,7 @@ class FriendViewModel @Inject constructor(
                 val labels = fireBaseRepository.getLabels(friends)
 
                 _friendsPhotos.emit(
-                    photos.await().mapValues { (uid, photos) ->
+                    photos.await().map { (uid, photos) ->
                         photos.toPhotoItems(labels.getValue(uid))
                     }
                 )

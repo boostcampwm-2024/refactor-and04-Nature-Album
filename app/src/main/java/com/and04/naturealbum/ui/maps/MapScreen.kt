@@ -153,8 +153,8 @@ fun MapScreen(
     }
 
     LaunchedEffect(friendsPhotos.value) {
-        friendsPhotos.value.values.forEachIndexed { index, photos ->
-            clusterManagers[index+1].setPhotoItems(photos)
+        clusterManagers.drop(1).forEachIndexed { index, cluster ->
+            cluster.setPhotoItems(friendsPhotos.value.getOrNull(index) ?: emptyList())
         }
 
     }
