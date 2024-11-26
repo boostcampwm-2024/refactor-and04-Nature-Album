@@ -5,7 +5,7 @@ import com.and04.naturealbum.data.GreenEyeRequestBody
 import com.and04.naturealbum.data.GreenEyeRequestBodyImages
 import com.and04.naturealbum.data.dto.GreenEyeDto
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
-import com.and04.naturealbum.data.retorifit.NaverAPI
+import com.and04.naturealbum.data.retorifit.NaverApi
 import com.and04.naturealbum.di.GreenEye
 import com.and04.naturealbum.di.ReverseGeocode
 import java.io.IOException
@@ -17,8 +17,8 @@ interface RetrofitRepository {
 }
 
 class RetrofitRepositoryImpl @Inject constructor(
-    @ReverseGeocode private val reverseGeocodeAPI: NaverAPI,
-    @GreenEye private val greenEyeAPI: NaverAPI,
+    @ReverseGeocode private val reverseGeocodeAPI: NaverApi,
+    @GreenEye private val greenEyeAPI: NaverApi,
 ) :
     RetrofitRepository {
 

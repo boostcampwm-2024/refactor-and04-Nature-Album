@@ -8,7 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface NaverAPI {
+interface NaverApi {
 
     @GET("map-reversegeocode/v2/gc")
     suspend fun convertCoordsToAddress(
