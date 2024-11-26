@@ -148,7 +148,6 @@ private fun MyPageContent(
                 UserProfileContent(
                     uri = photoUri,
                     email = email,
-                    context = context,
                     snackBarHostState = snackBarHostState
                 )
 
@@ -170,7 +169,6 @@ private fun MyPageContent(
 private fun UserProfileContent(
     uri: Uri? = null,
     email: String? = null,
-    context: Context? = null,
     snackBarHostState: SnackbarHostState? = null
 ) {
     UserProfileImage(
@@ -190,8 +188,8 @@ private fun UserProfileContent(
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-        if (snackBarHostState != null && context != null) {
-            SyncContent(snackBarHostState = snackBarHostState)
+        if (!email.isNullOrBlank()) {
+            SyncContent(snackBarHostState = snackBarHostState!!)
         }
     }
 }
