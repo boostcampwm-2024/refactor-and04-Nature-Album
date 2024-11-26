@@ -12,7 +12,7 @@ class ObjectDetectorHelper(context: Context, modelPath: String) {
 
     init {
         val modelFile =
-            copyAssetToInternalStorage(context, "EfficientDet.tflite", "EfficientDet.tflite")
+            copyAssetToInternalStorage(context, "EfficientDet.tflite")
         val options = ObjectDetector.ObjectDetectorOptions.builder()
             .setMaxResults(RESULT_COUNT) // 최대 5개의 결과만 반환
             .setScoreThreshold(SCORE_THRES_HOLD) // 50% 이상의 신뢰도만 반환
@@ -27,10 +27,9 @@ class ObjectDetectorHelper(context: Context, modelPath: String) {
 
     private fun copyAssetToInternalStorage(
         context: Context,
-        assetFileName: String,
-        outputFileName: String
+        assetFileName: String
     ): File {
-        val outputFile = File(context.filesDir, outputFileName)
+        val outputFile = File(context.filesDir, assetFileName)
         if (!outputFile.exists()) {
             context.assets.open(assetFileName).use { inputStream ->
                 outputFile.outputStream().use { outputStream ->
