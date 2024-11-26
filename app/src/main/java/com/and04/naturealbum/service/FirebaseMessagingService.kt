@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.and04.naturealbum.R
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.ui.MainActivity
 import com.google.firebase.auth.ktx.auth
@@ -25,10 +26,10 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var repository: FireBaseRepository
 
+    // FCM 토큰이 갱신될 때 자동으로 호출
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM", "Refresh token $token")
-        // TODO: 아래 새롭게 설정하는 부분 필요 없으면 제거
         val uid = Firebase.auth.currentUser?.uid ?: return
         CoroutineScope(Dispatchers.IO).launch {
             val success = repository.saveFcmToken(uid, token)
@@ -41,15 +42,17 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        remoteMessage.notification?.let {
-            Log.d("FCM", "Notification Title: ${it.title}")
-            Log.d("FCM", "Notification Body: ${it.body}")
-            showNotification(it.title ?: "알림 제목 없음", it.body ?: "알림 내용 없음") // 포그라운드일 때도 보여주기 위함
+        val notification = remoteMessage.notification
+        notification?.let { remoteNotification ->
+            val notificationTitle =
+                remoteNotification.title ?: getString(R.string.notification_default_title)
+            val notificationBody =
+                remoteNotification.body ?: getString(R.string.notification_default_body)
+            showNotification(notificationTitle, notificationBody)
         }
     }
 
     private fun showNotification(title: String, body: String) {
-        val channelId = "default_channel_id"
         val notificationId = System.currentTimeMillis().toInt()
 
         // TODO: 현재는 앱 열기. 추후 MyPage로 여는 것으로 교체
@@ -58,28 +61,32 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.star_on)
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // NotificationChannel 설정 (Android 8.0 이상)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                getString(R.string.notification_channel_name),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        // Android 8.0 이상 채널 설정
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "기본 알림 채널",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        // 알림 표시
         notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    companion object {
+        // 알림 채널의 고유 ID, Android 8.0 이상에서는 반드시 사용
+        private const val CHANNEL_ID = "nature_album_channel_id"
     }
 }

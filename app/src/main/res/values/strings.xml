@@ -77,4 +77,9 @@
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
     <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
 
+    <!-- Notification -->
+    <string name="notification_default_title">알림 제목 없음</string>
+    <string name="notification_default_body">알림 내용 없음</string>
+    <string name="notification_channel_name">Nature Album</string>
+
 </resources>
