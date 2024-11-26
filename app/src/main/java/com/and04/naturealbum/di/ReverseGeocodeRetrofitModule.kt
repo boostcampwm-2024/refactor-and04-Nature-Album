@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RetrofitModule {
+object ReverseGeocodeRetrofitModule {
     private const val BASE_URL = "https://naveropenapi.apigw.ntruss.com/"
 
     private val client = OkHttpClient.Builder()
@@ -29,10 +29,10 @@ object RetrofitModule {
 
     @Provides
     @Singleton
-    fun convertCoordsToAddress(): ReverseGeocodeAPI = Retrofit.Builder()
+    fun provideReverseGeocodeAPI(): ReverseGeocodeAPI = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(client)
-        .addConverterFactory(GsonConverterFactory.create()) // Gson 컨버터 추가
+        .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(ReverseGeocodeAPI::class.java)
 }
