@@ -2,13 +2,15 @@ package com.and04.naturealbum.data.dto
 
 data class FirebaseLabel(
     val backgroundColor: String,
-    val thumbnailUri: String
+    val thumbnailUri: String,
+    val fileName: String
 )
 
 data class FirebaseLabelResponse(
     val labelName: String = "",
     val backgroundColor: String = "",
-    val thumbnailUri: String = ""
+    val thumbnailUri: String = "",
+    val fileName: String = ""
 )
 
 data class FirebasePhotoInfo(

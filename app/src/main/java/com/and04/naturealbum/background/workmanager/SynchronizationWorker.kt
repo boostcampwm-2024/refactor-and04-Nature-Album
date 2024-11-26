@@ -196,7 +196,8 @@ class SynchronizationWorker @AssistedInject constructor(
                 labelName = label.labelName,
                 labelData = FirebaseLabel(
                     backgroundColor = label.labelBackgroundColor,
-                    thumbnailUri = storageUri.toString()
+                    thumbnailUri = storageUri.toString(),
+                    fileName = label.fileName
                 )
             )
     }

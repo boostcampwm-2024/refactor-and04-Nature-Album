@@ -20,8 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -65,7 +63,8 @@ class FirebaseInsertService : Service() {
                             labelName = label.name,
                             labelData = FirebaseLabel(
                                 backgroundColor = label.backgroundColor,
-                                thumbnailUri = storageUri.toString()
+                                thumbnailUri = storageUri.toString(),
+                                fileName = fileName
                             )
                         )
                 }
