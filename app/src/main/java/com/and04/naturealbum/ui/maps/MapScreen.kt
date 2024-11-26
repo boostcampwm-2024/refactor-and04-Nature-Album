@@ -67,13 +67,14 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
+private const val LEAF_NODE_SIZE = 1
+
 fun sizeToTint(
     size: Int,
     min: Color = Color(10, 0, 0),
     max: Color = Color(255, 0, 0),
     @IntRange(from = 1) threshold: Int = 20
 ): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
-
 
 @SuppressLint("NewApi")
 @Composable
@@ -151,8 +152,8 @@ fun MapScreen(
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 if ((info.tag as List<Int>).contains(pick?.id))
                     photoDetailIds = info.tag as List<Int>
-                marker.captionText = "1"
-                marker.iconTintColor = sizeToTint(1)
+                marker.captionText = LEAF_NODE_SIZE.toString()
+                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
