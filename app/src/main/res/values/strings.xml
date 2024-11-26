@@ -53,6 +53,11 @@
 
     <!-- Map -->
     <string name="map_marker_loading">Loading map markers...</string>
+    <string name="map_show_friend_map">친구 지도 보기</string>
+    <string name="map_friend_dialog_title">친구 지도 같이 보기</string>
+    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 4명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_cancel_btn">취소</string>
+    <string name="map_friend_dialog_confirm_btn">적용</string>
 
     <!-- My Page -->
     <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>

@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -219,7 +220,10 @@ fun MapScreen(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             ) {
-                Icon(imageVector = Icons.Default.Diversity3, contentDescription = "친구 지도 보기")
+                Icon(
+                    imageVector = Icons.Default.Diversity3,
+                    contentDescription = stringResource(R.string.map_show_friend_map)
+                )
             }
         }
 
@@ -277,10 +281,10 @@ fun FriendDialog(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = "친구 지도 같이 보기",
+                        text = stringResource(R.string.map_friend_dialog_title),
                     )
                     Text(
-                        text = "친구의 지도를 함께 봐봅시다\n" + "총 4명의 친구 선택 가능해요!"
+                        text = stringResource(R.string.map_friend_dialog_body)
                     )
                 }
 
@@ -313,7 +317,7 @@ fun FriendDialog(
                     Button(
                         onClick = { onDismiss() }
                     ) {
-                        Text(text = "취소")
+                        Text(text = stringResource(R.string.map_friend_dialog_cancel_btn))
                     }
 
                     Spacer(modifier = Modifier.size(8.dp))
@@ -321,7 +325,7 @@ fun FriendDialog(
                     Button(
                         onClick = { onConfirm(selectedFriends) }
                     ) {
-                        Text(text = "적용")
+                        Text(text = stringResource(R.string.map_friend_dialog_confirm_btn))
                     }
                 }
             }
@@ -396,7 +400,7 @@ fun PhotoGrid(
                     row.forEach { photo ->
                         AsyncImage(
                             model = photo.uri,
-                            contentDescription = photo.label.name, // TODO: 해당 description 무엇으로 할지 확정
+                            contentDescription = photo.label.name,
                             modifier = Modifier
                                 .wrapContentSize(Alignment.Center)
                                 .aspectRatio(1f)
