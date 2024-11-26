@@ -63,7 +63,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.friend.FriendViewModel
@@ -89,7 +88,6 @@ fun MapScreen(
     var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
 
     val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
-    val myLabels = viewModel.labels.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -147,11 +145,8 @@ fun MapScreen(
         )
     }
 
-    LaunchedEffect(myPhotos.value, myLabels.value) {
-        if (myLabels.value.isEmpty()) return@LaunchedEffect
-        if (displayPhotos.value.isEmpty()) displayPhotos.value =
-            myPhotos.value.toPhotoItems(myLabels.value)
-        cluster.setPhotoItems(myPhotos.value.toPhotoItems(myLabels.value))
+    LaunchedEffect(myPhotos.value) {
+        cluster.setPhotoItems(myPhotos.value)
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -232,6 +227,7 @@ fun MapScreen(
         prevSelectedFriends = showFriends,
         onDismiss = { openAlertDialog.value = false },
         onConfirm = { selectedFriends ->
+            friendViewModel.fetchFriendsPhotos(selectedFriends.map { it.user.uid })
             showFriends = selectedFriends
             openAlertDialog.value = false
         }
@@ -300,13 +296,17 @@ fun FriendDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
 
-                    Button(onClick = { onDismiss() }) {
+                    Button(
+                        onClick = { onDismiss() }
+                    ) {
                         Text(text = "취소")
                     }
 
                     Spacer(modifier = Modifier.size(8.dp))
 
-                    Button(onClick = { onConfirm(selectedFriends) }) {
+                    Button(
+                        onClick = { onConfirm(selectedFriends) }
+                    ) {
                         Text(text = "적용")
                     }
                 }
