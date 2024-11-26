@@ -47,8 +47,6 @@ import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.toColor
-import okhttp3.Address
-import java.time.LocalDateTime
 
 @Composable
 fun PhotoInfo(
@@ -57,7 +55,7 @@ fun PhotoInfo(
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
-    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecyc
+    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
     val address = photoInfoViewModel.address.collectAsStateWithLifecycle()
 
     LaunchedEffect(selectedPhotoDetail) {
