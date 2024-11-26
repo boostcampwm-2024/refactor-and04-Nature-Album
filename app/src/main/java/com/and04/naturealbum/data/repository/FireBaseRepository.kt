@@ -38,6 +38,7 @@ interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): List<LabelDocument>
+    suspend fun getLabels(uids: List<String>): Map<String, List<LabelDocument>>
     suspend fun getPhotos(uid: String): List<FirebasePhotoInfo>
     suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfo>>
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
@@ -120,6 +121,22 @@ class FireBaseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLabels(uids: List<String>): Map<String, List<LabelDocument>> {
+        return try {
+            withContext(Dispatchers.IO + SupervisorJob()) {
+                val labels = uids.map { uid ->
+                    async {
+                        getLabels(uid)
+                    }
+                }.awaitAll()
+                uids.zip(labels).toMap()
+            }
+        } catch (e: Exception) {
+            Log.e("getPhotos", "Error fetching labels: ${e.message}")
+            emptyMap()
+        }
+    }
+
     override suspend fun getPhotos(uid: String): List<FirebasePhotoInfo> {
         return try {
             fireStore.collection(USER)
@@ -151,7 +168,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                         getPhotos(uid)
                     }
                 }.awaitAll()
-                uids.zip(photos).filter { it.second.isNotEmpty() }.toMap()
+                uids.zip(photos).toMap()
             }
         } catch (e: Exception) {
             Log.e("getPhotos", "Error fetching photos: ${e.message}")
