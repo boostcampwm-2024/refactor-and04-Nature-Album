@@ -20,12 +20,14 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -272,6 +275,10 @@ fun FriendDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .sizeIn(maxHeight = screenHeight * 0.7f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Column(
@@ -282,9 +289,11 @@ fun FriendDialog(
                 ) {
                     Text(
                         text = stringResource(R.string.map_friend_dialog_title),
+                        style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        text = stringResource(R.string.map_friend_dialog_body)
+                        text = stringResource(R.string.map_friend_dialog_body),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
 
@@ -313,19 +322,24 @@ fun FriendDialog(
                         .padding(24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-
-                    Button(
+                    TextButton(
                         onClick = { onDismiss() }
                     ) {
-                        Text(text = stringResource(R.string.map_friend_dialog_cancel_btn))
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_cancel_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
 
                     Spacer(modifier = Modifier.size(8.dp))
 
-                    Button(
+                    TextButton(
                         onClick = { onConfirm(selectedFriends) }
                     ) {
-                        Text(text = stringResource(R.string.map_friend_dialog_confirm_btn))
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_confirm_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
             }
@@ -349,15 +363,28 @@ fun FriendDialogItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            modifier = modifier.size(40.dp), model = friend.user.photoUrl, contentDescription = null
+            modifier = modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            model = friend.user.photoUrl,
+            contentDescription = friend.user.displayName
         )
         Text(
             modifier = modifier.weight(1f),
             text = friend.user.email,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge
         )
-        Checkbox(checked = isSelect, onCheckedChange = { onSelect() })
+        Checkbox(
+            checked = isSelect,
+            colors = CheckboxDefaults.colors().copy(
+                uncheckedBoxColor = MaterialTheme.colorScheme.primary,
+                uncheckedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
+            onCheckedChange = { onSelect() }
+        )
     }
 }
 
