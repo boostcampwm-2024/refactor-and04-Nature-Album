@@ -38,15 +38,6 @@ exports.notifyOnDocumentCreate = onDocumentCreated("TEST/{documentId}", async (e
     const data = snapshot.data();
     console.log("New document created in TEST collection:", data);
   
-    // 예: FCM 메시지 전송
-    // const message = {
-    //   notification: {
-    //     title: "Firestore 새 문서",
-    //     body: `새 데이터: ${data.message || "내용 없음"}`,
-    //   },
-    //   topic: "test-topic",
-    // };
-  
     const message = {
         notification: {
             title: "Firestore 새 문서",
@@ -65,7 +56,6 @@ exports.notifyOnDocumentCreate = onDocumentCreated("TEST/{documentId}", async (e
       console.error("FCM 메시지 전송 실패:", error);
     }
   });
-
 
 
 exports.onFriendRequestCreated = onDocumentCreated(
@@ -108,11 +98,6 @@ exports.onFriendRequestCreated = onDocumentCreated(
           notification: {
             title: "새로운 친구 요청",
             body: `${senderDisplayName}님으로부터 친구 요청이 도착했습니다.`,
-          },
-          data: {
-            senderUid: sender.uid,
-            senderDisplayName: sender.displayName,
-            requestUid: requestUid,
           },
         };
 
