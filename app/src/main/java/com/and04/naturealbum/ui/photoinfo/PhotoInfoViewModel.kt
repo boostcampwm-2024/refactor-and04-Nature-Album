@@ -40,6 +40,7 @@ class PhotoInfoViewModel @Inject constructor(
             convertCoordsToAddress(photoDetail = photoDetailData)
 
             _label.emit(roomRepository.getLabelById(photoDetailData.labelId))
+
             _uiState.emit(UiState.Success)
         }
     }

@@ -4,12 +4,12 @@ data class GreenEyeDto(
     val version: String,
     val requestId: String,
     val timestamp: Long,
-    val greenEyeImages: List<GreenEyeImage>,
+    val images: List<GreenEyeImage>,
 )
 
 
 data class GreenEyeImage(
-    val greenEyeResult: GreenEyeResult,
+    val result: GreenEyeResult,
     val latency: Double,
     val confidence: Double,
     val message: String,

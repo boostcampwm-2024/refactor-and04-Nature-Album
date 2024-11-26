@@ -8,6 +8,6 @@ data class GreenEyeRequestBody(
 )
 
 data class GreenEyeRequestBodyImages(
-    val name: String,  // 이미지 식별 이름
+    val name: String = "",  // 이미지 식별 이름
     val data: String, // Base64로 인코딩한 이미지 바이트
 )

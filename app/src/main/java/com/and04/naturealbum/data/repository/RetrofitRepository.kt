@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 interface RetrofitRepository {
     suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto>
-    suspend fun analyzeForToxicity(): Result<GreenEyeDto>
+    suspend fun analyzeHazardWithGreenEye(photoUri: String): Result<GreenEyeDto>
 }
 
 class RetrofitRepositoryImpl @Inject constructor(
@@ -28,12 +28,14 @@ class RetrofitRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun analyzeForToxicity(): Result<GreenEyeDto> {
+    override suspend fun analyzeHazardWithGreenEye(photoData: String): Result<GreenEyeDto> {
         return runRemote {
             greenEyeAPI.analyzeHazardWithGreenEye(
                 requestBody = GreenEyeRequestBody(
                     timestamp = System.currentTimeMillis(),
-                    images = listOf(GreenEyeRequestBodyImages(name = "", data = ""))
+                    images = listOf(
+                        GreenEyeRequestBodyImages(data = photoData)
+                    )
                 )
             )
         }
