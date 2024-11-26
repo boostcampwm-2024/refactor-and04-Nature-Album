@@ -111,6 +111,8 @@ fun MapScreen(
 ) {
     val friends = friendViewModel.friends.collectAsStateWithLifecycle()
     val openAlertDialog = remember { mutableStateOf(false) }
+    var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
+
     val photos = viewModel.photos.collectAsStateWithLifecycle()
     val labels = viewModel.labels.collectAsStateWithLifecycle()
     val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
@@ -283,7 +285,12 @@ fun MapScreen(
     FriendDialog(
         isOpen = openAlertDialog,
         friends = friends,
-        onDismiss = { openAlertDialog.value = false }
+        prevSelectedFriends = showFriends,
+        onDismiss = { openAlertDialog.value = false },
+        onConfirm = { selectedFriends->
+            showFriends = selectedFriends
+            openAlertDialog.value = false
+        }
     )
 }
 
@@ -291,11 +298,13 @@ fun MapScreen(
 fun FriendDialog(
     isOpen: State<Boolean> = remember { mutableStateOf(true) },
     friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
+    prevSelectedFriends: List<FirebaseFriend> = emptyList(),
     modifier: Modifier = Modifier,
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onConfirm: (List<FirebaseFriend>) -> Unit = {}
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    var selectedFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
+    var selectedFriends by remember { mutableStateOf(prevSelectedFriends) }
 
     if (isOpen.value) {
         Dialog(
@@ -353,7 +362,7 @@ fun FriendDialog(
 
                     Spacer(modifier = Modifier.size(8.dp))
 
-                    Button(onClick = { /*TODO*/ }) {
+                    Button(onClick = { onConfirm(selectedFriends) }) {
                         Text(text = "적용")
                     }
                 }
@@ -389,25 +398,6 @@ fun FriendDialogItem(
         Checkbox(checked = isSelect, onCheckedChange = { onSelect() })
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun FriendDialogPreview() {
-    val friends = remember {
-        mutableStateOf(
-            listOf(
-                FirebaseFriend(FirestoreUser(email = "12312131u2i3b1823g812g31d123")),
-                FirebaseFriend()
-            )
-        )
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
-        FriendDialog(
-            friends = friends
-        )
-    }
-}
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
