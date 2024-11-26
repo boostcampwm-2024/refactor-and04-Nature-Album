@@ -112,7 +112,12 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .mapNotNull { document ->
                     LabelDocument(
                         labelName = document.id,
-                        labelData = document.toObject(LabelData::class.java)
+                        labelData = LabelData(
+                            backgroundColor = document.getString("backgroundColor")
+                                ?: return@mapNotNull null,
+                            thumbnailUri = document.getString("thumbnailUri")
+                                ?: return@mapNotNull null
+                        )
                     )
                 }
         } catch (e: Exception) {
@@ -132,7 +137,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                 uids.zip(labels).toMap()
             }
         } catch (e: Exception) {
-            Log.e("getPhotos", "Error fetching labels: ${e.message}")
+            Log.e("getLabels", "Error fetching labels: ${e.message}")
             emptyMap()
         }
     }
@@ -146,12 +151,13 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .await()
                 .mapNotNull { document ->
                     FirebasePhotoInfo(
-                        uri = document.id,
-                        label = document.getString("label") ?: "",
+                        uri = document.getString("uri")?: return@mapNotNull null,
+                        label = document.getString("label") ?: return@mapNotNull null,
                         latitude = document.getDouble("latitude"),
                         longitude = document.getDouble("longitude"),
-                        description = document.getString("description") ?: "",
-                        datetime = stringToLocalDateTime(document.getString("dateTime"))!!
+                        description = document.getString("description") ?: return@mapNotNull null,
+                        datetime = stringToLocalDateTime(document.getString("dateTime"))
+                            ?: return@mapNotNull null
                     )
                 }
         } catch (e: Exception) {

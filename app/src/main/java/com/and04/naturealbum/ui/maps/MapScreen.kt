@@ -88,6 +88,7 @@ fun MapScreen(
     var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
 
     val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
+    val friendsPhotos = friendViewModel.friendsPhotos.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -125,28 +126,37 @@ fun MapScreen(
         }
     }
 
-    val cluster: ClusterManager = remember {
-        ClusterManager(
-            colorRange = ColorRange.RED,
-            onMarkerClick = { info ->
-                Overlay.OnClickListener {
-                    displayPhotos.value = info.tag as List<PhotoItem>
-                    pick = displayPhotos.value
-                        .groupBy { photoItem -> photoItem.label }
-                        .maxBy { (_, photoItems) -> photoItems.size }.value
-                        .maxBy { photoItem -> photoItem.time }
-                    true
+    val clusterManagers: List<ClusterManager> = remember {
+        ColorRange.entries.map { colorRange ->
+            ClusterManager(
+                colorRange = colorRange,
+                onMarkerClick = { info ->
+                    Overlay.OnClickListener {
+                        displayPhotos.value = info.tag as List<PhotoItem>
+                        pick = displayPhotos.value
+                            .groupBy { photoItem -> photoItem.label }
+                            .maxBy { (_, photoItems) -> photoItems.size }.value
+                            .maxBy { photoItem -> photoItem.time }
+                        true
+                    }
+                },
+                onClusterChange = { info ->
+                    val changedCluster = info.tag as List<PhotoItem>
+                    if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
                 }
-            },
-            onClusterChange = { info ->
-                val changedCluster = info.tag as List<PhotoItem>
-                if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
-            }
-        )
+            )
+        }
     }
 
     LaunchedEffect(myPhotos.value) {
-        cluster.setPhotoItems(myPhotos.value)
+        clusterManagers[0].setPhotoItems(myPhotos.value)
+    }
+
+    LaunchedEffect(friendsPhotos.value) {
+        friendsPhotos.value.values.forEachIndexed { index, photos ->
+            clusterManagers[index+1].setPhotoItems(photos)
+        }
+
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -171,7 +181,9 @@ fun MapScreen(
         // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
             lifecycle.removeObserver(observer)
-            cluster.clear()
+            clusterManagers.forEach { cluster ->
+                cluster.clear()
+            }
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
         }
     }
@@ -180,7 +192,9 @@ fun MapScreen(
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
             mapView.getMapAsync { naverMap ->
-                cluster.setMap(naverMap)
+                clusterManagers.forEach { cluster ->
+                    cluster.setMap(naverMap)
+                }
                 naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
                     displayPhotos.value = emptyList()
                     pick = null
