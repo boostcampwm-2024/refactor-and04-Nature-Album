@@ -17,7 +17,7 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val authenticationManager: AuthenticationManager
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState<UserInfo>>(UiState.Idle)
+    private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState
 
     private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
@@ -27,19 +27,31 @@ class MyPageViewModel @Inject constructor(
         authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
-                    val user = UserManager.getUser()
                     _uiState.emit(
-                        UiState.Success(
-                            UserInfo(
-                                userEmail = user?.email,
-                                userPhotoUri = user?.photoUrl.toString(),
-                                userDisplayName = user?.displayName,
-                                userUid = user?.uid
-                            )
-                        )
+                        getUserInfoUiState()
                     )
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun getUserInfoUiState(): UiState.Success<UserInfo> {
+        val user = UserManager.getUser()
+        return UiState.Success(
+            UserInfo(
+                userEmail = user?.email,
+                userPhotoUri = user?.photoUrl.toString(),
+                userDisplayName = user?.displayName,
+                userUid = user?.uid
+            )
+        )
+    }
+
+    private fun setInitUiState(): UiState<UserInfo> {
+        return if (UserManager.isSignIn()) {
+            getUserInfoUiState()
+        } else {
+            UiState.Idle
+        }
     }
 }
