@@ -13,60 +13,117 @@ const logger = require("firebase-functions/logger");
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-const functions = require("firebase-functions");
+exports.helloWorld = onRequest((request, response) => {
+  logger.info("Hello logs!", {structuredData: true});
+  response.send("Hello from Firebase! And04 Nature Album");
+});
+
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 
-// Firebase Admin ÃÊ±âÈ­
+
 admin.initializeApp();
 
-exports.onFriendRequestCreated = functions.firestore
-    .document("USERS/{uid}/FRIEND_REQUESTS/{requestUid}")
-    .onCreate(async (snapshot, context) => {
-        const newRequest = snapshot.data(); // »õ·Î »ı¼ºµÈ ¹®¼­ µ¥ÀÌÅÍ
-        const uid = context.params.uid; // ¿äÃ»À» ¹Ş´Â »ç¿ëÀÚ ID
-        const requestUid = context.params.requestUid; // ¿äÃ» ¹®¼­ ID
 
-        // ¿äÃ» »óÅÂ°¡ RECEIVEDÀÎ °æ¿ì¸¸ Ã³¸®
-        if (newRequest.status === "RECEIVED") {
-            console.log(`Friend request RECEIVED by user: ${uid}`);
+// Firestore íŠ¸ë¦¬ê±°: ìƒˆ ë¬¸ì„œ ìƒì„± ì´ë²¤íŠ¸
+exports.notifyOnDocumentCreate = onDocumentCreated("TEST/{documentId}", async (event) => {
+    const snapshot = event.data;
+    
+    // ë¬¸ì„œ ë°ì´í„° ê°€ì ¸ì˜¤ê¸°
+    if (!snapshot) {
+      console.log("No data found in the document.");
+      return;
+    }
+  
+    const data = snapshot.data();
+    console.log("New document created in TEST collection:", data);
+  
+    // ì˜ˆ: FCM ë©”ì‹œì§€ ì „ì†¡
+    // const message = {
+    //   notification: {
+    //     title: "Firestore ìƒˆ ë¬¸ì„œ",
+    //     body: `ìƒˆ ë°ì´í„°: ${data.message || "ë‚´ìš© ì—†ìŒ"}`,
+    //   },
+    //   topic: "test-topic",
+    // };
+  
+    const message = {
+        notification: {
+            title: "Firestore ìƒˆ ë¬¸ì„œ",
+            body: `ìƒˆ ë°ì´í„°: ${data.message || "ë‚´ìš© ì—†ìŒ"}`,
+        },
+        data: {
+            additionalInfo: "ì¶”ê°€ ë°ì´í„°",
+        },
+        topic: "test-topic",
+    };
+    
+    try {
+      const response = await admin.messaging().send(message);
+      console.log("FCM ë©”ì‹œì§€ ì „ì†¡ ì„±ê³µ:", response);
+    } catch (error) {
+      console.error("FCM ë©”ì‹œì§€ ì „ì†¡ ì‹¤íŒ¨:", error);
+    }
+  });
 
-            try {
-                // Firestore¿¡¼­ ¿äÃ» º¸³½ »ç¿ëÀÚ Á¤º¸ °¡Á®¿À±â
-                const sender = newRequest.user; // ¿äÃ» º¸³½ »ç¿ëÀÚ Á¤º¸ (FirestoreUser ÇüÅÂ)
-                const userDoc = await admin.firestore().collection("USERS").doc(uid).get();
-                const fcmToken = userDoc.data()?.fcmToken;
 
-                if (!fcmToken) {
-                    console.log(`No FCM token found for user: ${uid}`);
-                    return;
-                }
 
-                // FCM ¾Ë¸² ¸Ş½ÃÁö »ı¼º
-                const message = {
-                    token: fcmToken,
-                    notification: {
-                        title: "»õ·Î¿î Ä£±¸ ¿äÃ»",
-                        body: `${sender.displayName}´ÔÀ¸·ÎºÎÅÍ Ä£±¸ ¿äÃ»ÀÌ µµÂøÇß½À´Ï´Ù.`,
-                    },
-                    data: {
-                        senderUid: sender.uid,
-                        senderDisplayName: sender.displayName,
-                        requestUid: requestUid,
-                    },
-                };
+exports.onFriendRequestCreated = onDocumentCreated(
+  "USER/{uid}/FRIEND_REQUESTS/{requestUid}",
+  async (event) => {
+    const snapshot = event.data; // ìƒˆë¡œ ìƒì„±ëœ ë¬¸ì„œ ë°ì´í„°
+    const uid = event.params.uid; // ìš”ì²­ì„ ë°›ëŠ” ì‚¬ìš©ì ID
+    const requestUid = event.params.requestUid; // ìš”ì²­ ë¬¸ì„œ ID
 
-                // FCM ¸Ş½ÃÁö Àü¼Û
-                await admin.messaging().send(message);
-                console.log(`Notification sent to user: ${uid}`);
-            } catch (error) {
-                console.error("Error sending notification:", error);
-            }
-        } else {
-            console.log("Friend request not in RECEIVED state, skipping notification.");
+    // ë°ì´í„° í™•ì¸
+    if (!snapshot) {
+      console.log("No snapshot available.");
+      return;
+    }
+
+    const newRequest = snapshot.data();
+
+    // ìš”ì²­ ìƒíƒœê°€ RECEIVEDì¸ì§€ í™•ì¸
+    if (newRequest?.status === "RECEIVED") {
+      console.log(`Friend request RECEIVED by user: ${uid}`);
+
+      try {
+        // Firestoreì—ì„œ ìš”ì²­ ë°›ì€ ì‚¬ìš©ì(Friend ìš”ì²­ ëŒ€ìƒ)ì˜ FCM í† í° ê°€ì ¸ì˜¤ê¸°
+        const userDoc = await admin.firestore().collection("USER").doc(uid).get();
+        const userData = userDoc.data();
+        const fcmToken = userData?.fcmToken;
+
+        if (!fcmToken) {
+          console.log(`No FCM token found for user: ${uid}`);
+          return;
         }
-    });
 
+        // Firestoreì—ì„œ ìš”ì²­ ë³´ë‚¸ ì‚¬ìš©ì ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+        const sender = newRequest.user; // ìš”ì²­ ë³´ë‚¸ ì‚¬ìš©ì ì •ë³´
+        const senderDisplayName = sender?.displayName || "ì•Œ ìˆ˜ ì—†ëŠ” ì‚¬ìš©ì";
+
+        // FCM ì•Œë¦¼ ë©”ì‹œì§€ ìƒì„±
+        const message = {
+          token: fcmToken,
+          notification: {
+            title: "ìƒˆë¡œìš´ ì¹œêµ¬ ìš”ì²­",
+            body: `${senderDisplayName}ë‹˜ìœ¼ë¡œë¶€í„° ì¹œêµ¬ ìš”ì²­ì´ ë„ì°©í–ˆìŠµë‹ˆë‹¤.`,
+          },
+          data: {
+            senderUid: sender.uid,
+            senderDisplayName: sender.displayName,
+            requestUid: requestUid,
+          },
+        };
+
+        // FCM ë©”ì‹œì§€ ì „ì†¡
+        await admin.messaging().send(message);
+        console.log(`Notification sent to user: ${uid}`);
+      } catch (error) {
+        console.error("Error sending notification:", error);
+      }
+    } else {
+      console.log("Friend request not in RECEIVED state, skipping notification.");
+    }
+  }
+);
