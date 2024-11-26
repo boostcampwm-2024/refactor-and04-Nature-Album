@@ -95,9 +95,9 @@ fun SavePhotoScreen(
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    when (geminiApiState.value) {
+    when (val success = geminiApiState.value) {
         is UiState.Success -> {
-            val labelName = (geminiApiState.value as UiState.Success).data
+            val labelName = success.data
             val geminiLabel =
                 Label(
                     backgroundColor = getRandomColor(),

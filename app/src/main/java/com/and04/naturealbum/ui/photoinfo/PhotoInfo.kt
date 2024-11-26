@@ -91,14 +91,14 @@ private fun Content(
     innerPadding: PaddingValues,
     uiState: State<UiState<AlbumData>>,
 ) {
-    when (uiState.value) {
+    when (val success = uiState.value) {
         is UiState.Idle, UiState.Loading -> {
             //TODO Loading
         }
 
         is UiState.Success -> {
-            val photoDetail = (uiState.value as UiState.Success).data.photoDetails
-            val label = (uiState.value as UiState.Success).data.label
+            val photoDetail = success.data.photoDetails
+            val label = success.data.label
 
             PhotoDetailInfo(innerPadding, photoDetail, label)
         }

@@ -162,12 +162,12 @@ private fun MyPageContent(
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
         // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
-        when (uiState.value) {
+        when (val success = uiState.value) {
             is UiState.Success -> {
-                val userEmail = (uiState.value as UiState.Success).data.userEmail
-                val userPhotoUri = (uiState.value as UiState.Success).data.userPhotoUri
-                val userDisplayName = (uiState.value as UiState.Success).data.userDisplayName
-                val userUid = (uiState.value as UiState.Success).data.userUid
+                val userEmail = success.data.userEmail
+                val userPhotoUri = success.data.userPhotoUri
+                val userDisplayName = success.data.userDisplayName
+                val userUid = success.data.userUid
 
                 UserProfileContent(
                     uriState = userPhotoUri,

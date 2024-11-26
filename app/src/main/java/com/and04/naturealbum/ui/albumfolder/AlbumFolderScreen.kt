@@ -201,14 +201,14 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
-    when (uiState.value) {
+    when (val success = uiState.value) {
         is UiState.Loading, UiState.Idle -> {
             setLoading(true)
         }
 
         is UiState.Success -> {
-            val label = (uiState.value as UiState.Success).data.label
-            val photoDetails = (uiState.value as UiState.Success).data.photoDetails
+            val label = success.data.label
+            val photoDetails = success.data.photoDetails
             setLoading(false)
 
             Surface(

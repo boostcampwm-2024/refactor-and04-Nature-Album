@@ -63,9 +63,9 @@ fun AlbumScreen(
     onLabelClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
-    when (uiState.value) {
+    when (val success = uiState.value) {
         is UiState.Success -> {
-            val albumList = (uiState.value as UiState.Success).data
+            val albumList = success.data
 
             Scaffold(
                 topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
