@@ -36,6 +36,7 @@ class FirebaseInsertService : Service() {
             val uid = Firebase.auth.currentUser!!.uid
             val uri = intent?.getStringExtra(SERVICE_URI) as String
             val fileName = intent.getStringExtra(SERVICE_FILENAME)!!
+            val dateTime = intent.getStringExtra(SERVICE_DATETIME)!!
             val label = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(SERVICE_LABEL, Label::class.java)!!
             } else {
@@ -79,7 +80,7 @@ class FirebaseInsertService : Service() {
                             latitude = location?.latitude,
                             longitude = location?.longitude,
                             description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
+                            datetime = dateTime
                         )
                     )
 
@@ -110,5 +111,6 @@ class FirebaseInsertService : Service() {
         const val SERVICE_LABEL = "service_label"
         const val SERVICE_LOCATION = "service_location"
         const val SERVICE_DESCRIPTION = "service_location"
+        const val SERVICE_DATETIME = "service_datetime"
     }
 }
