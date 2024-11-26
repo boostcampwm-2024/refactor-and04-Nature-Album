@@ -34,9 +34,6 @@ class SavePhotoViewModel @Inject constructor(
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
 
-    private val _photoDetailId = MutableStateFlow<Long>(0)
-    val photoDetailId: StateFlow<Long> = _photoDetailId
-
     fun savePhoto(
         uri: String,
         fileName: String,

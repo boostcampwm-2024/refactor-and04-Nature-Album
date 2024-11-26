@@ -6,17 +6,10 @@ import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.net.toUri
-import com.and04.naturealbum.data.dto.FirebaseLabel
-import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
-import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
-import com.and04.naturealbum.data.room.PhotoDetailDao
-import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,8 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,9 +27,6 @@ class FirebaseInsertService : Service() {
 
     @Inject
     lateinit var retrofitRepository: RetrofitRepository
-
-    @Inject
-    lateinit var photoDetailDao: PhotoDetailDao
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var job: Job? = null
 
@@ -60,24 +48,17 @@ class FirebaseInsertService : Service() {
             val description = intent.getStringExtra(SERVICE_DESCRIPTION) as String
 
             val storageJob = scope.launch {
-                val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, uri)
-
-                when (val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResult(id)) {
-                    HazardAnalyzeStatus.NOT_CHECKED -> {
-                        val hazardMapperResult =
-                            retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
-                        if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
-                            Toast.makeText(applicationContext, "", Toast.LENGTH_SHORT).show()
-                            return@launch
-                        } else {
-                            Log.d("Hazard_Result", "pass")
-                        }
-                    }
-
-                    else -> {
-                        return@launch
-                    }
-                }
+//                val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, uri)
+//
+//                val hazardMapperResult =
+//                    retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
+//                if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
+//                    Toast.makeText(applicationContext, "", Toast.LENGTH_SHORT).show()
+//                    Log.d("Hazard_Result", "fail")
+//                    return@launch
+//                } else {
+//                    Log.d("Hazard_Result", "pass")
+//                }
 
                 val storageUri = fireBaseRepository
                     .saveImageFile(
@@ -86,32 +67,32 @@ class FirebaseInsertService : Service() {
                         fileName = fileName,
                         uri = uri.toUri()
                     )
-
-                if (label.id == NEW_LABEL) {
-                    fireBaseRepository
-                        .insertLabel(
-                            uid = uid,
-                            labelName = label.name,
-                            labelData = FirebaseLabel(
-                                backgroundColor = label.backgroundColor,
-                                thumbnailUri = storageUri.toString()
-                            )
-                        )
-                }
-
-                fireBaseRepository
-                    .insertPhotoInfo(
-                        uid = uid,
-                        fileName = fileName,
-                        photoData = FirebasePhotoInfo(
-                            uri = storageUri.toString(),
-                            label = label.name,
-                            latitude = location?.latitude,
-                            longitude = location?.longitude,
-                            description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
-                        )
-                    )
+//
+//                if (label.id == NEW_LABEL) {
+//                    fireBaseRepository
+//                        .insertLabel(
+//                            uid = uid,
+//                            labelName = label.name,
+//                            labelData = FirebaseLabel(
+//                                backgroundColor = label.backgroundColor,
+//                                thumbnailUri = storageUri.toString()
+//                            )
+//                        )
+//                }
+//
+//                fireBaseRepository
+//                    .insertPhotoInfo(
+//                        uid = uid,
+//                        fileName = fileName,
+//                        photoData = FirebasePhotoInfo(
+//                            uri = storageUri.toString(),
+//                            label = label.name,
+//                            latitude = location?.latitude,
+//                            longitude = location?.longitude,
+//                            description = description,
+//                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
+//                        )
+//                    )
 
                 stopService(intent)
             }
