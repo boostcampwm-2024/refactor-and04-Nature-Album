@@ -8,7 +8,10 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.ui.maps.PhotoItem
+import com.and04.naturealbum.ui.maps.toPhotoItems
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -33,6 +36,27 @@ class FriendViewModel @Inject constructor(
 
     private val _operationStatus = MutableStateFlow<String>("")
     val operationStatus: StateFlow<String> = _operationStatus
+
+    private val _friendsPhotos = MutableStateFlow<Map<String, List<PhotoItem>>>(emptyMap())
+    val friendsPhotos: StateFlow<Map<String, List<PhotoItem>>> = _friendsPhotos
+
+    fun fetchFriendsPhotos(friends: List<String>) {
+        viewModelScope.launch {
+            try {
+                val photos = async { fireBaseRepository.getPhotos(friends) }
+                val labels = fireBaseRepository.getLabels(friends)
+
+                _friendsPhotos.emit(
+                    photos.await().mapValues { (uid, photos) ->
+                        photos.toPhotoItems(labels.getValue(uid))
+                    }
+                )
+            } catch (e: Exception) {
+                Log.d("FriendViewModel", _friendsPhotos.value.toString())
+            }
+        }
+    }
+
 
     fun fetchAllUsersInfo(uid: String) {
         viewModelScope.launch {
