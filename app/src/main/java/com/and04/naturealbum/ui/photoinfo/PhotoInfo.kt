@@ -47,6 +47,8 @@ import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.toColor
+import okhttp3.Address
+import java.time.LocalDateTime
 
 @Composable
 fun PhotoInfo(
@@ -55,7 +57,8 @@ fun PhotoInfo(
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
-    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecyc
+    val address = photoInfoViewModel.address.collectAsStateWithLifecycle()
 
     LaunchedEffect(selectedPhotoDetail) {
         if (!isDataLoaded.value) {
@@ -67,6 +70,7 @@ fun PhotoInfo(
     PhotoInfo(
         onNavigateToMyPage = onNavigateToMyPage,
         uiState = uiState,
+        address = address,
     )
 }
 
@@ -74,6 +78,7 @@ fun PhotoInfo(
 fun PhotoInfo(
     onNavigateToMyPage: () -> Unit,
     uiState: State<UiState<AlbumData>>,
+    address: State<String>,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
@@ -81,6 +86,7 @@ fun PhotoInfo(
         Content(
             innerPadding = innerPadding,
             uiState = uiState,
+            address = address
         )
     }
 }
@@ -89,6 +95,7 @@ fun PhotoInfo(
 private fun Content(
     innerPadding: PaddingValues,
     uiState: State<UiState<AlbumData>>,
+    address: State<String>,
 ) {
     when (val success = uiState.value) {
         is UiState.Idle, UiState.Loading -> {
@@ -99,7 +106,7 @@ private fun Content(
             val photoDetail = success.data.photoDetails
             val label = success.data.label
 
-            PhotoDetailInfo(innerPadding, photoDetail, label)
+            PhotoDetailInfo(innerPadding, photoDetail, label, address)
         }
 
         is UiState.Error -> { /* TODO ERROR */ }
@@ -111,6 +118,7 @@ private fun PhotoDetailInfo(
     innerPadding: PaddingValues,
     photoDetail: PhotoDetail,
     label: Label,
+    address: State<String>,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -120,12 +128,14 @@ private fun PhotoDetailInfo(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
+            address = address
         )
     } else {
         PhotoInfoPortrait(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
+            address = address,
         )
     }
 }
@@ -135,6 +145,7 @@ private fun PhotoInfoLandscape(
     innerPadding: PaddingValues,
     photoDetail: PhotoDetail,
     label: Label,
+    address: State<String>,
 ) {
     Row(
         modifier = Modifier
@@ -181,7 +192,7 @@ private fun PhotoInfoLandscape(
             RowInfo(
                 imgVector = Icons.Default.LocationOn,
                 contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-                text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
+                text = address.value
             )
 
             RowInfo(
@@ -198,6 +209,7 @@ private fun PhotoInfoPortrait(
     innerPadding: PaddingValues,
     photoDetail: PhotoDetail,
     label: Label,
+    address: State<String>,
 ) {
     Column(
         modifier = Modifier
@@ -237,7 +249,7 @@ private fun PhotoInfoPortrait(
         RowInfo(
             imgVector = Icons.Default.LocationOn,
             contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = "${photoDetail.latitude}, ${photoDetail.longitude}" // TODO: 좌표를 주소로 변경
+            text = address.value
         )
 
         RowInfo(
@@ -278,9 +290,11 @@ private fun PhotoInfoPreview() {
             )
         )
     }
+    val address = remember { mutableStateOf("") }
 
     PhotoInfo(
         onNavigateToMyPage = {},
         uiState = uiState,
+        address = address
     )
 }

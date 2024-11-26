@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.mypage
 
-import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
@@ -28,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -98,7 +98,7 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    signInWithGoogle: (Context) -> Unit,
+    signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -146,7 +146,7 @@ private fun MyPageContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    signInWithGoogle: (Context) -> Unit,
+    signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -174,7 +174,6 @@ private fun MyPageContent(
                     emailState = userEmail,
                     displayNameState = userDisplayName,
                 )
-                LoginContent { signInWithGoogle(context) } // TODO: 친구 기능 테스트 용도. 기능 픽스 후 삭제 예정
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUid,
@@ -193,7 +192,7 @@ private fun MyPageContent(
             else -> {
                 // 비회원일 때
                 UserProfileContent(null, null, null)
-                LoginContent { signInWithGoogle(context) }
+                LoginContent { signInWithGoogle() }
             }
         }
     }
@@ -292,6 +291,10 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_search),
         stringResource(R.string.my_page_social_alarm)
     )
+
+    LaunchedEffect(Unit) {
+        fetchFriends(currentUid)
+    }
 
     Column(
         modifier = modifier
