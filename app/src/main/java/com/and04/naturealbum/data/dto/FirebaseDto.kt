@@ -2,9 +2,14 @@ package com.and04.naturealbum.data.dto
 
 import java.time.LocalDateTime
 
-data class FirebaseLabel(
+data class LabelData(
     val backgroundColor: String,
-    val thumbnailUri: String
+    val thumbnailUri: String,
+)
+
+data class LabelDocument(
+    val labelName: String,
+    val labelData: LabelData,
 )
 
 data class FirebasePhotoInfo(

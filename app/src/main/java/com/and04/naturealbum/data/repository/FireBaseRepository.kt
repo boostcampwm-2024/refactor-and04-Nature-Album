@@ -4,15 +4,15 @@ import android.net.Uri
 import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
-import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.data.dto.LabelData
+import com.and04.naturealbum.data.dto.LabelDocument
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,7 +35,7 @@ interface FireBaseRepository {
 
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
-    suspend fun getLabels(uid: String): Task<QuerySnapshot>
+    suspend fun getLabels(uid: String): List<LabelDocument>
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
@@ -46,8 +46,7 @@ interface FireBaseRepository {
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
     suspend fun insertLabel(
         uid: String,
-        labelName: String,
-        labelData: FirebaseLabel,
+        label: LabelDocument,
     ): Boolean
 
     suspend fun insertPhotoInfo(
@@ -98,9 +97,23 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).document(label).get()
     }
 
-    override suspend fun getLabels(uid: String): Task<QuerySnapshot> {
-
-        return fireStore.collection(USER).document(uid).collection(LABEL).get()
+    override suspend fun getLabels(uid: String): List<LabelDocument> {
+        return try {
+            fireStore.collection(USER)
+                .document(uid)
+                .collection(LABEL)
+                .get()
+                .await()
+                .mapNotNull { document ->
+                    LabelDocument(
+                        labelName = document.id,
+                        labelData = document.toObject(LabelData::class.java)
+                    )
+                }
+        } catch (e: Exception) {
+            Log.e("getFriends", "Error fetching friends: ${e.message}")
+            emptyList()
+        }
     }
 
     override suspend fun getFriends(uid: String): List<FirebaseFriend> {
@@ -253,12 +266,11 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     override suspend fun insertLabel(
         uid: String,
-        labelName: String,
-        labelData: FirebaseLabel
+        label: LabelDocument
     ): Boolean {
         var requestSuccess = false
-        fireStore.collection(USER).document(uid).collection(LABEL).document(labelName)
-            .set(labelData)
+        fireStore.collection(USER).document(uid).collection(LABEL).document(label.labelName)
+            .set(label.labelData)
             .addOnSuccessListener {
                 requestSuccess = true
             }.await()
