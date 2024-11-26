@@ -28,7 +28,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -150,10 +149,7 @@ private fun PhotoInfoLandscape(
                 .padding(36.dp)
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoDetail.photoUri)
-                    .crossfade(true)
-                    .build(),
+                model = photoDetail.photoUri,
                 contentDescription = photoDetail.description,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp))
             )
