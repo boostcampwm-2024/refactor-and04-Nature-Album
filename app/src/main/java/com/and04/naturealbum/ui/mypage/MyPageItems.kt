@@ -80,6 +80,7 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPageSearch(
+    onSearchQueryChange: (String) -> Unit,
     userWithStatusList: List<FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
@@ -90,6 +91,14 @@ fun MyPageSearch(
     Column(
         Modifier.fillMaxSize()
     ) {
+
+        // TODO: 키보드 올라왔을 때 검색 결과 부분까지 위로 올라가는 것 필요
+        RequestedList(
+            userWithStatusList = userWithStatusList,
+            currentUid = currentUid,
+            sendFriendRequest = sendFriendRequest
+        )
+
         SearchBar(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally),
@@ -108,14 +117,14 @@ fun MyPageSearch(
                             contentDescription = stringResource(R.string.my_page_search_bar_search_icon)
                         )
                     },
-                    onQueryChange = { textField ->
-                        textFieldState = textField
-                    }
+                    onQueryChange = { query ->
+                        textFieldState = query
+                        onSearchQueryChange(query) // 검색 쿼리 변경 시 호출
+                    },
                 )
             },
-            expanded = expanded,
-            onExpandedChange = { expandedChange ->
-                expanded = expandedChange
+            expanded = false,
+            onExpandedChange = {
             },
         ) {
             // 검색 결과 리스트
@@ -126,12 +135,6 @@ fun MyPageSearch(
             )
         }
 
-        // 요청된 친구 리스트
-        RequestedList(
-            userWithStatusList = userWithStatusList,
-            currentUid = currentUid,
-            sendFriendRequest = sendFriendRequest
-        )
     }
 }
 
