@@ -11,15 +11,13 @@ fun Context.getBase64FromUti(uriString: String): String {
     return try {
         val uri = Uri.parse(uriString)
 
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = 4
-        }
+        val options = BitmapFactory.Options().apply { inSampleSize = 16 } // 이미지 크기 축소
         val bitmap = this.contentResolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, options)
         } ?: return ""
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream) // 압축 품질
         val byteArray = byteArrayOutputStream.toByteArray()
 
         Base64.encodeToString(byteArray, Base64.DEFAULT)
@@ -28,6 +26,3 @@ fun Context.getBase64FromUti(uriString: String): String {
         ""
     }
 }
-
-
-
