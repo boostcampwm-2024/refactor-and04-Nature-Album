@@ -1,7 +1,6 @@
 package com.and04.naturealbum.ui.photoinfo
 
 import android.content.res.Configuration
-import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +47,7 @@ import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.toColor
 
 @Composable
 fun PhotoInfo(
@@ -168,12 +168,12 @@ private fun PhotoInfoLandscape(
             AlbumLabel(
                 modifier = Modifier
                     .background(
-                        color = Color(parseColor("#${label.backgroundColor}")),
+                        color = label.backgroundColor.toColor(),
                         shape = CircleShape
                     )
                     .fillMaxWidth(0.6f),
                 text = label.name,
-                backgroundColor = Color(parseColor("#${label.backgroundColor}"))
+                backgroundColor = label.backgroundColor.toColor()
             )
 
             RowInfo(
@@ -213,12 +213,12 @@ private fun PhotoInfoPortrait(
         AlbumLabel(
             modifier = Modifier
                 .background(
-                    color = Color(parseColor("#${label.backgroundColor}")),
+                    color = label.backgroundColor.toColor(),
                     shape = CircleShape
                 )
                 .fillMaxWidth(0.4f),
             text = label.name,
-            backgroundColor = Color(parseColor("#${label.backgroundColor}"))
+            backgroundColor = label.backgroundColor.toColor()
         )
 
         AsyncImage(

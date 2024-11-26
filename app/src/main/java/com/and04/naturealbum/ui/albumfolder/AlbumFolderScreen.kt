@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.graphics.Color.parseColor
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
@@ -69,6 +68,7 @@ import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.gridColumnCount
+import com.and04.naturealbum.utils.toColor
 
 @Composable
 fun AlbumFolderScreen(
@@ -223,12 +223,12 @@ private fun ItemContainer(
                     AlbumLabel(
                         modifier = Modifier
                             .background(
-                                color = Color(parseColor("#${label.backgroundColor}")),
+                                color = label.backgroundColor.toColor(),
                                 shape = CircleShape
                             )
                             .fillMaxWidth(0.9f),
                         text = label.name,
-                        backgroundColor = Color(parseColor("#${label.backgroundColor}")),
+                        backgroundColor = label.backgroundColor.toColor(),
                     )
 
                     Box(
