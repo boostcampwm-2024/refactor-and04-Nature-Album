@@ -1,7 +1,7 @@
 package com.and04.naturealbum.data.retorifit
 
-import com.and04.naturealbum.data.GreenEyeRequestBody
 import com.and04.naturealbum.data.dto.GreenEyeDto
+import com.and04.naturealbum.data.dto.GreenEyeRequestBody
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
 import retrofit2.http.Body
 import retrofit2.http.GET

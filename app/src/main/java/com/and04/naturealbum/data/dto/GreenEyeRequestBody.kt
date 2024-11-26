@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data
+package com.and04.naturealbum.data.dto
 
 data class GreenEyeRequestBody(
     val version: String = "v1", // 서비스 버전

@@ -7,7 +7,7 @@ import android.net.Uri
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
-fun Context.getBase64FromUti(uriString: String): String {
+fun Context.getBase64FromUri(uriString: String): String {
     return try {
         val uri = Uri.parse(uriString)
 
