@@ -21,4 +21,14 @@ class Converters {
                 .toLocalDateTime()
         }
     }
+
+    @TypeConverter
+    fun fromHazardCheckStatus(value: String): HazardCheckStatus {
+        return HazardCheckStatus.valueOf(value)
+    }
+
+    @TypeConverter
+    fun toHazardCheckStatus(status: HazardCheckStatus): String {
+        return status.name
+    }
 }

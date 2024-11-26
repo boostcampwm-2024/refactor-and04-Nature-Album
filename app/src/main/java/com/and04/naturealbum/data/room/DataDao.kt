@@ -78,4 +78,6 @@ interface PhotoDetailDao {
     @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
     suspend fun getAllPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
 
+    @Query("SELECT hazard_check_result FROM photo_detail WHERE id = :id")
+    suspend fun getHazardCheckResult(id: Int): HazardCheckStatus
 }

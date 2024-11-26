@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.room.Album
+import com.and04.naturealbum.data.room.HazardCheckStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
@@ -59,6 +60,7 @@ class SavePhotoViewModel @Inject constructor(
                             longitude = location.longitude,
                             description = description,
                             datetime = LocalDateTime.now(ZoneId.of("UTC")),
+                            hazardCheckResult = HazardCheckStatus.NOT_CHECKED,
                         )
                     )
                 }
