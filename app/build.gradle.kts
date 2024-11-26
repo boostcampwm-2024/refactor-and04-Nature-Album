@@ -148,6 +148,11 @@ dependencies {
 
     // Image Rotation
     implementation(libs.androidx.exifinterface)
+
+    //retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
 }
 
 kapt {
