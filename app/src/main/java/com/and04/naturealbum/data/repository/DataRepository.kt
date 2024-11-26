@@ -14,6 +14,7 @@ import javax.inject.Inject
 interface DataRepository {
     suspend fun getLabels(): List<Label>
     suspend fun getLabelById(id: Int): Label
+    suspend fun getIdByName(name: String): Int?
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
@@ -38,6 +39,10 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun getLabelById(id: Int): Label {
         return labelDao.getLabelById(id)
+    }
+
+    override suspend fun getIdByName(name: String): Int? {
+        return labelDao.getIdByName(name)
     }
 
     override suspend fun insertLabel(label: Label): Long {
