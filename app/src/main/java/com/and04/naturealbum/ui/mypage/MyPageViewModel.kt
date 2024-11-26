@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
     private val authenticationManager: AuthenticationManager,
-    private val userManager: UserManager
+    private val userManager: UserManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState
@@ -47,11 +47,11 @@ class MyPageViewModel @Inject constructor(
             )
         )
     }
-    
+
     private fun setInitUiState(): UiState<UserInfo> {
         return if (userManager.isSignIn()) {
             getUserInfoUiState()
-        }else{
+        } else {
             UiState.Idle
         }
     }

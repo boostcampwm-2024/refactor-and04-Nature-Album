@@ -15,7 +15,7 @@ import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
-import com.and04.naturealbum.utils.getBase64FromUri
+import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,7 +56,7 @@ class FirebaseInsertService : Service() {
             val description = intent.getStringExtra(SERVICE_DESCRIPTION) as String
 
             val storageJob = scope.launch {
-                val imgEncoding = applicationContext.getBase64FromUri(uri)
+                val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, uri)
                 val hazardMapperResult = retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
                 if (hazardMapperResult == HazardMapperResult.FAIL) {
                     Toast.makeText(applicationContext, "", Toast.LENGTH_SHORT).show()
