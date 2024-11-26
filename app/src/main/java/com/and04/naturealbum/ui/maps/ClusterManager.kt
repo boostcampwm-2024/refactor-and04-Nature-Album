@@ -92,10 +92,9 @@ class ClusterManager(
 }
 
 enum class ColorRange(val min: Color, val max: Color) {
-    RED(Color(0xFF400000), Color(0xFFFF0000)),
-    YELLOW(        Color(0xFF404000), Color(0xFFFFFF00)    ),
-    GREEN(Color(0xFF004000), Color(0xFF00FF00)), CYAN(
-        Color(0xFF004040), Color(0xFF00FFFF)
-    ),
-    BLUE(Color(0xFF000040), Color(0xFF0000FF)),
+    RED(Color(0xFF440000), Color(0xFFFF0000)),
+    YELLOW(Color(0xFF444400), Color(0xFFFFFF00)),
+    GREEN(Color(0xFF004400), Color(0xFF00FF00)),
+    ORANGE(Color(0xFF442200), Color(0xFFFF8800)),
+    BLUE(Color(0xFF000044), Color(0xFF0000FF)),
 }
