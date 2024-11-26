@@ -23,12 +23,12 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromHazardCheckStatus(value: String): HazardCheckStatus {
-        return HazardCheckStatus.valueOf(value)
+    fun fromHazardCheckStatus(value: String): HazardAnalyzeStatus {
+        return HazardAnalyzeStatus.valueOf(value)
     }
 
     @TypeConverter
-    fun toHazardCheckStatus(status: HazardCheckStatus): String {
+    fun toHazardCheckStatus(status: HazardAnalyzeStatus): String {
         return status.name
     }
 }

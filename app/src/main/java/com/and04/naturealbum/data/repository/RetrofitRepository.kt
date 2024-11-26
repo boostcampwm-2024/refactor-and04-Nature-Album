@@ -5,8 +5,8 @@ import com.and04.naturealbum.data.dto.GreenEyeRequestBody
 import com.and04.naturealbum.data.dto.GreenEyeRequestBodyImages
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
 import com.and04.naturealbum.data.mapper.HazardMapper
-import com.and04.naturealbum.data.mapper.HazardMapperResult
 import com.and04.naturealbum.data.retorifit.NaverApi
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.di.GreenEye
 import com.and04.naturealbum.di.ReverseGeocode
 import java.io.IOException
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 interface RetrofitRepository {
     suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto>
-    suspend fun analyzeHazardWithGreenEye(photoUri: String): HazardMapperResult
+    suspend fun analyzeHazardWithGreenEye(photoData: String): HazardAnalyzeStatus
 }
 
 class RetrofitRepositoryImpl @Inject constructor(
@@ -29,7 +29,7 @@ class RetrofitRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun analyzeHazardWithGreenEye(photoData: String): HazardMapperResult {
+    override suspend fun analyzeHazardWithGreenEye(photoData: String): HazardAnalyzeStatus {
         val result = runRemote {
             greenEyeAPI.analyzeHazardWithGreenEye(
                 requestBody = GreenEyeRequestBody(
@@ -42,7 +42,7 @@ class RetrofitRepositoryImpl @Inject constructor(
         }
         return result.fold(
             onSuccess = { greenEyeDto -> HazardMapper.mapToPassOrFail(greenEyeDto) },
-            onFailure = { HazardMapperResult.FAIL }
+            onFailure = { HazardAnalyzeStatus.FAIL }
         )
     }
 

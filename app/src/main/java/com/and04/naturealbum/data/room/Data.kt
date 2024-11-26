@@ -73,7 +73,7 @@ data class PhotoDetail(
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "datetime") val datetime: LocalDateTime,
-    @ColumnInfo(name = "hazard_check_result") val hazardCheckResult: HazardCheckStatus,
+    @ColumnInfo(name = "hazard_check_result") val hazardCheckResult: HazardAnalyzeStatus,
 ) {
     companion object {
         fun emptyPhotoDetail(): PhotoDetail {
@@ -86,13 +86,13 @@ data class PhotoDetail(
                 latitude = 0.0,
                 description = "",
                 datetime = LocalDateTime.now(),
-                hazardCheckResult = HazardCheckStatus.NOT_CHECKED
+                hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED
             )
         }
     }
 }
 
-enum class HazardCheckStatus {
+enum class HazardAnalyzeStatus {
     PASS,       // 통과
     FAIL,       // 불통과
     NOT_CHECKED  // 검사하지 않음

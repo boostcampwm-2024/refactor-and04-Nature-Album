@@ -10,11 +10,12 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.mapper.HazardMapperResult
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
+import com.and04.naturealbum.data.room.PhotoDetailDao
 import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -35,6 +36,9 @@ class FirebaseInsertService : Service() {
 
     @Inject
     lateinit var retrofitRepository: RetrofitRepository
+
+    @Inject
+    lateinit var photoDetailDao: PhotoDetailDao
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var job: Job? = null
 
@@ -57,12 +61,22 @@ class FirebaseInsertService : Service() {
 
             val storageJob = scope.launch {
                 val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, uri)
-                val hazardMapperResult = retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
-                if (hazardMapperResult == HazardMapperResult.FAIL) {
-                    Toast.makeText(applicationContext, "", Toast.LENGTH_SHORT).show()
-                    return@launch
-                } else {
-                    Log.d("Hazard_Result", "pass")
+
+                when (val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResult(id)) {
+                    HazardAnalyzeStatus.NOT_CHECKED -> {
+                        val hazardMapperResult =
+                            retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
+                        if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
+                            Toast.makeText(applicationContext, "", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        } else {
+                            Log.d("Hazard_Result", "pass")
+                        }
+                    }
+
+                    else -> {
+                        return@launch
+                    }
                 }
 
                 val storageUri = fireBaseRepository
