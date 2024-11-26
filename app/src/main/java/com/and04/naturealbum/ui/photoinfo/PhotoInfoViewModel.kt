@@ -32,7 +32,7 @@ class PhotoInfoViewModel @Inject constructor(
             val photoDetail = roomRepository.getPhotoDetailById(id)
             val label = roomRepository.getLabelById(photoDetail.labelId)
 
-            convertCoordsToAddress(photoDetail = photoDetailData)
+            convertCoordsToAddress(photoDetail = photoDetail)
             
             _uiState.emit(UiState.Success(AlbumData(label, photoDetail)))
         }
