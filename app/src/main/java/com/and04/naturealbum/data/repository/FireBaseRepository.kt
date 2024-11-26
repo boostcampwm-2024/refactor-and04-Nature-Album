@@ -21,6 +21,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 interface FireBaseRepository {
@@ -36,6 +38,8 @@ interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): List<LabelDocument>
+    suspend fun getPhotos(uid: String): List<FirebasePhotoInfo>
+    suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfo>>
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
@@ -111,10 +115,50 @@ class FireBaseRepositoryImpl @Inject constructor(
                     )
                 }
         } catch (e: Exception) {
-            Log.e("getFriends", "Error fetching friends: ${e.message}")
+            Log.e("getLabels", "Error fetching labels: ${e.message}")
             emptyList()
         }
     }
+
+    override suspend fun getPhotos(uid: String): List<FirebasePhotoInfo> {
+        return try {
+            fireStore.collection(USER)
+                .document(uid)
+                .collection(PHOTOS)
+                .get()
+                .await()
+                .mapNotNull { document ->
+                    FirebasePhotoInfo(
+                        uri = document.id,
+                        label = document.getString("label") ?: "",
+                        latitude = document.getDouble("latitude"),
+                        longitude = document.getDouble("longitude"),
+                        description = document.getString("description") ?: "",
+                        datetime = stringToLocalDateTime(document.getString("dateTime"))!!
+                    )
+                }
+        } catch (e: Exception) {
+            Log.e("getPhotos", "Error fetching photos: ${e.message}")
+            emptyList()
+        }
+    }
+
+    override suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfo>> {
+        return try {
+            withContext(Dispatchers.IO + SupervisorJob()) {
+                val photos = uids.map { uid ->
+                    async {
+                        getPhotos(uid)
+                    }
+                }.awaitAll()
+                uids.zip(photos).filter { it.second.isNotEmpty() }.toMap()
+            }
+        } catch (e: Exception) {
+            Log.e("getPhotos", "Error fetching photos: ${e.message}")
+            emptyMap()
+        }
+    }
+
 
     override suspend fun getFriends(uid: String): List<FirebaseFriend> {
         return try {
@@ -157,7 +201,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                 }
                 friendRequest
             } catch (e: Exception) {
-                Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
+                Log.e(
+                    "getFriendRequests",
+                    "Error mapping document: ${document.id}, ${e.message}"
+                )
                 null
             }
         }
@@ -303,12 +350,16 @@ class FireBaseRepositoryImpl @Inject constructor(
         val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
 
         if (!currentUserSnapshot.exists() || !targetUserSnapshot.exists()) {
-            Log.e("sendFriendRequest", "User data not found for uid: $uid or targetUid: $targetUid")
+            Log.e(
+                "sendFriendRequest",
+                "User data not found for uid: $uid or targetUid: $targetUid"
+            )
             return false
         }
 
-        val currentUser = currentUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = uid)
-            ?: return false
+        val currentUser =
+            currentUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = uid)
+                ?: return false
         val targetUser =
             targetUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = targetUid)
                 ?: return false
@@ -342,7 +393,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                     targetFriendRequest
                 )
             }.await()
-            Log.d("sendFriendRequest", "Friend request successfully sent from $uid to $targetUid")
+            Log.d(
+                "sendFriendRequest",
+                "Friend request successfully sent from $uid to $targetUid"
+            )
             true
         } catch (e: Exception) {
             Log.e("sendFriendRequest", "Error sending friend request: ${e.message}", e)
@@ -421,5 +475,15 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val PHOTOS = "PHOTOS"
         private const val FRIENDS = "FRIENDS"
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
+    }
+}
+
+fun stringToLocalDateTime(dateTimeString: String?): LocalDateTime? {
+    return dateTimeString?.let { timeString ->
+        LocalDateTime
+            .parse(timeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            .atZone(ZoneId.of("UTC"))
+            .withZoneSameInstant(ZoneId.systemDefault())
+            .toLocalDateTime()
     }
 }
