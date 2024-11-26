@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.mypage
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.MyFriend
@@ -14,9 +13,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val authenticationManager: AuthenticationManager
+    private val authenticationManager: AuthenticationManager,
+    private val userManager: UserManager
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState>(setInitUiState())
+    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
 
     private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
@@ -34,26 +34,34 @@ class MyPageViewModel @Inject constructor(
     private val _userUid = MutableStateFlow<String?>(null)
     val userUid: StateFlow<String?> = _userUid
 
-    fun signInWithGoogle(context: Context) {
-        authenticationManager.signInWithGoogle(context).onEach { response ->
+    init {
+        setInitUiState()
+    }
+
+    fun signInWithGoogle() {
+        _uiState.value = UiState.Loading
+        authenticationManager.signInWithGoogle().onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
-                    val user = UserManager.getUser()
-                    _userEmail.value = user?.email
-                    _userPhotoUrl.value = user?.photoUrl.toString()
-                    _userDisplayName.value = user?.displayName
-                    _userUid.value = user?.uid
+                    setUserInfo()
                     _uiState.emit(UiState.Success)
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    private fun setInitUiState(): UiState {
-        return if (UserManager.isSignIn()) {
-            UiState.Success
-        } else {
-            UiState.Idle
+    private fun setInitUiState() {
+        if (userManager.isSignIn()) {
+            setUserInfo()
+            _uiState.value = UiState.Success
         }
+    }
+
+    private fun setUserInfo() {
+        val user = userManager.getUser()
+        _userEmail.value = user?.email
+        _userPhotoUrl.value = user?.photoUrl.toString()
+        _userDisplayName.value = user?.displayName
+        _userUid.value = user?.uid
     }
 }
