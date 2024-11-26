@@ -15,6 +15,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -126,6 +127,7 @@ class AuthenticationManager @Inject constructor(
                             )
                         if (success) {
                             Log.d("FirebaseSignIn", "User successfully created in Firestore")
+                            updateFcmToken(uid) // FCM Token 생성 및 저장
                             getUserToken { authResponse ->
                                 Log.d("FirebaseSignIn", "Token retrieved successfully")
                                 trySend(authResponse)
@@ -150,6 +152,26 @@ class AuthenticationManager @Inject constructor(
             }
     }
 
+    private fun updateFcmToken(uid: String) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                if (token != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val success = fireBaseRepository.saveFcmToken(uid, token)
+                        if (success) {
+                            Log.d("FCM", "FCM token updated successfully via Repository")
+                        } else {
+                            Log.e("FCM", "Failed to update FCM token via Repository")
+                        }
+                    }
+                } else {
+                    Log.e("FCM", "Failed to fetch FCM token: ${task.exception?.message}")
+                }
+            }
+        }
+    }
+
     private suspend fun createUserInFirestore(
         uid: String,
         displayName: String?,
@@ -171,7 +193,6 @@ class AuthenticationManager @Inject constructor(
             false
         }
     }
-
 
     private fun getUserToken(trySend: (AuthResponse) -> Unit) {
         Log.d("FirebaseSignIn", "Retrieving user token...")
