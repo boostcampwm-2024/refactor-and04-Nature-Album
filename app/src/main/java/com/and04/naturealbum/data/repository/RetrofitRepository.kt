@@ -1,21 +1,41 @@
 package com.and04.naturealbum.data.repository
 
 import android.util.Log
+import com.and04.naturealbum.data.GreenEyeRequestBody
+import com.and04.naturealbum.data.GreenEyeRequestBodyImages
+import com.and04.naturealbum.data.dto.GreenEyeDto
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
-import com.and04.naturealbum.data.retorifit.ReverseGeocodeAPI
+import com.and04.naturealbum.data.retorifit.NaverAPI
+import com.and04.naturealbum.di.GreenEye
+import com.and04.naturealbum.di.ReverseGeocode
 import java.io.IOException
 import javax.inject.Inject
 
-interface ReverseGeocodeRepository {
+interface RetrofitRepository {
     suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto>
+    suspend fun analyzeForToxicity(): Result<GreenEyeDto>
 }
 
-class ReverseGeocodeRepositoryImpl @Inject constructor(private val reverseGeocodeAPI: ReverseGeocodeAPI) :
-    ReverseGeocodeRepository {
+class RetrofitRepositoryImpl @Inject constructor(
+    @ReverseGeocode private val reverseGeocodeAPI: NaverAPI,
+    @GreenEye private val greenEyeAPI: NaverAPI,
+) :
+    RetrofitRepository {
 
     override suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto> {
         return runRemote {
             reverseGeocodeAPI.convertCoordsToAddress(coords = coords)
+        }
+    }
+
+    override suspend fun analyzeForToxicity(): Result<GreenEyeDto> {
+        return runRemote {
+            greenEyeAPI.analyzeHazardWithGreenEye(
+                requestBody = GreenEyeRequestBody(
+                    timestamp = System.currentTimeMillis(),
+                    images = listOf(GreenEyeRequestBodyImages(name = "", data = ""))
+                )
+            )
         }
     }
 

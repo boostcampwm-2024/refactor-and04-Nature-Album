@@ -19,10 +19,10 @@ object ReverseGeocodeAPIFactory {
         }
         .build()
 
-    fun create(): ReverseGeocodeAPI = Retrofit.Builder()
+    fun create(): NaverAPI = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-        .create(ReverseGeocodeAPI::class.java)
+        .create(NaverAPI::class.java)
 }
