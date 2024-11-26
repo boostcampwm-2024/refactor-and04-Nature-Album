@@ -469,6 +469,6 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val FRIENDS = "FRIENDS"
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
         private const val EMAIL = "email"
-        private const val QUERY_SUFFIX = "\uf8ff"
+        private const val QUERY_SUFFIX = "\uf8ff" // Firestore 쿼리에서 startsWith 구현을 위한 문자열 끝 범위 문자
     }
 }

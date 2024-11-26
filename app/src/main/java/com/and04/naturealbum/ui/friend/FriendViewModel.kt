@@ -55,14 +55,13 @@ class FriendViewModel @Inject constructor(
                 .filter { query -> query.isNotBlank() } // 빈 쿼리 무시
                 .distinctUntilChanged() // 중복 값 방지
                 .collect { query ->
-                    val currentUid = UserManager.getUser()?.uid
-                    if (currentUid != null) {
-                        fetchFilteredUsers(currentUid = currentUid, query = query)
-                    } else {
-                        Log.e("FriendViewModel", "UID is null, skipping search.")
+                    UserManager.getUser()?.uid?.let { currentUid ->
+                        fetchFilteredUsers(
+                            currentUid = currentUid,
+                            query = query
+                        )
                     }
                 }
-
         }
     }
 
