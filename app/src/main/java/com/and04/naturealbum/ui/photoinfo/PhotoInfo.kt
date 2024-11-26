@@ -48,6 +48,7 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.savephoto.UiState
 import com.and04.naturealbum.utils.GetTopbar
+import okhttp3.Address
 import java.time.LocalDateTime
 
 @Composable
@@ -60,6 +61,7 @@ fun PhotoInfo(
     val uiState = photoInfoViewModel.uiState.collectAsStateWithLifecycle()
     val photoDetail = photoInfoViewModel.photoDetail.collectAsStateWithLifecycle()
     val label = photoInfoViewModel.label.collectAsStateWithLifecycle()
+    val address = photoInfoViewModel.address.collectAsStateWithLifecycle()
 
     LaunchedEffect(selectedPhotoDetail) {
         if (!isDataLoaded.value) {
@@ -72,7 +74,8 @@ fun PhotoInfo(
         onNavigateToMyPage = onNavigateToMyPage,
         uiState = uiState,
         photoDetail = photoDetail,
-        label = label
+        label = label,
+        address = address,
     )
 }
 
@@ -81,7 +84,8 @@ fun PhotoInfo(
     onNavigateToMyPage: () -> Unit,
     uiState: State<UiState>,
     photoDetail: State<PhotoDetail>,
-    label: State<Label>
+    label: State<Label>,
+    address: State<String>,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
@@ -90,7 +94,8 @@ fun PhotoInfo(
             innerPadding = innerPadding,
             uiState = uiState,
             photoDetail = photoDetail,
-            label = label
+            label = label,
+            address = address
         )
     }
 }
@@ -100,7 +105,8 @@ private fun Content(
     innerPadding: PaddingValues,
     uiState: State<UiState>,
     photoDetail: State<PhotoDetail>,
-    label: State<Label>
+    label: State<Label>,
+    address: State<String>,
 ) {
     when (uiState.value) {
         is UiState.Idle, UiState.Loading -> {
@@ -108,7 +114,7 @@ private fun Content(
         }
 
         is UiState.Success -> {
-            PhotoDetailInfo(innerPadding, photoDetail, label)
+            PhotoDetailInfo(innerPadding, photoDetail, label, address)
         }
     }
 }
@@ -118,6 +124,7 @@ private fun PhotoDetailInfo(
     innerPadding: PaddingValues,
     photoDetail: State<PhotoDetail>,
     label: State<Label>,
+    address: State<String>,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -127,12 +134,14 @@ private fun PhotoDetailInfo(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
+            address = address
         )
     } else {
         PhotoInfoPortrait(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
+            address = address,
         )
     }
 }
@@ -142,6 +151,7 @@ private fun PhotoInfoLandscape(
     innerPadding: PaddingValues,
     photoDetail: State<PhotoDetail>,
     label: State<Label>,
+    address: State<String>,
 ) {
     Row(
         modifier = Modifier
@@ -191,7 +201,7 @@ private fun PhotoInfoLandscape(
             RowInfo(
                 imgVector = Icons.Default.LocationOn,
                 contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-                text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+                text = address.value
             )
 
             RowInfo(
@@ -208,6 +218,7 @@ private fun PhotoInfoPortrait(
     innerPadding: PaddingValues,
     photoDetail: State<PhotoDetail>,
     label: State<Label>,
+    address: State<String>,
 ) {
     Column(
         modifier = Modifier
@@ -247,7 +258,7 @@ private fun PhotoInfoPortrait(
         RowInfo(
             imgVector = Icons.Default.LocationOn,
             contentDescription = stringResource(R.string.photo_info_screen_location_icon),
-            text = "${photoDetail.value.latitude}, ${photoDetail.value.longitude}" // TODO: 좌표를 주소로 변경
+            text = address.value
         )
 
         RowInfo(
@@ -281,11 +292,12 @@ private fun PhotoInfoPreview() {
     val uiState = remember { mutableStateOf(UiState.Success) }
     val photoDetail = remember { mutableStateOf(PhotoDetail.emptyPhotoDetail()) }
     val label = remember { mutableStateOf(Label.emptyLabel()) }
-
+    val address = remember { mutableStateOf("") }
     PhotoInfo(
         onNavigateToMyPage = {},
         uiState = uiState,
         photoDetail = photoDetail,
         label = label,
+        address = address
     )
 }

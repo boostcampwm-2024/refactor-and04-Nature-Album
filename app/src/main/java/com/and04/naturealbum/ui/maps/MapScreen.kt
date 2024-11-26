@@ -55,7 +55,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -68,7 +67,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.BottomSheetState
@@ -91,16 +89,15 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-const val USER_SELECT_MAX = 4
-
+private const val USER_SELECT_MAX = 4
+private const val LEAF_NODE_SIZE = 1
 
 fun sizeToTint(
     size: Int,
-    min: Color = Color(10, 0, 0),
+    min: Color = Color(63, 0, 0),
     max: Color = Color(255, 0, 0),
     @IntRange(from = 1) threshold: Int = 20
 ): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
-
 
 @SuppressLint("NewApi")
 @Composable
@@ -164,7 +161,8 @@ fun MapScreen(
                 photoDetailIds = info.tag as List<Int>
                 pick = photoDetailIds.map { labelId -> idToPhoto.getValue(labelId) }
                     .groupBy { photoDetail -> photoDetail.labelId }
-                    .maxBy { (_, photos) -> photos.size }.value.maxBy { photoDetail -> photoDetail.datetime }
+                    .maxBy { (_, photos) -> photos.size }.value
+                    .maxBy { photoDetail -> photoDetail.datetime }
                 true
             }
         }
@@ -172,18 +170,18 @@ fun MapScreen(
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
-                    info.tag as List<Int>
+                if ((info.tag as List<Int>).contains(pick?.id))
+                    photoDetailIds = info.tag as List<Int>
                 marker.captionText = info.size.toString()
                 marker.iconTintColor = sizeToTint(info.size)
                 marker.onClickListener = onClickMarker(info)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id)) photoDetailIds =
-                    info.tag as List<Int>
-                marker.captionText = "1"
-                marker.iconTintColor = sizeToTint(1)
+                if ((info.tag as List<Int>).contains(pick?.id))
+                    photoDetailIds = info.tag as List<Int>
+                marker.captionText = LEAF_NODE_SIZE.toString()
+                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
                 marker.onClickListener = onClickMarker(info)
             }
         }).markerManager(object : DefaultMarkerManager() {
@@ -276,10 +274,12 @@ fun MapScreen(
             modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f
         ) {
-            PhotoGrid(photos = displayPhotos,
+            PhotoGrid(
+                photos = displayPhotos,
                 labels = labels.value,
                 modifier = modifier,
-                onPhotoClick = { photo -> pick = photo })
+                onPhotoClick = { photo -> pick = photo }
+            )
         }
     }
     FriendDialog(
@@ -287,7 +287,7 @@ fun MapScreen(
         friends = friends,
         prevSelectedFriends = showFriends,
         onDismiss = { openAlertDialog.value = false },
-        onConfirm = { selectedFriends->
+        onConfirm = { selectedFriends ->
             showFriends = selectedFriends
             openAlertDialog.value = false
         }
@@ -409,7 +409,10 @@ fun PhotoGrid(
     onPhotoClick: (PhotoDetail) -> Unit,
 ) {
     val labelIdToLabel = labels.associateBy { label -> label.id }
-    val groupByLabel = photos.value.groupBy { photoDetail -> photoDetail.labelId }.toList()
+    val groupByLabel = photos
+        .value
+        .groupBy { photoDetail -> photoDetail.labelId }
+        .toList()
         .sortedByDescending { (_, photoDetails) -> photoDetails.size }
         .map { (labelId, photoDetails) ->
             labelIdToLabel[labelId]!! to photoDetails.sortedByDescending { photoDetail -> photoDetail.datetime }
