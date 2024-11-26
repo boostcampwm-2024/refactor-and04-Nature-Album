@@ -5,6 +5,12 @@ data class FirebaseLabel(
     val thumbnailUri: String
 )
 
+data class FirebaseLabelResponse(
+    val labelName: String = "",
+    val backgroundColor: String = "",
+    val thumbnailUri: String = ""
+)
+
 data class FirebasePhotoInfo(
     val uri: String,
     val label: String,
@@ -12,4 +18,14 @@ data class FirebasePhotoInfo(
     val longitude: Double?,
     val description: String,
     val datetime: String
+)
+
+data class FirebasePhotoInfoResponse(
+    val fileName: String = "",
+    val uri: String = "",
+    val label: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val description: String = "",
+    val datetime: String = ""
 )

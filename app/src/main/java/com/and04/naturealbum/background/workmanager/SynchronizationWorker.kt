@@ -11,18 +11,26 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.and04.naturealbum.data.dto.FirebaseLabel
+import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
-import com.and04.naturealbum.data.dto.UnSynchronizedPhotoDetailsDto
+import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
+import com.and04.naturealbum.data.dto.SyncAlbumsDto
+import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.room.Album
+import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.room.PhotoDetail
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -92,29 +100,77 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val label = async {
                 val labels = fireBaseRepository.getLabels(uid)
-                val unSynchronizedAlbums = roomRepository.getUnSynchronizedAlbums(labels)
+                val allLocalLabels = roomRepository.getSyncCheckAlbums()
 
-                unSynchronizedAlbums.forEach { album ->
+                // 서버에 없는 Local Data
+                val unSynchronizedLabelsToServer = allLocalLabels.filter { label ->
+                    labels.none { firebaseLabel ->
+                        firebaseLabel.labelName == label.labelName
+                    }
+                }
+                // 로컬에 없는 서버 데이터
+                val unSynchronizedLabelsToLocal = labels.filter { label ->
+                    allLocalLabels.none { localLabel ->
+                        localLabel.labelName == label.labelName
+                    }
+                }
+
+
+                // 로컬 > 서버
+                unSynchronizedLabelsToServer.forEach { label ->
                     launch {
-                        insertLabel(uid, album)
+                        insertLabelToServer(uid, label)
+                    }
+                }
+
+                // 서버 > 로컬
+                unSynchronizedLabelsToLocal.forEach { label ->
+                    launch {
+                        insertLabelToLocal(label)
                     }
                 }
             }
 
             val photoDetail = async {
-                val fileNames = fireBaseRepository.getPhotos(uid)
-                val unSynchronizedPhotoDetails =
-                    roomRepository.getUnSynchronizedPhotoDetails(fileNames)
+                val photos = fireBaseRepository.getPhotos(uid)
+                val allLocalPhotos = roomRepository.getUnSynchronizedPhotoDetails()
 
-                unSynchronizedPhotoDetails.forEach { photo ->
+                val unSynchronizedPhotoDetailsToServer = allLocalPhotos.filter { photo ->
+                    photos.none { firebasePhoto ->
+                        firebasePhoto.fileName == photo.fileName
+                    }
+                }
+
+                // 로컬 > 서버
+                unSynchronizedPhotoDetailsToServer.forEach { photo ->
                     launch {
                         insertPhotoDetail(uid, photo)
                     }
                 }
+
+//                unSynchronizedPhotoDetailsToLocal = photos.filter { photo ->
+//                    allLocalPhotos.none { localPhoto ->
+//                        localPhoto.fileName == photo.fileName
+//                    }
+//                }
             }
 
             label.await()
             photoDetail.await()
+
+            // 서버 > 로컬
+//            unSynchronizedPhotoDetailsToLocal?.forEach { photo ->
+//                launch {
+//                    insertPhotoDetailToLocal(photo)
+//                }
+//            }
+//            insertLocalAlbum()
+//            roomRepository.insertPhotoInAlbum(
+//                Album(
+//                    labelId = labelId,
+//                    photoDetailId = photoDetailId.await().toInt()
+//                )
+//            )
 
             Result.success()
         } catch (e: Exception) {
@@ -125,27 +181,37 @@ class SynchronizationWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun insertLabel(uid: String, album: UnSynchronizedAlbumsDto) {
+    private suspend fun insertLabelToServer(uid: String, label: SyncAlbumsDto) {
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
-                label = album.labelName,
-                fileName = album.fileName,
-                uri = album.photoDetailUri.toUri(),
+                label = label.labelName,
+                fileName = label.fileName,
+                uri = label.photoDetailUri.toUri(),
             )
 
         fireBaseRepository
             .insertLabel(
                 uid = uid,
-                labelName = album.labelName,
+                labelName = label.labelName,
                 labelData = FirebaseLabel(
-                    backgroundColor = album.labelBackgroundColor,
+                    backgroundColor = label.labelBackgroundColor,
                     thumbnailUri = storageUri.toString()
                 )
             )
     }
 
-    private suspend fun insertPhotoDetail(uid: String, photo: UnSynchronizedPhotoDetailsDto) {
+    private suspend fun insertLabelToLocal(label: FirebaseLabelResponse) =
+        withContext(Dispatchers.IO + SupervisorJob()) {
+            val localLabelData = Label(
+                backgroundColor = label.backgroundColor,
+                name = label.labelName
+            )
+
+            roomRepository.insertLabel(localLabelData)
+        }
+
+    private suspend fun insertPhotoDetail(uid: String, photo: SyncPhotoDetailsDto) {
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
@@ -168,4 +234,21 @@ class SynchronizationWorker @AssistedInject constructor(
                 )
             )
     }
+
+//    private suspend fun insertPhotoDetailToLocal(photo: FirebasePhotoInfoResponse) =
+//        withContext(Dispatchers.IO + SupervisorJob()) {
+//            val photoDetailId = async {
+//                roomRepository.insertPhoto(
+//                    PhotoDetail(
+//                        labelId = labelId,
+//                        photoUri = uri,
+//                        fileName = fileName,
+//                        latitude = location.latitude,
+//                        longitude = location.longitude,
+//                        description = description,
+//                        datetime = time,
+//                    )
+//                )
+//            }
+//        }
 }
