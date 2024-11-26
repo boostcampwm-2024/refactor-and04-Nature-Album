@@ -32,6 +32,7 @@ class ClusterManager(
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 onClusterChange(info)
+                marker.zIndex = info.size
                 marker.captionText = info.size.toString()
                 marker.iconTintColor = sizeToTint(info.size)
                 marker.onClickListener = onMarkerClick(info)
@@ -39,6 +40,7 @@ class ClusterManager(
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
                 onClusterChange(info)
+                marker.zIndex = LEAF_NODE_SIZE
                 marker.captionText = LEAF_NODE_SIZE.toString()
                 marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
                 marker.onClickListener = onMarkerClick(info)
@@ -46,7 +48,7 @@ class ClusterManager(
         }).markerManager(object : DefaultMarkerManager() {
             override fun createMarker(): Marker {
                 return Marker().apply {
-                    zIndex = -1
+                    globalZIndex = DEFAULT_MARKER_Z_INDEX - 1
                     icon = markerIcon
                     isFlat = true
                     anchor = PointF(0.5f, 0.5f)
@@ -79,6 +81,7 @@ class ClusterManager(
 
     companion object {
         private const val LEAF_NODE_SIZE = 1
+        private const val DEFAULT_MARKER_Z_INDEX = 200000
 
         private val markerIcon = OverlayImage.fromResource(R.drawable.ic_cluster)
 
