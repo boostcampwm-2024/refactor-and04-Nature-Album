@@ -31,19 +31,11 @@ class ClusterManager(
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                onClusterChange(info)
-                marker.zIndex = info.size
-                marker.captionText = info.size.toString()
-                marker.iconTintColor = sizeToTint(info.size)
-                marker.onClickListener = onMarkerClick(info)
+                updateMarker(info, marker)
             }
         }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
             override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                onClusterChange(info)
-                marker.zIndex = LEAF_NODE_SIZE
-                marker.captionText = LEAF_NODE_SIZE.toString()
-                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
-                marker.onClickListener = onMarkerClick(info)
+                updateMarker(info, marker)
             }
         }).markerManager(object : DefaultMarkerManager() {
             override fun createMarker(): Marker {
@@ -57,6 +49,21 @@ class ClusterManager(
                 }
             }
         }).build()
+    }
+
+    private fun updateMarker(info: MarkerInfo, marker: Marker) {
+        onClusterChange(info)
+
+        val size = when (info) {
+            is ClusterMarkerInfo -> info.size
+            is LeafMarkerInfo -> LEAF_NODE_SIZE
+            else -> throw IllegalArgumentException("Invalid marker info")
+        }
+
+        marker.zIndex = size
+        marker.captionText = size.toString()
+        marker.iconTintColor = sizeToTint(size)
+        marker.onClickListener = onMarkerClick(info)
     }
 
     fun setPhotoItems(photoItems: List<PhotoItem>) {
