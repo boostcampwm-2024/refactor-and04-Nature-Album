@@ -55,12 +55,13 @@ import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.friend.FriendViewModel
-import com.and04.naturealbum.ui.savephoto.UiState
+import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
-const val SOCIAL_LIST_TAB_INDEX = 0
-const val SOCIAL_SEARCH_TAB_INDEX = 1
-const val SOCIAL_ALARM_TAB_INDEX = 2
+private const val SOCIAL_LIST_TAB_INDEX = 0
+private const val SOCIAL_SEARCH_TAB_INDEX = 1
+private const val SOCIAL_ALARM_TAB_INDEX = 2
 
 @Composable
 fun MyPageScreen(
@@ -75,26 +76,11 @@ fun MyPageScreen(
     //val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
     val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
 
-// TODO: 현재는 userEmail, userPhotoUrl, userDisplayName을 개별적으로 StateFlow로 관리하지만,
-//       추후 UiState를 개선하여 사용자 정보를 포함하도록 구조를 변경할 필요가 있다.
-//       - UiState.Success에 사용자 정보(email, photoUrl, displayName)를 포함시켜 단일 상태로 관리.
-//       - UI는 UiState만 구독하도록 변경하여 코드 복잡도를 줄이고 상태 관리를 단순화.
-//       - 현재 로직은 친구 추가 기능 테스트를 위한 임시 구현이며, 이후 사용자 상태 관리 구조 재설계 시 수정해야 함.
-
-    val userEmail = myPageViewModel.userEmail.collectAsStateWithLifecycle()
-    val userPhotoUrl = myPageViewModel.userPhotoUrl.collectAsStateWithLifecycle()
-    val userDisplayName = myPageViewModel.userDisplayName.collectAsStateWithLifecycle()
-    val userUid = myPageViewModel.userUid.collectAsStateWithLifecycle()
-
     MyPageScreenContent(
         navigateToHome = navigateToHome,
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
-        userEmailState = userEmail,
-        userPhotoUrlState = userPhotoUrl,
-        userDisplayNameState = userDisplayName,
-        userUidState = userUid,
         searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
         fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
@@ -110,13 +96,9 @@ fun MyPageScreen(
 @Composable
 fun MyPageScreenContent(
     navigateToHome: () -> Unit,
-    uiState: State<UiState>,
+    uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    userPhotoUrlState: State<String?>,
-    userEmailState: State<String?>,
-    userDisplayNameState: State<String?>,
-    userUidState: State<String?>,
     signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
@@ -147,10 +129,6 @@ fun MyPageScreenContent(
             uiState = uiState,
             myFriendsState = myFriendsState,
             friendRequestsState = friendRequestsState,
-            userPhotoUrlState = userPhotoUrlState,
-            userEmailState = userEmailState,
-            userDisplayNameState = userDisplayNameState,
-            userUidState = userUidState,
             signInWithGoogle = signInWithGoogle,
             fetchReceivedFriendRequests = fetchReceivedFriendRequests,
             fetchFriends = fetchFriends,
@@ -166,13 +144,9 @@ fun MyPageScreenContent(
 @Composable
 private fun MyPageContent(
     modifier: Modifier,
-    uiState: State<UiState>,
+    uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    userPhotoUrlState: State<String?>,
-    userEmailState: State<String?>,
-    userDisplayNameState: State<String?>,
-    userUidState: State<String?>,
     signInWithGoogle: () -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
@@ -190,16 +164,21 @@ private fun MyPageContent(
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
         // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
-        when (uiState.value) {
+        when (val success = uiState.value) {
             is UiState.Success -> {
+                val userEmail = success.data.userEmail
+                val userPhotoUri = success.data.userPhotoUri
+                val userDisplayName = success.data.userDisplayName
+                val userUid = success.data.userUid
+
                 UserProfileContent(
-                    uriState = userPhotoUrlState,
-                    emailState = userEmailState,
-                    displayNameState = userDisplayNameState,
+                    uriState = userPhotoUri,
+                    emailState = userEmail,
+                    displayNameState = userDisplayName,
                 )
                 SocialContent(
                     modifier = Modifier.weight(1f),
-                    userUidState = userUidState,
+                    userUidState = userUid,
                     myFriendsState = myFriendsState,
                     friendRequestsState = friendRequestsState,
                     fetchReceivedFriendRequests = fetchReceivedFriendRequests,
@@ -223,13 +202,13 @@ private fun MyPageContent(
 
 @Composable
 private fun UserProfileContent(
-    uriState: State<String?>?,
-    emailState: State<String?>?,
-    displayNameState: State<String?>?,
+    uriState: String?,
+    emailState: String?,
+    displayNameState: String?,
 ) {
-    val uri = uriState?.value ?: ""
-    val email = emailState?.value ?: stringResource(R.string.my_page_default_user_email)
-    val displayName = displayNameState?.value ?: ""
+    val uri = uriState ?: ""
+    val email = emailState ?: stringResource(R.string.my_page_default_user_email)
+    val displayName = displayNameState ?: ""
 
     UserProfileImage(
         uri = uri,
@@ -291,7 +270,7 @@ private fun LoginContent(loginHandle: () -> Unit) {
 @Composable
 private fun SocialContent(
     modifier: Modifier,
-    userUidState: State<String?>,
+    userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     fetchReceivedFriendRequests: (String) -> Unit,
@@ -302,7 +281,7 @@ private fun SocialContent(
     searchResults: State<List<FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val currentUid = userUidState.value ?: return
+    val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
     val searchResultsList = searchResults.value
