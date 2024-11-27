@@ -6,9 +6,7 @@ import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.net.toUri
-import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.repository.FireBaseRepository
@@ -65,11 +63,6 @@ class FirebaseInsertService : Service() {
                 val hazardMapperResult =
                     retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
                 if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
-                    Toast.makeText(
-                        applicationContext,
-                        getString(R.string.service_analyze_hazard_fail),
-                        Toast.LENGTH_SHORT
-                    ).show()
                     photoDetailDao.updateHazardCheckResultByFIleName(
                         HazardAnalyzeStatus.FAIL,
                         fileName
