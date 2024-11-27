@@ -67,7 +67,6 @@ class LocationHandler(
             null
         ).addOnSuccessListener { location ->
             // TODO: location이 null로 오면?
-            Log.d("FFFF", "${location.latitude}, ${location.longitude}")
             onSuccess(location)
         }
     }

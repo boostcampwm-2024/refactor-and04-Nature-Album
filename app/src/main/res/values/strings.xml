@@ -66,6 +66,8 @@
     <string name="my_page_search_hint">이메일로 친구 찾기</string>
     <string name="my_page_friend_requested">확인중</string>
     <string name="my_page_friend_request">친구 요청</string>
+    <string name="my_page_friend_request_received">요청 받음</string>
+    <string name="my_page_friend">나와 친구</string>
     <string name="my_page_alarm_txt">께서\n친구 신청을 요청했습니다.</string>
     <string name="my_page_request_accept">수락</string>
     <string name="my_page_request_deny">거절</string>
@@ -80,4 +82,5 @@
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
     <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
+
 </resources>

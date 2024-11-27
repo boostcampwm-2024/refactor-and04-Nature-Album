@@ -130,6 +130,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.storage)
 
     //firebase google login
@@ -149,6 +150,17 @@ dependencies {
 
     // Image Rotation
     implementation(libs.androidx.exifinterface)
+
+    // tensorflow lite
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.task.vision)
+
+    // gemini
+    implementation(libs.firebase.vertexai)
+
+    //retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     //WorkManager
     implementation(libs.androidx.work.runtime.ktx)

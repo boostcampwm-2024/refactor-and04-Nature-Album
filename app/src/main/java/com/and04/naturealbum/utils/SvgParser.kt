@@ -45,7 +45,6 @@ fun parseSvgFile(context: Context, fileName: String): SvgData? {
         inputStream.close()
         return SvgData(width, height, viewportWidth, viewportHeight, pathData)
     } catch (e: Exception) {
-        Log.e("SvgParseError", "Error parsing SVG: ${e.message}")
         return null
     }
 }
@@ -65,11 +64,9 @@ fun parseDrawableSvgFile(context: Context, resId: Int): SvgData? {
                 when (parser.name) {
                     "vector" -> {
                         parser.getAttributeValue(ANDROID_NAMESPACE, "width")?.let { rawWidth ->
-                            Log.d("SvgParseDebug", "Raw width value: $rawWidth")
                             width = rawWidth.replace("dp", "").replace("dip", "").toFloatOrNull() ?: 0f
                         }
                         parser.getAttributeValue(ANDROID_NAMESPACE, "height")?.let { rawHeight ->
-                            Log.d("SvgParseDebug", "Raw height value: $rawHeight")
                             height = rawHeight.replace("dp", "").replace("dip", "").toFloatOrNull() ?: 0f
                         }
                         viewportWidth = parser.getAttributeValue(ANDROID_NAMESPACE, "viewportWidth")?.toFloatOrNull() ?: 0f
@@ -83,7 +80,6 @@ fun parseDrawableSvgFile(context: Context, resId: Int): SvgData? {
         }
         return SvgData(width, height, viewportWidth, viewportHeight, pathData)
     } catch (e: Exception) {
-        Log.e("SvgParseError", "Error parsing SVG: ${e.message}")
         return null
     }
 }
