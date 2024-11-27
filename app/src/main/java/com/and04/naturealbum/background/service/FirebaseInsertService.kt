@@ -1,4 +1,4 @@
-package com.and04.naturealbum.service
+package com.and04.naturealbum.background.service
 
 import android.app.Service
 import android.content.Intent
@@ -24,8 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +44,7 @@ class FirebaseInsertService : Service() {
             val uid = Firebase.auth.currentUser!!.uid
             val uri = intent?.getStringExtra(SERVICE_URI) as String
             val fileName = intent.getStringExtra(SERVICE_FILENAME)!!
+            val dateTime = intent.getStringExtra(SERVICE_DATETIME)!!
             val label = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(SERVICE_LABEL, Label::class.java)!!
             } else {
@@ -93,7 +92,8 @@ class FirebaseInsertService : Service() {
                             labelName = label.name,
                             labelData = FirebaseLabel(
                                 backgroundColor = label.backgroundColor,
-                                thumbnailUri = storageUri.toString()
+                                thumbnailUri = storageUri.toString(),
+                                fileName = fileName
                             )
                         )
                 }
@@ -108,7 +108,7 @@ class FirebaseInsertService : Service() {
                             latitude = location?.latitude,
                             longitude = location?.longitude,
                             description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
+                            datetime = dateTime
                         )
                     )
 
@@ -139,5 +139,6 @@ class FirebaseInsertService : Service() {
         const val SERVICE_LABEL = "service_label"
         const val SERVICE_LOCATION = "service_location"
         const val SERVICE_DESCRIPTION = "service_location"
+        const val SERVICE_DATETIME = "service_datetime"
     }
 }
