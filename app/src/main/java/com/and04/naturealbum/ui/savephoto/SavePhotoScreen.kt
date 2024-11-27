@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -50,7 +52,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
@@ -69,6 +70,7 @@ import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import java.io.IOException
 
 @Composable
 fun SavePhotoScreen(
@@ -77,16 +79,24 @@ fun SavePhotoScreen(
     fileName: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onLabelSelect: (String) -> Unit,
+    onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
     onNavigateToMyPage: () -> Unit,
-    viewModel: SavePhotoViewModel = hiltViewModel(),
+    viewModel: SavePhotoViewModel,
 ) {
+    val context = LocalContext.current
+
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
 
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
+
+    if (uiState.value is UiState.Idle) {
+        val bitmap = loadImageFromUri(context, model)
+        viewModel.getGeneratedContent(bitmap)
+    }
 
     SavePhotoScreen(
         model = model,
@@ -123,7 +133,7 @@ fun SavePhotoScreen(
     onRepresentedChange: () -> Unit,
     photoSaveState: State<UiState<Unit>>,
     onNavigateToMyPage: () -> Unit,
-    onLabelSelect: (String) -> Unit,
+    onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
     label: Label?,
@@ -237,8 +247,7 @@ fun ToggleButton(
 @Composable
 fun LabelSelection(
     label: Label?,
-    model: Uri,
-    onClick: (String) -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.padding(horizontal = 12.dp)) {
@@ -248,7 +257,7 @@ fun LabelSelection(
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         Button(
-            onClick = { onClick(model.toString()) },
+            onClick = { onClick() },
             modifier = modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -273,7 +282,7 @@ fun LabelSelection(
                     label?.let {
                         val backgroundColor = Color(label.backgroundColor.toLong(16))
                         SuggestionChip(
-                            onClick = { onClick(model.toString()) },
+                            onClick = { onClick() },
                             label = { Text(text = label.name) },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = backgroundColor,
@@ -314,6 +323,16 @@ fun Description(
                 .weight(1f)
                 .fillMaxWidth()
         )
+    }
+}
+
+private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
+    } catch (e: IOException) {
+        null
     }
 }
 

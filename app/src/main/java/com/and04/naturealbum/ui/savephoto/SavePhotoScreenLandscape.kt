@@ -39,7 +39,7 @@ fun SavePhotoScreenLandscape(
     isRepresented: State<Boolean>,
     onRepresentedChange: () -> Unit,
     photoSaveState: State<UiState<Unit>>,
-    onLabelSelect: (String) -> Unit,
+    onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
 ) {
@@ -78,7 +78,6 @@ fun SavePhotoScreenLandscape(
         ) {
             LabelSelection(
                 label = label,
-                model = model,
                 onClick = onLabelSelect
             )
 

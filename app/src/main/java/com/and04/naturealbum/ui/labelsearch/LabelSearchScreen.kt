@@ -1,13 +1,7 @@
 package com.and04.naturealbum.ui.labelsearch
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -51,35 +44,24 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.UiState
-import java.io.IOException
+import com.and04.naturealbum.ui.savephoto.SavePhotoViewModel
 
 @Composable
 fun LabelSearchScreen(
-    imageUri: Uri?,
     onSelected: (Label) -> Unit,
     viewModel: LabelSearchViewModel = hiltViewModel(),
+    savePhotoViewModel: SavePhotoViewModel,
 ) {
-    val context = LocalContext.current
-
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = savePhotoViewModel.uiState.collectAsStateWithLifecycle()
     val labelsState = viewModel.labels.collectAsStateWithLifecycle()
 
     val query = rememberSaveable { mutableStateOf("") }
     val randomColor = rememberSaveable { mutableStateOf("") }
-
-    imageUri?.let {
-        if (uiState.value is UiState.Idle) {
-            val bitmap = loadImageFromUri(context, imageUri)
-            viewModel.getGeneratedContent(bitmap)
-        }
-    }
 
     LabelSearchScreen(
         uiState = uiState,
@@ -365,16 +347,6 @@ fun GeminiLabelChip(
         is UiState.Error -> {
             /* TODO ERROR */
         }
-    }
-}
-
-private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
-    return try {
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            BitmapFactory.decodeStream(inputStream)
-        }
-    } catch (e: IOException) {
-        null
     }
 }
 
