@@ -94,14 +94,14 @@ class SavePhotoViewModel @Inject constructor(
         bitmap?.let { nonNullBitmap ->
             viewModelScope.launch {
                 _geminiApiUiState.emit(UiState.Loading)
-//                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
-//                val content = content {
-//                    image(nonNullBitmap)
-//                    text(GEMINI_PROMPT)
-//                }
-//
-//                val result = model.generateContent(content)
-                _geminiApiUiState.emit(UiState.Success("TEST"))
+                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
+                val content = content {
+                    image(nonNullBitmap)
+                    text(GEMINI_PROMPT)
+                }
+
+                val result = model.generateContent(content)
+                _geminiApiUiState.emit(UiState.Success(result.text ?: ""))
             }
         }
     }

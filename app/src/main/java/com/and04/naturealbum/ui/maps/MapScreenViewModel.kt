@@ -4,23 +4,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
-import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.utils.toLocalDateTime
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -99,15 +95,7 @@ fun List<FirebasePhotoInfoResponse>.toFriendPhotoItems(labels: List<FirebaseLabe
             firebasePhotoInfo.uri,
             LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
             labelMap.getValue(firebasePhotoInfo.label),
-            stringToLocalDateTime(firebasePhotoInfo.datetime)
+            firebasePhotoInfo.datetime.toLocalDateTime()
         )
     }
-}
-
-fun stringToLocalDateTime(dateTimeString: String): LocalDateTime {
-    return LocalDateTime
-        .parse(dateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        .atZone(ZoneId.of("UTC"))
-        .withZoneSameInstant(ZoneId.systemDefault())
-        .toLocalDateTime()
 }
