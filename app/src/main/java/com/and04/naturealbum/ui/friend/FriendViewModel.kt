@@ -37,6 +37,8 @@ class FriendViewModel @Inject constructor(
 
     private val debouncePeriod = 100L
 
+    private val uid: String? = UserManager.getUser()?.uid
+
     init {
         viewModelScope.launch {
             _searchQuery
@@ -44,7 +46,7 @@ class FriendViewModel @Inject constructor(
                 .filter { query -> query.isNotBlank() } // 빈 쿼리 무시
                 .distinctUntilChanged() // 중복 값 방지
                 .collect { query ->
-                    UserManager.getUser()?.uid?.let { currentUid ->
+                    uid?.let { currentUid ->
                         fetchFilteredUsersAsFlow(currentUid, query)
                     }
                 }
@@ -66,21 +68,23 @@ class FriendViewModel @Inject constructor(
     }
 
     private fun listenToFriends() {
-        viewModelScope.launch {
-            val uid = UserManager.getUser()?.uid ?: return@launch
-            fireBaseRepository.getFriendsAsFlow(uid).collect { friends ->
-                _friends.value = friends
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.getFriendsAsFlow(currentUid).collect { friends ->
+                    _friends.value = friends
+                }
             }
         }
     }
 
     private fun listenToReceivedFriendRequests() {
-        viewModelScope.launch {
-            val uid = UserManager.getUser()?.uid ?: return@launch
-            fireBaseRepository.getReceivedFriendRequestsAsFlow(uid)
-                .collect { receivedFriendRequests ->
-                    _receivedFriendRequests.value = receivedFriendRequests
-                }
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.getReceivedFriendRequestsAsFlow(currentUid)
+                    .collect { receivedFriendRequests ->
+                        _receivedFriendRequests.value = receivedFriendRequests
+                    }
+            }
         }
     }
 
