@@ -94,7 +94,9 @@ class FriendViewModel @Inject constructor(
         viewModelScope.launch {
             val success = fireBaseRepository.sendFriendRequest(uid, targetUid)
             if (success) {
+                // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
                 _searchResults.value = _searchResults.value.toMutableMap().apply {
+                    // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
                     this[targetUid] =
                         this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
                 }
