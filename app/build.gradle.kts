@@ -155,7 +155,7 @@ dependencies {
 
     // gemini
     implementation(libs.firebase.vertexai)
-    
+
     //retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
