@@ -142,7 +142,13 @@ class FireBaseRepositoryImpl @Inject constructor(
                     val receivedFriendRequestList =
                         snapshot?.documents?.mapNotNull { documentSnapshot ->
                             try {
-                                documentSnapshot.toObject(FirebaseFriendRequest::class.java)
+                                val friendRequest =
+                                    documentSnapshot.toObject(FirebaseFriendRequest::class.java)
+                                if (friendRequest?.status == FriendStatus.RECEIVED) {
+                                    friendRequest
+                                } else {
+                                    null
+                                }
                             } catch (e: Exception) {
                                 Log.e("getReceivedFriendRequests", "Mapping failed: ${e.message}")
                                 null
