@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
+import android.location.Location
 import android.view.Gravity
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -72,6 +73,9 @@ import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
@@ -83,6 +87,7 @@ private const val USER_SELECT_MAX = 4
 @SuppressLint("NewApi")
 @Composable
 fun MapScreen(
+    location: Location? = null,
     modifier: Modifier = Modifier,
     viewModel: MapScreenViewModel = hiltViewModel(),
     friendViewModel: FriendViewModel = hiltViewModel(),
@@ -98,37 +103,8 @@ fun MapScreen(
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
     val marker = remember { Marker() }
-
-    val mapView = remember {
-        MapView(context).apply {
-            id = R.id.map_view_id
-        }
-    }
-
-    val imageMarker = remember {
-        ImageMarker(context).apply {
-            visibility = View.INVISIBLE
-            mapView.addView(this)
-            viewTreeObserver.addOnGlobalLayoutListener({
-                if (isImageLoaded()) {
-                    marker.icon = OverlayImage.fromView(this@apply)
-                }
-            })
-        }
-    }
-
     var pick by remember { mutableStateOf<PhotoItem?>(null) }
     val displayPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
-
-    LaunchedEffect(pick) {
-        mapView.getMapAsync { naverMap ->
-            marker.map = pick?.let { pick ->
-                imageMarker.loadImage(pick.uri)
-                marker.position = pick.position
-                naverMap
-            }
-        }
-    }
 
     val clusterManagers: List<ClusterManager> = remember {
         ColorRange.entries.map { colorRange ->
@@ -149,6 +125,45 @@ fun MapScreen(
                     if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
                 }
             )
+        }
+    }
+
+    val mapView = remember {
+        MapView(context).apply {
+            id = R.id.map_view_id
+            getMapAsync { naverMap ->
+                clusterManagers.forEach { cluster ->
+                    cluster.setMap(naverMap)
+                }
+                naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
+                    displayPhotos.value = emptyList()
+                    pick = null
+                }
+                val uiSettings = naverMap.uiSettings
+                uiSettings.logoGravity = Gravity.TOP or Gravity.START
+            }
+        }
+    }
+
+    val imageMarker = remember {
+        ImageMarker(context).apply {
+            visibility = View.INVISIBLE
+            mapView.addView(this)
+            viewTreeObserver.addOnGlobalLayoutListener({
+                if (isImageLoaded()) {
+                    marker.icon = OverlayImage.fromView(this@apply)
+                }
+            })
+        }
+    }
+
+    LaunchedEffect(pick) {
+        mapView.getMapAsync { naverMap ->
+            marker.map = pick?.let { pick ->
+                imageMarker.loadImage(pick.uri)
+                marker.position = pick.position
+                naverMap
+            }
         }
     }
 
@@ -195,16 +210,11 @@ fun MapScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
-            mapView.getMapAsync { naverMap ->
-                clusterManagers.forEach { cluster ->
-                    cluster.setMap(naverMap)
+            mapView.getMapAsync { NaverMap ->
+                location?.let{ position ->
+                    val cameraUpdate = CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
+                    NaverMap.moveCamera(cameraUpdate)
                 }
-                naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
-                    displayPhotos.value = emptyList()
-                    pick = null
-                }
-                val uiSettings = naverMap.uiSettings
-                uiSettings.logoGravity = Gravity.TOP or Gravity.START
             }
         }
 

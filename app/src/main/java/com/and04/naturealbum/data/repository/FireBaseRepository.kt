@@ -32,7 +32,7 @@ interface FireBaseRepository {
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean
 
     //SELECT
@@ -57,7 +57,7 @@ interface FireBaseRepository {
     suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean
 
     suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean

@@ -175,7 +175,7 @@ fun NatureAlbumNavHost(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen()
+            MapScreen(lastLocation)
         }
     }
 }
