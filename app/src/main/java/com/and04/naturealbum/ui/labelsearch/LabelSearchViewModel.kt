@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.labelsearch
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class LabelSearchViewModel @Inject constructor(
@@ -29,9 +31,9 @@ class LabelSearchViewModel @Inject constructor(
         fetchLabels()
     }
 
-    fun getGeneratedContent(bitmap: Bitmap?) {
-        bitmap?.let { nonNullBitmap ->
-            viewModelScope.launch {
+    fun getGeneratedContent(bitmap: Bitmap?) = viewModelScope.launch {
+        try {
+            bitmap?.let { nonNullBitmap ->
                 _uiState.emit(UiState.Loading)
                 val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
                 val content = content {
@@ -42,6 +44,9 @@ class LabelSearchViewModel @Inject constructor(
                 val result = model.generateContent(content)
                 _uiState.emit(UiState.Success(result.text ?: ""))
             }
+        } catch (e: Exception) {
+            Log.e("Error", e.message.toString())
+            _uiState.emit(UiState.Error(e.message.toString()))
         }
     }
 
