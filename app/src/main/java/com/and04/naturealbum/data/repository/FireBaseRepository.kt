@@ -299,7 +299,6 @@ class FireBaseRepositoryImpl @Inject constructor(
         }
     }
 
-
     // 거절했을 경우
     override suspend fun rejectFriendRequest(uid: String, targetUid: String): Boolean {
         return try {

@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.friend
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
@@ -30,8 +29,6 @@ class FriendViewModel @Inject constructor(
 
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
-
-    private val _operationStatus = MutableStateFlow<String>("")
 
     private val _searchQuery = MutableStateFlow("")
 
@@ -98,27 +95,18 @@ class FriendViewModel @Inject constructor(
                     fetchFilteredUsersAsFlow(uid, currentQuery)
                 }
             }
-            _operationStatus.value =
-                if (success) "친구 요청이 성공적으로 전송되었습니다." else "친구 요청 전송에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
         }
     }
 
     fun acceptFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
-            val success = fireBaseRepository.acceptFriendRequest(uid, targetUid)
-            _operationStatus.value =
-                if (success) "친구 요청을 수락했습니다." else "친구 요청 수락에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
+            fireBaseRepository.acceptFriendRequest(uid, targetUid)
         }
     }
 
     fun rejectFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
-            val success = fireBaseRepository.rejectFriendRequest(uid, targetUid)
-            _operationStatus.value =
-                if (success) "친구 요청을 거절했습니다." else "친구 요청 거절에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
+            fireBaseRepository.rejectFriendRequest(uid, targetUid)
         }
     }
 }
