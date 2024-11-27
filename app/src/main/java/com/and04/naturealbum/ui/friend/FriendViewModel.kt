@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -47,14 +48,10 @@ class FriendViewModel @Inject constructor(
                 .distinctUntilChanged() // 중복 값 방지
                 .collect { query ->
                     UserManager.getUser()?.uid?.let { currentUid ->
-                        fetchFilteredUsers(
-                            currentUid = currentUid,
-                            query = query
-                        )
+                        fetchFilteredUsersAsFlow(currentUid, query)
                     }
                 }
         }
-
         listenToFriends()
         listenToReceivedFriendRequests()
     }
@@ -63,15 +60,13 @@ class FriendViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    private suspend fun fetchFilteredUsers(currentUid: String, query: String) {
-        try {
-            val filteredUsers = fireBaseRepository.searchUsers(uid = currentUid, query = query)
-            _searchResults.value = filteredUsers
-        } catch (e: Exception) {
-            _searchResults.value = emptyList()
+    private fun fetchFilteredUsersAsFlow(currentUid: String, query: String) {
+        viewModelScope.launch {
+            fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                _searchResults.value = results
+            }
         }
     }
-
 
     private fun listenToFriends() {
         viewModelScope.launch {
@@ -92,10 +87,17 @@ class FriendViewModel @Inject constructor(
         }
     }
 
-
     fun sendFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
             val success = fireBaseRepository.sendFriendRequest(uid, targetUid)
+            if (success) {
+                // 검색 쿼리를 재설정하여 실시간 업데이트 반영
+                // TODO. 재설정 하지 않고 할 수 있는 방법 생각해보기. 현재는 이렇게 해야 UI 바로 반영됨.
+                val currentQuery = _searchQuery.value
+                if (currentQuery.isNotBlank()) {
+                    fetchFilteredUsersAsFlow(uid, currentQuery)
+                }
+            }
             _operationStatus.value =
                 if (success) "친구 요청이 성공적으로 전송되었습니다." else "친구 요청 전송에 실패했습니다."
             Log.d("FriendViewModel", _operationStatus.value)
