@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
-import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
-import com.and04.naturealbum.data.dto.UnSynchronizedPhotoDetailsDto
+import com.and04.naturealbum.data.dto.SyncAlbumsDto
+import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 
 @Dao
 interface LabelDao {
@@ -67,10 +67,9 @@ interface AlbumDao {
         FROM album
         JOIN label ON album.label_id = label.id
         JOIN photo_detail ON album.photo_detail_id = photo_detail.id
-        WHERE label.name NOT IN (:labels)
     """
     )
-    suspend fun getUnSynchronizedAlbums(labels: List<String>): List<UnSynchronizedAlbumsDto>
+    suspend fun getSyncCheckAlbums(): List<SyncAlbumsDto>
 
     @Query(
         """
@@ -84,10 +83,9 @@ interface AlbumDao {
             photo_detail.datetime As datetime
         FROM label
         JOIN photo_detail ON label.id == photo_detail.label_id
-        WHERE photo_detail.file_name NOT IN (:fileNames)
     """
     )
-    suspend fun getUnSynchronizedPhotos(fileNames: List<String>): List<UnSynchronizedPhotoDetailsDto>
+    suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
 
     @Query("SELECT * FROM album")
     suspend fun getALLAlbum(): List<Album>
