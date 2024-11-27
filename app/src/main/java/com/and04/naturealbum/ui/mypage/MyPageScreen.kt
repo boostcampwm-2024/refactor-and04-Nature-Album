@@ -314,6 +314,7 @@ private fun SyncContent(
 
                     CONNECTED_DATA -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
@@ -323,6 +324,7 @@ private fun SyncContent(
 
                     DISCONNECTED -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_disconnect),
@@ -346,6 +348,7 @@ private fun SyncContent(
 }
 
 private fun startSnackBar(
+    context: Context,
     coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
     message: String,
@@ -359,7 +362,7 @@ private fun startSnackBar(
         )
 
         if (result == SnackbarResult.ActionPerformed) {
-            //TODO WorkManager Add
+            SynchronizationWorker.runImmediately(context)
         }
     }
 }

@@ -137,13 +137,12 @@ class SynchronizationWorker @AssistedInject constructor(
             label.await()
             photoDetail.await()
 
-            IS_RUNNING = false
             Result.success()
         } catch (e: Exception) {
             //TODO FireStore와 LocalDB 비교 후 같이면 Result.success() 다르면 retry()
-            IS_RUNNING = false
             Result.retry()
         } finally {
+            IS_RUNNING = false
             runSync(applicationContext)
         }
     }
