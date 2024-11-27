@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -64,7 +62,6 @@ import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOC
 import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.labelsearch.getRandomColor
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
@@ -72,7 +69,6 @@ import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import java.io.IOException
 
 @Composable
 fun SavePhotoScreen(
@@ -81,62 +77,35 @@ fun SavePhotoScreen(
     fileName: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onLabelSelect: () -> Unit,
+    onLabelSelect: (String) -> Unit,
     description: String = "",
     label: Label? = null,
     onNavigateToMyPage: () -> Unit,
     viewModel: SavePhotoViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
-    val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
 
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    when (val success = geminiApiState.value) {
-        is UiState.Success -> {
-            val labelName = success.data
-            val geminiLabel =
-                Label(
-                    backgroundColor = getRandomColor(),
-                    name = labelName
-                )
+    SavePhotoScreen(
+        model = model,
+        fileName = fileName,
+        location = location,
+        photoSaveState = photoSaveState,
+        rememberDescription = rememberDescription,
+        onDescriptionChange = { newDescription ->
+            rememberDescription.value = newDescription
+        },
+        isRepresented = isRepresented,
+        onRepresentedChange = { isRepresented.value = !isRepresented.value },
+        onNavigateToMyPage = onNavigateToMyPage,
+        onLabelSelect = onLabelSelect,
+        onBack = onBack,
+        savePhoto = viewModel::savePhoto,
+        label = label,
+    )
 
-            SavePhotoScreen(
-                model = model,
-                fileName = fileName,
-                location = location,
-                photoSaveState = photoSaveState,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = { newDescription ->
-                    rememberDescription.value = newDescription
-                },
-                isRepresented = isRepresented,
-                onRepresentedChange = { isRepresented.value = !isRepresented.value },
-                onNavigateToMyPage = onNavigateToMyPage,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = viewModel::savePhoto,
-                label = geminiLabel,
-            )
-        }
-
-        is UiState.Loading -> {
-            RotatingImageLoading(
-                drawableRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading,
-            )
-        }
-
-        is UiState.Idle -> {
-            val bitmap = loadImageFromUri(context, model)
-            viewModel.getGeneratedContent(bitmap)
-        }
-
-        is UiState.Error -> { /* TODO ERROR */ }
-    }
 
     if (photoSaveState.value is UiState.Success) {
         onSave()
@@ -154,10 +123,10 @@ fun SavePhotoScreen(
     onRepresentedChange: () -> Unit,
     photoSaveState: State<UiState<Unit>>,
     onNavigateToMyPage: () -> Unit,
-    onLabelSelect: () -> Unit,
+    onLabelSelect: (String) -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
-    label: Label,
+    label: Label?,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -268,7 +237,8 @@ fun ToggleButton(
 @Composable
 fun LabelSelection(
     label: Label?,
-    onClick: () -> Unit,
+    model: Uri,
+    onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.padding(horizontal = 12.dp)) {
@@ -278,7 +248,7 @@ fun LabelSelection(
             fontSize = TextUnit(20f, TextUnitType.Sp),
         )
         Button(
-            onClick = { onClick() },
+            onClick = { onClick(model.toString()) },
             modifier = modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -303,7 +273,7 @@ fun LabelSelection(
                     label?.let {
                         val backgroundColor = Color(label.backgroundColor.toLong(16))
                         SuggestionChip(
-                            onClick = { onClick() },
+                            onClick = { onClick(model.toString()) },
                             label = { Text(text = label.name) },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = backgroundColor,
@@ -366,16 +336,6 @@ fun insertFirebaseService(
     }
 
     context.startService(intent)
-}
-
-fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
-    return try {
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            BitmapFactory.decodeStream(inputStream)
-        }
-    } catch (e: IOException) {
-        null
-    }
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
