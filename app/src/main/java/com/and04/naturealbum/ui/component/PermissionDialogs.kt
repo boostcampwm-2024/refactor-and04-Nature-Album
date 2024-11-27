@@ -5,7 +5,7 @@ import com.and04.naturealbum.R
 
 enum class PermissionDialogState {
     None,
-    ExplainCamera,
+    Explain,
     GoToSettings,
 }
 
@@ -17,7 +17,7 @@ fun PermissionDialogs(
     onGoToSettings: () -> Unit = {},
 ) {
     when (permissionDialogState) {
-        PermissionDialogState.ExplainCamera -> {
+        PermissionDialogState.Explain -> {
             MyDialog(
                 onConfirmation = {
                     onDismiss()

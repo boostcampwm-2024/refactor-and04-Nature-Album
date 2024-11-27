@@ -30,7 +30,6 @@ import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.PermissionHandler
-import com.and04.naturealbum.ui.PermissionHandler.Companion.CAMERA_PERMISSIONS
 import com.and04.naturealbum.ui.component.NavigationImageButton
 import com.and04.naturealbum.ui.component.PermissionDialogState
 import com.and04.naturealbum.ui.component.PermissionDialogs
@@ -60,7 +59,7 @@ fun HomeScreen(
                 takePicture()
             }
         }
-
+    var permissionsToRequestAgain by remember { mutableStateOf(listOf<String>()) }
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(
@@ -81,9 +80,9 @@ fun HomeScreen(
                     val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
                         ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
                     }
-
+                    permissionsToRequestAgain = deniedPermissions.toList()
                     permissionDialogState = if (hasPreviouslyDeniedPermission) {
-                        PermissionDialogState.ExplainCamera
+                        PermissionDialogState.Explain
                     } else {
                         PermissionDialogState.GoToSettings
                     }
@@ -91,7 +90,7 @@ fun HomeScreen(
             }
         }
 
-    val permissionHandler = remember {
+    val cameraPermissionHandler = remember {
         PermissionHandler(
             context = context,
             allPermissionGranted = {
@@ -106,33 +105,49 @@ fun HomeScreen(
                 requestPermissionLauncher.launch(deniedPermissions)
             },
             showPermissionExplainDialog = {
-                permissionDialogState = PermissionDialogState.ExplainCamera
+                permissionDialogState = PermissionDialogState.Explain
             }
         )
     }
 
+    val mapPermissionHandler = remember {
+        PermissionHandler(
+            context = context,
+            allPermissionGranted = onNavigateToMap,
+            onRequestPermission = { deniedPermissions ->
+                requestPermissionLauncher.launch(deniedPermissions)
+            },
+            showPermissionExplainDialog = {
+                permissionDialogState = PermissionDialogState.Explain
+            }
+        )
+    }
+
+    val mapPermissionCheck =
+        { mapPermissionHandler.checkPermissions(PermissionHandler.Permissions.MAP) }
+
     if (context.isPortrait()) {
         HomeScreenPortrait(
             context = context,
-            onClickCamera = { permissionHandler.checkPermissions(CAMERA_PERMISSIONS) },
+            onClickCamera = { cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA) },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
-            onNavigateToMap = onNavigateToMap,
+            onNavigateToMap = mapPermissionCheck,
         )
     } else {
         HomeScreenLandscape(
             context = context,
-            onClickCamera = { permissionHandler.checkPermissions(CAMERA_PERMISSIONS) },
+            onClickCamera = { cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA) },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
-            onNavigateToMap = onNavigateToMap,
+            onNavigateToMap = mapPermissionCheck,
         )
     }
     PermissionDialogs(
         permissionDialogState = permissionDialogState,
         onDismiss = { permissionDialogState = PermissionDialogState.None },
         onRequestPermission = {
-            permissionHandler.requestPermissions(CAMERA_PERMISSIONS)
+            cameraPermissionHandler.requestPermissions(permissionsToRequestAgain)
         },
         onGoToSettings = {
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {

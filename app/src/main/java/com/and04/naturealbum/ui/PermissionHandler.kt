@@ -17,11 +17,11 @@ class PermissionHandler(
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
     }
 
-    fun checkPermissions(permissions: List<String>) {
-        if (permissions == CAMERA_PERMISSIONS && !hasCameraHardware()) return
+    fun checkPermissions(permissions: Permissions) {
+        if (permissions == Permissions.CAMERA && !hasCameraHardware()) return
 
         val activity = context as? Activity ?: return
-        val deniedPermissions = permissions.filter { permission ->
+        val deniedPermissions = permissions.permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
                 permission
@@ -36,7 +36,7 @@ class PermissionHandler(
             if (hasPreviouslyDeniedPermission) {
                 showPermissionExplainDialog()
             } else {
-                requestPermissions(permissions)
+                requestPermissions(permissions.permissions)
             }
         }
     }
@@ -51,17 +51,19 @@ class PermissionHandler(
         onRequestPermission(deniedPermissions.toTypedArray())
     }
 
-    companion object {
-        val CAMERA_PERMISSIONS =
+    enum class Permissions(val permissions: List<String>) {
+        CAMERA(
             listOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
-        val MAP_PERMISSIONS =
+        ),
+        MAP(
             listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
+        ),
     }
 }
