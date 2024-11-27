@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.home
+package com.and04.naturealbum.ui
 
 import android.Manifest
 import android.app.Activity
@@ -9,19 +9,22 @@ import androidx.core.content.ContextCompat
 
 class PermissionHandler(
     private val context: Context,
-    private val activity: Activity,
     private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
     private var showPermissionExplainDialog: () -> Unit,
 ) {
+    private fun hasCameraHardware(): Boolean {
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+    }
 
-    fun onClickCamera() {
-        if (!hasCameraHardware()) return
+    fun checkPermissions(permissions: List<String>) {
+        if (permissions == CAMERA_PERMISSIONS && !hasCameraHardware()) return
 
-        val deniedPermissions = REQUESTED_PERMISSIONS.filter { permissions ->
+        val activity = context as? Activity ?: return
+        val deniedPermissions = permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
-                permissions
+                permission
             ) != PackageManager.PERMISSION_GRANTED
         }
         if (deniedPermissions.isEmpty()) {
@@ -33,17 +36,13 @@ class PermissionHandler(
             if (hasPreviouslyDeniedPermission) {
                 showPermissionExplainDialog()
             } else {
-                requestPermissions()
+                requestPermissions(permissions)
             }
         }
     }
 
-    private fun hasCameraHardware(): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-    }
-
-    fun requestPermissions() {
-        val deniedPermissions = REQUESTED_PERMISSIONS.filter { permission ->
+    fun requestPermissions(permissions: List<String>) {
+        val deniedPermissions = permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
                 permission
@@ -53,9 +52,14 @@ class PermissionHandler(
     }
 
     companion object {
-        private val REQUESTED_PERMISSIONS =
+        val CAMERA_PERMISSIONS =
             listOf(
                 Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+        val MAP_PERMISSIONS =
+            listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )

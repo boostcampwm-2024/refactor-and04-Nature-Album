@@ -29,7 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.LocationHandler
+import com.and04.naturealbum.ui.PermissionHandler
+import com.and04.naturealbum.ui.PermissionHandler.Companion.CAMERA_PERMISSIONS
 import com.and04.naturealbum.ui.component.NavigationImageButton
+import com.and04.naturealbum.ui.component.PermissionDialogState
+import com.and04.naturealbum.ui.component.PermissionDialogs
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.isPortrait
 
@@ -79,7 +83,7 @@ fun HomeScreen(
                     }
 
                     permissionDialogState = if (hasPreviouslyDeniedPermission) {
-                        PermissionDialogState.Explain
+                        PermissionDialogState.ExplainCamera
                     } else {
                         PermissionDialogState.GoToSettings
                     }
@@ -90,7 +94,6 @@ fun HomeScreen(
     val permissionHandler = remember {
         PermissionHandler(
             context = context,
-            activity = activity,
             allPermissionGranted = {
                 locationHandler.checkLocationSettings(
                     takePicture = takePicture,
@@ -102,14 +105,16 @@ fun HomeScreen(
             onRequestPermission = { deniedPermissions ->
                 requestPermissionLauncher.launch(deniedPermissions)
             },
-            showPermissionExplainDialog = { permissionDialogState = PermissionDialogState.Explain }
+            showPermissionExplainDialog = {
+                permissionDialogState = PermissionDialogState.ExplainCamera
+            }
         )
     }
 
     if (context.isPortrait()) {
         HomeScreenPortrait(
             context = context,
-            onClickCamera = { permissionHandler.onClickCamera() },
+            onClickCamera = { permissionHandler.checkPermissions(CAMERA_PERMISSIONS) },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = onNavigateToMap,
@@ -117,7 +122,7 @@ fun HomeScreen(
     } else {
         HomeScreenLandscape(
             context = context,
-            onClickCamera = { permissionHandler.onClickCamera() },
+            onClickCamera = { permissionHandler.checkPermissions(CAMERA_PERMISSIONS) },
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = onNavigateToMap,
@@ -127,7 +132,7 @@ fun HomeScreen(
         permissionDialogState = permissionDialogState,
         onDismiss = { permissionDialogState = PermissionDialogState.None },
         onRequestPermission = {
-            permissionHandler.requestPermissions()
+            permissionHandler.requestPermissions(CAMERA_PERMISSIONS)
         },
         onGoToSettings = {
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
