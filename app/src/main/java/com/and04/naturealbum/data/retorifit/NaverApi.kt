@@ -1,5 +1,7 @@
 package com.and04.naturealbum.data.retorifit
 
+import com.and04.naturealbum.BuildConfig.NAVER_EYE_DOMAIN_ID
+import com.and04.naturealbum.BuildConfig.NAVER_EYE_SIGNATURE
 import com.and04.naturealbum.data.dto.GreenEyeDto
 import com.and04.naturealbum.data.dto.GreenEyeRequestBody
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
@@ -20,8 +22,8 @@ interface NaverApi {
 
     @POST("custom/v1/{domainId}/{signature}/predict")
     suspend fun analyzeHazardWithGreenEye(
-        @Path("domainId") domainId: String = "142",
-        @Path("signature") signature: String = "78b7cf9742c0a587f1e4205b8395605e0b08e220ab2c07e59168ca6b65dcb700",
+        @Path("domainId") domainId: String = NAVER_EYE_DOMAIN_ID,
+        @Path("signature") signature: String = NAVER_EYE_SIGNATURE,
         @Body requestBody: GreenEyeRequestBody,
     ): GreenEyeDto
 }
