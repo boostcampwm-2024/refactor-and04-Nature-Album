@@ -90,14 +90,13 @@ fun MapScreen(
     location: Location? = null,
     modifier: Modifier = Modifier,
     viewModel: MapScreenViewModel = hiltViewModel(),
-    friendViewModel: FriendViewModel = hiltViewModel(),
 ) {
-    val friends = friendViewModel.friends.collectAsStateWithLifecycle()
+    val friends = viewModel.friends.collectAsStateWithLifecycle()
     val openAlertDialog = remember { mutableStateOf(false) }
     var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
 
     val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
-    val friendsPhotos = friendViewModel.friendsPhotos.collectAsStateWithLifecycle()
+    val friendsPhotos = viewModel.friendsPhotos.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -221,7 +220,7 @@ fun MapScreen(
         if (UserManager.isSignIn()) {
             IconButton(
                 onClick = {
-                    friendViewModel.fetchFriends(UserManager.getUser()!!.uid)
+                    viewModel.fetchFriends(UserManager.getUser()!!.uid)
                     openAlertDialog.value = true
                 },
                 modifier = Modifier
@@ -258,7 +257,7 @@ fun MapScreen(
         prevSelectedFriends = showFriends,
         onDismiss = { openAlertDialog.value = false },
         onConfirm = { selectedFriends ->
-            friendViewModel.fetchFriendsPhotos(selectedFriends.map { it.user.uid })
+            viewModel.fetchFriendsPhotos(selectedFriends.map { it.user.uid })
             showFriends = selectedFriends
             openAlertDialog.value = false
         }
