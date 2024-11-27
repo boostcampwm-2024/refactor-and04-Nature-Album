@@ -135,6 +135,9 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 
+    //firebase FCM
+    implementation(libs.firebase.messaging)
+
     //Credential Manager
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

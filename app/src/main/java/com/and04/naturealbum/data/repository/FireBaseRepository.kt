@@ -62,8 +62,7 @@ interface FireBaseRepository {
     suspend fun searchUsers(uid: String, query: String): List<FirestoreUserWithStatus>
 
     //UPDATE
-
-
+    suspend fun saveFcmToken(uid: String, token: String): Boolean
 }
 
 class FireBaseRepositoryImpl @Inject constructor(
@@ -459,6 +458,20 @@ class FireBaseRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "searchUsersByEmail Error: ${e.message}")
             return emptyList()
+        }
+    }
+
+    override suspend fun saveFcmToken(uid: String, token: String): Boolean {
+        return try {
+            fireStore.collection(USER)
+                .document(uid)
+                .update("fcmToken", token)
+                .await()
+            Log.d("FireBaseRepository", "FCM token updated successfully for user: $uid")
+            true
+        } catch (e: Exception) {
+            Log.e("FireBaseRepository", "Failed to update FCM token: ${e.message}", e)
+            false
         }
     }
 
