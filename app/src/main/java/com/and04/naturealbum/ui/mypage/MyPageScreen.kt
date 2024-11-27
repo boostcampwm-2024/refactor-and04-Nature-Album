@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
@@ -297,6 +299,7 @@ private fun SyncContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -306,11 +309,12 @@ private fun SyncContent(
             onClick = {
                 when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
-                        //TODO WorkManager Add
+                        SynchronizationWorker.runImmediately(context)
                     }
 
                     CONNECTED_DATA -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
@@ -320,6 +324,7 @@ private fun SyncContent(
 
                     DISCONNECTED -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_disconnect),
@@ -343,6 +348,7 @@ private fun SyncContent(
 }
 
 private fun startSnackBar(
+    context: Context,
     coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
     message: String,
@@ -356,7 +362,7 @@ private fun startSnackBar(
         )
 
         if (result == SnackbarResult.ActionPerformed) {
-            //TODO WorkManager Add
+            SynchronizationWorker.runImmediately(context)
         }
     }
 }
