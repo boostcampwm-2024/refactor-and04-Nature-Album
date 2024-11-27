@@ -78,7 +78,7 @@ class FireBaseRepositoryImpl @Inject constructor(
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean {
         return try {
             val userDoc = fireStore.collection(USER).document(uid).get().await()
@@ -181,7 +181,6 @@ class FireBaseRepositoryImpl @Inject constructor(
             emptyMap()
         }
     }
-
 
     override suspend fun getFriends(uid: String): List<FirebaseFriend> {
         return try {
@@ -336,7 +335,7 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     override suspend fun insertLabel(
         uid: String,
-        label: LabelDocument
+        label: LabelDocument,
     ): Boolean {
         var requestSuccess = false
         fireStore.collection(USER).document(uid).collection(LABEL).document(label.labelName)
@@ -351,7 +350,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean {
         var requestSuccess = false
 

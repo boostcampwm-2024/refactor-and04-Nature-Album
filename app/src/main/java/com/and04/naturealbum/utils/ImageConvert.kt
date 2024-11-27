@@ -6,11 +6,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
+import android.util.Base64
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.and04.naturealbum.NatureAlbum
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
@@ -18,6 +20,7 @@ object ImageConvert {
     private const val MAX_WIDTH = 800
     private const val MAX_HEIGHT = 600
     private const val COMPRESS_QUALITY = 80
+    private const val IN_SAMPLE_SIZE = 16
 
     fun resizeImage(uri: Uri): ResizePicture? {
         try {
@@ -124,9 +127,34 @@ object ImageConvert {
         matrix.postRotate(degree.toFloat())
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
+
+    fun getBase64FromUri(context: Context, uriString: String): String {
+        return try {
+            val uri = Uri.parse(uriString)
+
+            val options =
+                BitmapFactory.Options().apply { inSampleSize = IN_SAMPLE_SIZE } // 이미지 크기 축소
+            val bitmap = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream, null, options)
+            } ?: return ""
+
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap.compress(
+                Bitmap.CompressFormat.JPEG,
+                COMPRESS_QUALITY,
+                byteArrayOutputStream
+            ) // 압축 품질
+            val byteArray = byteArrayOutputStream.toByteArray()
+
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ""
+        }
+    }
 }
 
 data class ResizePicture(
     val fileName: String,
-    val uri: Uri
+    val uri: Uri,
 )
