@@ -115,7 +115,7 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    signInWithGoogle: () -> Unit,
+    signInWithGoogle: (Context) -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -169,7 +169,7 @@ private fun MyPageContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    signInWithGoogle: () -> Unit,
+    signInWithGoogle: (Context) -> Unit,
     fetchReceivedFriendRequests: (String) -> Unit,
     fetchFriends: (String) -> Unit,
     fetchAllUsersInfo: (String) -> Unit,
@@ -220,7 +220,7 @@ private fun MyPageContent(
             else -> {
                 // 비회원일 때
                 UserProfileContent(null, null, null)
-                LoginContent { signInWithGoogle() }
+                LoginContent { signInWithGoogle(context) }
             }
         }
     }

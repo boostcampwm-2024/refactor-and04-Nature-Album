@@ -111,4 +111,15 @@ interface PhotoDetailDao {
     @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
     suspend fun getAllPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
 
+    @Query("SELECT hazard_check_result FROM photo_detail WHERE id = :id")
+    suspend fun getHazardCheckResultById(id: Int): HazardAnalyzeStatus
+
+    @Query("SELECT hazard_check_result FROM photo_detail WHERE file_name = :fileName")
+    suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
+
+    @Query("UPDATE photo_detail SET hazard_check_result = :hazardAnalyzeStatus WHERE file_name = :fileName")
+    suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    )
 }

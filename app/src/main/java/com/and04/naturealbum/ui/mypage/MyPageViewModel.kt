@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.datastore.DataStoreManager
@@ -35,8 +36,8 @@ class MyPageViewModel @Inject constructor(
         initialValue = NEVER_SYNC
     )
 
-    fun signInWithGoogle() {
-        authenticationManager.signInWithGoogle().onEach { response ->
+    fun signInWithGoogle(context: Context) {
+        authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
                     _uiState.emit(
@@ -63,7 +64,7 @@ class MyPageViewModel @Inject constructor(
     private fun setInitUiState(): UiState<UserInfo> {
         return if (userManager.isSignIn()) {
             getUserInfoUiState()
-        }else{
+        } else {
             UiState.Idle
         }
     }

@@ -1,7 +1,6 @@
 package com.and04.naturealbum.data.room
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -15,9 +14,15 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `photo_detail` ADD COLUMN `hazard_check_result` TEXT NOT NULL DEFAULT 'NOT_CHECKED'")
+    }
+}
+
 @Database(
     entities = [Label::class, Album::class, PhotoDetail::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 
@@ -34,7 +39,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AppDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, AppDatabase::class.java, "nature_album_database")
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { appDataBase ->
                         Instance = appDataBase

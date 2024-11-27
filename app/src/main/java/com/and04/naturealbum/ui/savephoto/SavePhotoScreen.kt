@@ -105,7 +105,7 @@ fun SavePhotoScreen(
             val geminiLabel =
                 Label(
                     backgroundColor = getRandomColor(),
-                    name = labelName
+                    name = labelName.trim()
                 )
 
             SavePhotoScreen(
