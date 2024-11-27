@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,6 +40,7 @@ class SavePhotoViewModel @Inject constructor(
         location: Location,
         description: String,
         isRepresented: Boolean,
+        time: LocalDateTime
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
 
@@ -60,8 +60,8 @@ class SavePhotoViewModel @Inject constructor(
                             latitude = location.latitude,
                             longitude = location.longitude,
                             description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC")),
                             hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED,
+                            datetime = time,
                         )
                     )
                 }
@@ -94,14 +94,14 @@ class SavePhotoViewModel @Inject constructor(
         bitmap?.let { nonNullBitmap ->
             viewModelScope.launch {
                 _geminiApiUiState.emit(UiState.Loading)
-                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
-                val content = content {
-                    image(nonNullBitmap)
-                    text(GEMINI_PROMPT)
-                }
-
-                val result = model.generateContent(content)
-                _geminiApiUiState.emit(UiState.Success(result.text ?: ""))
+//                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
+//                val content = content {
+//                    image(nonNullBitmap)
+//                    text(GEMINI_PROMPT)
+//                }
+//
+//                val result = model.generateContent(content)
+                _geminiApiUiState.emit(UiState.Success("TEST"))
             }
         }
     }

@@ -1,15 +1,16 @@
 package com.and04.naturealbum.data.dto
 
-import java.time.LocalDateTime
-
-data class LabelData(
+data class FirebaseLabel(
     val backgroundColor: String,
     val thumbnailUri: String,
+    val fileName: String
 )
 
-data class LabelDocument(
-    val labelName: String,
-    val labelData: LabelData,
+data class FirebaseLabelResponse(
+    val labelName: String = "",
+    val backgroundColor: String = "",
+    val thumbnailUri: String = "",
+    val fileName: String = ""
 )
 
 data class FirebasePhotoInfo(
@@ -18,7 +19,17 @@ data class FirebasePhotoInfo(
     val latitude: Double?,
     val longitude: Double?,
     val description: String,
-    val datetime: LocalDateTime
+    val datetime: String
+)
+
+data class FirebasePhotoInfoResponse(
+    val fileName: String = "",
+    val uri: String = "",
+    val label: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val description: String = "",
+    val datetime: String = ""
 )
 
 data class FirebaseFriend(

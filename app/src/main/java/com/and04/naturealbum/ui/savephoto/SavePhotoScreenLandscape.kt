@@ -26,6 +26,8 @@ import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.model.UiState
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Composable
 fun SavePhotoScreenLandscape(
@@ -41,7 +43,7 @@ fun SavePhotoScreenLandscape(
     photoSaveState: State<UiState<Unit>>,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit
+    savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit
 ) {
     val context = LocalContext.current
     Row(
@@ -102,13 +104,15 @@ fun SavePhotoScreenLandscape(
                     imageVector = Icons.Outlined.Create,
                     stringRes = R.string.save_photo_screen_save,
                     onClick = {
+                        val time = LocalDateTime.now(ZoneId.of("UTC"))
                         savePhoto(
                             model.toString(),
                             fileName,
                             label!!,
                             location!!, // TODO : Null 처리 필요
                             rememberDescription.value,
-                            isRepresented.value
+                            isRepresented.value,
+                            time
                         )
 
                         insertFirebaseService(
@@ -117,7 +121,8 @@ fun SavePhotoScreenLandscape(
                             fileName = fileName,
                             label = label,
                             location = location,
-                            description = rememberDescription.value
+                            description = rememberDescription.value,
+                            time = time
                         )
                     })
             }

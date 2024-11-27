@@ -1,4 +1,4 @@
-package com.and04.naturealbum.service
+package com.and04.naturealbum.background.service
 
 import android.app.Service
 import android.content.Intent
@@ -6,9 +6,8 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
+import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.LabelData
-import com.and04.naturealbum.data.dto.LabelDocument
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
@@ -24,8 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +43,7 @@ class FirebaseInsertService : Service() {
             val uid = Firebase.auth.currentUser!!.uid
             val uri = intent?.getStringExtra(SERVICE_URI) as String
             val fileName = intent.getStringExtra(SERVICE_FILENAME)!!
+            val dateTime = intent.getStringExtra(SERVICE_DATETIME)!!
             val label = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(SERVICE_LABEL, Label::class.java)!!
             } else {
@@ -87,12 +85,11 @@ class FirebaseInsertService : Service() {
                     fireBaseRepository
                         .insertLabel(
                             uid = uid,
-                            label = LabelDocument(
-                                labelName = label.name,
-                                labelData = LabelData(
-                                    backgroundColor = label.backgroundColor,
-                                    thumbnailUri = storageUri.toString()
-                                )
+                            labelName = label.name,
+                            labelData = FirebaseLabel(
+                                backgroundColor = label.backgroundColor,
+                                thumbnailUri = storageUri.toString(),
+                                fileName = fileName
                             )
                         )
                 }
@@ -107,7 +104,7 @@ class FirebaseInsertService : Service() {
                             latitude = latitude,
                             longitude = longitude,
                             description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC"))
+                            datetime = dateTime
                         )
                     )
 
@@ -139,5 +136,6 @@ class FirebaseInsertService : Service() {
         const val SERVICE_LOCATION_LATITUDE = "service_location_latitude"
         const val SERVICE_LOCATION_LONGITUDE = "service_location_longitude"
         const val SERVICE_DESCRIPTION = "service_location"
+        const val SERVICE_DATETIME = "service_datetime"
     }
 }

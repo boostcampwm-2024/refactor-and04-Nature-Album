@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.data.dto.FirebaseLabel
+import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.LabelDocument
+import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.room.Label
@@ -16,6 +18,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,7 +51,6 @@ class MapScreenViewModel @Inject constructor(
             try {
                 val photos = async { fireBaseRepository.getPhotos(friends) }
                 val labels = fireBaseRepository.getLabels(friends)
-
                 _friendsPhotos.emit(
                     photos.await().map { (uid, photos) ->
                         photos.toFriendPhotoItems(labels.getValue(uid))
@@ -86,8 +90,8 @@ fun List<PhotoDetail>.toPhotoItems(labels: List<Label>): List<PhotoItem> {
 }
 
 // FireBase Data -> UI Data
-fun LabelDocument.toLabelItem() = LabelItem(labelName, labelData.backgroundColor)
-fun List<FirebasePhotoInfo>.toFriendPhotoItems(labels: List<LabelDocument>): List<PhotoItem> {
+fun FirebaseLabelResponse.toLabelItem() = LabelItem(labelName, backgroundColor)
+fun List<FirebasePhotoInfoResponse>.toFriendPhotoItems(labels: List<FirebaseLabelResponse>): List<PhotoItem> {
     val labelMap =
         labels.associate { firebaseLabel -> firebaseLabel.labelName to firebaseLabel.toLabelItem() }
     return map { firebasePhotoInfo ->
@@ -95,7 +99,15 @@ fun List<FirebasePhotoInfo>.toFriendPhotoItems(labels: List<LabelDocument>): Lis
             firebasePhotoInfo.uri,
             LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
             labelMap.getValue(firebasePhotoInfo.label),
-            firebasePhotoInfo.datetime
+            stringToLocalDateTime(firebasePhotoInfo.datetime)
         )
     }
+}
+
+fun stringToLocalDateTime(dateTimeString: String): LocalDateTime {
+    return LocalDateTime
+        .parse(dateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        .atZone(ZoneId.of("UTC"))
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
 }

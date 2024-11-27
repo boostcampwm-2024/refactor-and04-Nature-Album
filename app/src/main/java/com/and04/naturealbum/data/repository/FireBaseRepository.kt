@@ -4,12 +4,13 @@ import android.net.Uri
 import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
+import com.and04.naturealbum.data.dto.FirebaseLabel
+import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
-import com.and04.naturealbum.data.dto.LabelData
-import com.and04.naturealbum.data.dto.LabelDocument
+import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,8 +22,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 interface FireBaseRepository {
@@ -37,10 +36,10 @@ interface FireBaseRepository {
 
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
-    suspend fun getLabels(uid: String): List<LabelDocument>
-    suspend fun getLabels(uids: List<String>): Map<String, List<LabelDocument>>
-    suspend fun getPhotos(uid: String): List<FirebasePhotoInfo>
-    suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfo>>
+    suspend fun getLabels(uid: String): List<FirebaseLabelResponse>
+    suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse>
+    suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>>
+    suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>>
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
@@ -51,7 +50,8 @@ interface FireBaseRepository {
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
     suspend fun insertLabel(
         uid: String,
-        label: LabelDocument,
+        labelName: String,
+        labelData: FirebaseLabel,
     ): Boolean
 
     suspend fun insertPhotoInfo(
@@ -102,33 +102,20 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).document(label).get()
     }
 
-    override suspend fun getLabels(uid: String): List<LabelDocument> {
-        return try {
-            fireStore.collection(USER)
-                .document(uid)
-                .collection(LABEL)
-                .get()
-                .await()
-                .mapNotNull { document ->
-                    LabelDocument(
-                        labelName = document.id,
-                        labelData = LabelData(
-                            backgroundColor = document.getString("backgroundColor")
-                                ?: return@mapNotNull null,
-                            thumbnailUri = document.getString("thumbnailUri")
-                                ?: return@mapNotNull null
-                        )
-                    )
-                }
-        } catch (e: Exception) {
-            Log.e("getLabels", "Error fetching labels: ${e.message}")
-            emptyList()
+    override suspend fun getLabels(uid: String): List<FirebaseLabelResponse> {
+
+        val querySnapshot = fireStore.collection(USER).document(uid).collection(LABEL).get().await()
+
+        return querySnapshot.documents.mapNotNull { document ->
+            document.toObject(FirebaseLabelResponse::class.java)?.copy(
+                labelName = document.id
+            )
         }
     }
 
-    override suspend fun getLabels(uids: List<String>): Map<String, List<LabelDocument>> {
+    override suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>> {
         return try {
-            withContext(Dispatchers.IO + SupervisorJob()) {
+            withContext(Dispatchers.IO) {
                 val labels = uids.map { uid ->
                     async {
                         getLabels(uid)
@@ -142,33 +129,20 @@ class FireBaseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPhotos(uid: String): List<FirebasePhotoInfo> {
-        return try {
-            fireStore.collection(USER)
-                .document(uid)
-                .collection(PHOTOS)
-                .get()
-                .await()
-                .mapNotNull { document ->
-                    FirebasePhotoInfo(
-                        uri = document.getString("uri")?: return@mapNotNull null,
-                        label = document.getString("label") ?: return@mapNotNull null,
-                        latitude = document.getDouble("latitude"),
-                        longitude = document.getDouble("longitude"),
-                        description = document.getString("description") ?: return@mapNotNull null,
-                        datetime = stringToLocalDateTime(document.getString("dateTime"))
-                            ?: return@mapNotNull null
-                    )
-                }
-        } catch (e: Exception) {
-            Log.e("getPhotos", "Error fetching photos: ${e.message}")
-            emptyList()
+    override suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse> {
+        val photosQuerySet =
+            fireStore.collection(USER).document(uid).collection(PHOTOS).get().await()
+
+        return photosQuerySet.documents.mapNotNull { document ->
+            document.toObject(FirebasePhotoInfoResponse::class.java)?.copy(
+                fileName = document.id
+            )
         }
     }
 
-    override suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfo>> {
+    override suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>> {
         return try {
-            withContext(Dispatchers.IO + SupervisorJob()) {
+            withContext(Dispatchers.IO) {
                 val photos = uids.map { uid ->
                     async {
                         getPhotos(uid)
@@ -335,11 +309,12 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     override suspend fun insertLabel(
         uid: String,
-        label: LabelDocument,
+        labelName: String,
+        labelData: FirebaseLabel,
     ): Boolean {
         var requestSuccess = false
-        fireStore.collection(USER).document(uid).collection(LABEL).document(label.labelName)
-            .set(label.labelData)
+        fireStore.collection(USER).document(uid).collection(LABEL).document(labelName)
+            .set(labelData)
             .addOnSuccessListener {
                 requestSuccess = true
             }.await()
@@ -497,15 +472,5 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val PHOTOS = "PHOTOS"
         private const val FRIENDS = "FRIENDS"
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
-    }
-}
-
-fun stringToLocalDateTime(dateTimeString: String?): LocalDateTime? {
-    return dateTimeString?.let { timeString ->
-        LocalDateTime
-            .parse(timeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            .atZone(ZoneId.of("UTC"))
-            .withZoneSameInstant(ZoneId.systemDefault())
-            .toLocalDateTime()
     }
 }

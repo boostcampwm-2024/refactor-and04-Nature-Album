@@ -55,14 +55,15 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
+import com.and04.naturealbum.background.service.FirebaseInsertService
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_DATETIME
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_FILENAME
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LABEL
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LATITUDE
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.service.FirebaseInsertService
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_FILENAME
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LABEL
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LATITUDE
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
-import com.and04.naturealbum.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.labelsearch.getRandomColor
@@ -70,10 +71,13 @@ import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.NetworkState
+import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun SavePhotoScreen(
@@ -157,8 +161,8 @@ fun SavePhotoScreen(
     onNavigateToMyPage: () -> Unit,
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
-    savePhoto: (String, String, Label, Location, String, Boolean) -> Unit,
-    label: Label,
+    savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit,
+    label: Label
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -354,10 +358,11 @@ fun insertFirebaseService(
     fileName: String,
     label: Label,
     location: Location,
-    description: String
+    description: String,
+    time: LocalDateTime
 ) {
-    if (Firebase.auth.currentUser == null || !NetworkState.isActiveNetwork()) return
-
+    if (Firebase.auth.currentUser == null || NetworkState.getNetWorkCode() == DISCONNECTED) return
+    val newTime = time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     val intent = Intent(context, FirebaseInsertService::class.java).apply {
         putExtra(SERVICE_URI, model.toString())
         putExtra(SERVICE_FILENAME, fileName)
@@ -365,6 +370,7 @@ fun insertFirebaseService(
         putExtra(SERVICE_LOCATION_LATITUDE, location.latitude)
         putExtra(SERVICE_LOCATION_LONGITUDE, location.longitude)
         putExtra(SERVICE_DESCRIPTION, description)
+        putExtra(SERVICE_DATETIME, newTime)
     }
 
     context.startService(intent)
@@ -402,7 +408,7 @@ private fun ScreenPreview() {
             onNavigateToMyPage = { },
             onLabelSelect = { },
             onBack = { },
-            savePhoto = { _, _, _, _, _, _ -> },
+            savePhoto = { _, _, _, _, _, _, _ -> },
             label = Label.emptyLabel(),
         )
     }

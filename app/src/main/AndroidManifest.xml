@@ -38,6 +38,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove">
+        </provider>
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -50,7 +56,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.FirebaseInsertService"/>
+        <service android:name=".background.service.FirebaseInsertService"/>
     </application>
 
 </manifest>
