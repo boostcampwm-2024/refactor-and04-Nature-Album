@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -321,7 +322,7 @@ fun GeminiLabelChip(
 
     when (val success = uiState.value) {
         is UiState.Success -> {
-            val labelByGemini = success.data
+            val labelByGemini = success.data.trim()
             SuggestionChip(
                 onClick = {
                     if (labelsState.value.any { label -> label.name == labelByGemini }) {
@@ -336,7 +337,11 @@ fun GeminiLabelChip(
                         )
                     )
                 },
-                label = { Text(labelByGemini) },
+                label = {
+                    Text(
+                        text = labelByGemini,
+                    )
+                },
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = Color(
                         randomColor.value.ifBlank {
@@ -350,11 +355,11 @@ fun GeminiLabelChip(
         }
 
         is UiState.Idle, UiState.Loading -> {
-//            CircularProgressIndicator(
-//                modifier = Modifier.width(32.dp),
-//                color = MaterialTheme.colorScheme.secondary,
-//                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-//            )
+            CircularProgressIndicator(
+                modifier = Modifier.width(32.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
         }
 
         is UiState.Error -> {
@@ -376,7 +381,7 @@ private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
 @Preview
 @Composable
 fun PreviewFunc() {
-    val uiState = remember { mutableStateOf(UiState.Loading) }
+    val uiState = remember { mutableStateOf(UiState.Success("새")) }
     val dummy = remember { mutableStateOf("") }
     val listDummy = remember { mutableStateOf<List<Label>>(listOf()) }
 
