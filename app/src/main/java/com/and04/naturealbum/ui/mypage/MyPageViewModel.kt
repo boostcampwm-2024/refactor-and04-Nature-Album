@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.MyFriend
@@ -23,8 +24,8 @@ class MyPageViewModel @Inject constructor(
     private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
     val myFriend: StateFlow<List<MyFriend>> = _myFriends
 
-    fun signInWithGoogle() {
-        authenticationManager.signInWithGoogle().onEach { response ->
+    fun signInWithGoogle(context: Context) {
+        authenticationManager.signInWithGoogle(context).onEach { response ->
             when (response) {
                 is AuthResponse.Success -> {
                     _uiState.emit(
