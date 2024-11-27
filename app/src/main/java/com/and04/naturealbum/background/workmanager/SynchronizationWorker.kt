@@ -143,7 +143,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val photoDetail = async {
                 val photos = fireBaseRepository.getPhotos(uid)
-                val allLocalPhotos = roomRepository.getUnSynchronizedPhotoDetails()
+                val allLocalPhotos = roomRepository.getSyncCheckPhotos()
 
                 val unSynchronizedPhotoDetailsToServer = allLocalPhotos.filter { photo ->
                     photos.none { firebasePhoto ->

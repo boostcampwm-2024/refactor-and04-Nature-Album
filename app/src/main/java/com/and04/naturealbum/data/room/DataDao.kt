@@ -85,7 +85,7 @@ interface AlbumDao {
         JOIN photo_detail ON label.id == photo_detail.label_id
     """
     )
-    suspend fun getUnSynchronizedPhotos(): List<SyncPhotoDetailsDto>
+    suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
 
     @Query("SELECT * FROM album")
     suspend fun getALLAlbum(): List<Album>
