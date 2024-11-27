@@ -262,9 +262,9 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
 
-        if (email.isNotBlank()) {
+        if (snackBarHostState != null) {
             SyncContent(
-                snackBarHostState = snackBarHostState!!,
+                snackBarHostState = snackBarHostState,
                 recentSyncTime = recentSyncTime!!
             )
         }
