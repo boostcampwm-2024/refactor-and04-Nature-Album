@@ -20,9 +20,6 @@ class MyPageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState
 
-    private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
-    val myFriend: StateFlow<List<MyFriend>> = _myFriends
-
     fun signInWithGoogle() {
         authenticationManager.signInWithGoogle().onEach { response ->
             when (response) {
@@ -35,7 +32,6 @@ class MyPageViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-
     private fun getUserInfoUiState(): UiState.Success<UserInfo> {
         val user = UserManager.getUser()
         return UiState.Success(
@@ -47,11 +43,11 @@ class MyPageViewModel @Inject constructor(
             )
         )
     }
-    
+
     private fun setInitUiState(): UiState<UserInfo> {
         return if (userManager.isSignIn()) {
             getUserInfoUiState()
-        }else{
+        } else {
             UiState.Idle
         }
     }

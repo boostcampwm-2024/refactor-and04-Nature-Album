@@ -148,8 +148,6 @@ private fun MyPageContent(
     searchResults: State<List<FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -285,7 +283,6 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_search),
         stringResource(R.string.my_page_social_alarm)
     )
-
 
     Column(
         modifier = modifier

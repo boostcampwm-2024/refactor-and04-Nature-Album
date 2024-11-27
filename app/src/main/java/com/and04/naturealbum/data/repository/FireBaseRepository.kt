@@ -39,12 +39,8 @@ interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
-    suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>>
     fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>>
-
-    suspend fun getAllUsers(): List<FirestoreUser>
-    suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -132,29 +128,6 @@ class FireBaseRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() } // Flow가 닫힐 때 리스너 제거
     }
 
-    override suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest> {
-        val documents = fireStore.collection(USER)
-            .document(uid)
-            .collection(FRIEND_REQUESTS)
-            .get()
-            .await()
-            .documents
-
-        return documents.mapNotNull { document ->
-            try {
-                val friendRequest = document.toObject(FirebaseFriendRequest::class.java)
-                if (friendRequest == null) {
-                    Log.e("getFriendRequests", "Failed to map document: ${document.id}")
-                }
-                friendRequest
-            } catch (e: Exception) {
-                Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
-                null
-            }
-        }
-    }
-
-    // 나에게 온 요청
     override fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>> =
         callbackFlow {
             val listener = fireStore.collection(USER)
@@ -183,64 +156,6 @@ class FireBaseRepositoryImpl @Inject constructor(
                 }
             awaitClose { listener.remove() }
         }
-
-    override suspend fun getAllUsers(): List<FirestoreUser> {
-        return fireStore.collection(USER).get().await().toObjects(FirestoreUser::class.java)
-    }
-
-    override suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus> {
-        try {
-            val userDocs = fireStore.collection(USER).get().await()
-            val result = withContext(Dispatchers.IO + SupervisorJob()) {
-                userDocs.map { userDoc ->
-                    async {
-                        if (userDoc.id == uid) return@async null
-
-                        val user = userDoc.toObject(FirestoreUser::class.java)
-                        var friendStatus = FriendStatus.NORMAL
-
-                        if (userDoc.id.isNotEmpty()) {
-                            val friendRequestDocTask = fireStore.collection(USER)
-                                .document(userDoc.id)
-                                .collection(FRIEND_REQUESTS)
-                                .document(uid)
-                                .get()
-
-                            val friendDocTask = fireStore.collection(USER)
-                                .document(uid)
-                                .collection(FRIENDS)
-                                .document(userDoc.id)
-                                .get()
-
-                            val friendDoc = friendDocTask.await()
-                            val friendRequestDoc = friendRequestDocTask.await()
-
-                            if (friendRequestDoc.exists()) {
-                                val request =
-                                    friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                                // 상대방(equest?.status) 기준 => 현재 uid 에게 보냈는지, 받았는지 확인
-                                friendStatus = if (request?.status == FriendStatus.RECEIVED) {
-                                    FriendStatus.SENT // 현재 uid 기준 [상대방 RECEIVED : 나  SENT]
-                                } else {
-                                    FriendStatus.RECEIVED // 현재 uid 기준 [상대방 SENT : 나  RECEIVED]
-                                }
-                            }
-                            if (friendDoc.exists()) {
-                                friendStatus = FriendStatus.FRIEND
-                            }
-                            FirestoreUserWithStatus(user = user, status = friendStatus)
-                        } else null
-                    }
-
-                }.awaitAll()
-            }
-            return result.filterNotNull()
-        } catch (e: Exception) {
-            Log.e("FireBaseRepository", "getAllUsersInfo Error: ${e.message}")
-        }
-        return emptyList()
-    }
-
 
     override suspend fun saveImageFile(
         uid: String,
