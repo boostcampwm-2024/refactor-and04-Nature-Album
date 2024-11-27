@@ -14,6 +14,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
@@ -51,11 +52,13 @@ class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val roomRepository: DataRepository,
-    private val fireBaseRepository: FireBaseRepository
+    private val fireBaseRepository: FireBaseRepository,
+    private val syncDataStore: DataStoreManager
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
-        private const val WORKER_NAME = "MIDNIGHT_SYNCHRONIZATION"
+        private var IS_RUNNING = false
+        private const val WORKER_NAME = "WORKER_SYNCHRONIZATION"
         private const val HOUR = 0
         private const val MINUTE = 0
 
@@ -78,6 +81,26 @@ class SynchronizationWorker @AssistedInject constructor(
                     workRequest
                 )
         }
+
+        fun runImmediately(context: Context) {
+            if (!IS_RUNNING) {
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.UNMETERED) //Wifi 연결 시 실행
+                    .build()
+
+                val workRequest = OneTimeWorkRequestBuilder<SynchronizationWorker>()
+                    .setConstraints(constraints)
+                    .build()
+
+                WorkManager.getInstance(context)
+                    .enqueueUniqueWork(
+                        WORKER_NAME,
+                        ExistingWorkPolicy.REPLACE,
+                        workRequest
+                    )
+            }
+        }
+
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context)
@@ -106,6 +129,7 @@ class SynchronizationWorker @AssistedInject constructor(
         try {
             val currentUser = Firebase.auth.currentUser ?: return@coroutineScope Result.failure()
             val uid = currentUser.uid
+            IS_RUNNING = true
             val unSynchronizedPhotoDetailsToLocal: MutableList<FirebasePhotoInfoResponse> =
                 mutableListOf()
             val fileNameToLabelUid =
@@ -177,11 +201,16 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
             }.await()
 
+            syncDataStore.setSyncTime(
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            )
             Result.success()
         } catch (e: Exception) {
             //TODO FireStore와 LocalDB 비교 후 같이면 Result.success() 다르면 retry()
             Result.retry()
         } finally {
+            IS_RUNNING = false
             runSync(applicationContext)
         }
     }

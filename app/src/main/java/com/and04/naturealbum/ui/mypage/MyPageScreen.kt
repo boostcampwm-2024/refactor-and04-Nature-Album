@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.savephoto.UiState
@@ -79,11 +81,13 @@ fun MyPageScreen(
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = myPageViewModel.myFriend.collectAsStateWithLifecycle()
+    val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
 
     MyPageScreen(
         navigateToHome = navigateToHome,
         uiState = uiState,
         myFriends = myFriends,
+        recentSyncTime = recentSyncTime,
         signInWithGoogle = myPageViewModel::signInWithGoogle
     )
 }
@@ -93,6 +97,7 @@ fun MyPageScreen(
     navigateToHome: () -> Unit,
     uiState: State<UiState>,
     myFriends: State<List<MyFriend>>,
+    recentSyncTime: State<String>,
     signInWithGoogle: (Context) -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
@@ -118,6 +123,7 @@ fun MyPageScreen(
                 .fillMaxSize(),
             uiState = uiState,
             myFriends = myFriends,
+            recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
             snackBarHostState = snackBarHostState
         )
@@ -129,6 +135,7 @@ private fun MyPageContent(
     modifier: Modifier,
     uiState: State<UiState>,
     myFriends: State<List<MyFriend>>,
+    recentSyncTime: State<String>,
     signInWithGoogle: (Context) -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -148,7 +155,8 @@ private fun MyPageContent(
                 UserProfileContent(
                     uri = photoUri,
                     email = email,
-                    snackBarHostState = snackBarHostState
+                    snackBarHostState = snackBarHostState,
+                    recentSyncTime = recentSyncTime
                 )
 
                 SocialContent(
@@ -169,7 +177,8 @@ private fun MyPageContent(
 private fun UserProfileContent(
     uri: Uri? = null,
     email: String? = null,
-    snackBarHostState: SnackbarHostState? = null
+    snackBarHostState: SnackbarHostState? = null,
+    recentSyncTime: State<String>? = null
 ) {
     UserProfileImage(
         uri = uri?.toString(),
@@ -189,7 +198,10 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
         if (!email.isNullOrBlank()) {
-            SyncContent(snackBarHostState = snackBarHostState!!)
+            SyncContent(
+                snackBarHostState = snackBarHostState!!,
+                recentSyncTime = recentSyncTime!!
+            )
         }
     }
 }
@@ -293,10 +305,12 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
 
 @Composable
 private fun SyncContent(
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    recentSyncTime: State<String>
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -306,11 +320,12 @@ private fun SyncContent(
             onClick = {
                 when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
-                        //TODO WorkManager Add
+                        SynchronizationWorker.runImmediately(context)
                     }
 
                     CONNECTED_DATA -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
@@ -320,6 +335,7 @@ private fun SyncContent(
 
                     DISCONNECTED -> {
                         startSnackBar(
+                            context = context,
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_disconnect),
@@ -337,12 +353,13 @@ private fun SyncContent(
     }
     Text(
         style = MaterialTheme.typography.bodySmall,
-        text = stringResource(R.string.my_page_not_yet_sync)
+        text = recentSyncTime.value
     )
 
 }
 
 private fun startSnackBar(
+    context: Context,
     coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
     message: String,
@@ -356,7 +373,7 @@ private fun startSnackBar(
         )
 
         if (result == SnackbarResult.ActionPerformed) {
-            //TODO WorkManager Add
+            SynchronizationWorker.runImmediately(context)
         }
     }
 }
@@ -375,12 +392,14 @@ private fun MyPageScreenPreview() {
             )
         )
     }
+    val recentSyncTime = remember { mutableStateOf("2024-01-01") }
 
     NatureAlbumTheme {
         MyPageScreen(
             navigateToHome = {},
             uiState = uiState,
             myFriends = myFriends,
+            recentSyncTime = recentSyncTime,
             signInWithGoogle = {}
         )
     }
