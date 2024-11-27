@@ -24,6 +24,7 @@ import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.room.Album
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.google.firebase.auth.ktx.auth
@@ -309,6 +310,7 @@ class SynchronizationWorker @AssistedInject constructor(
                     .atZone(ZoneId.of("UTC"))
                     .withZoneSameInstant(ZoneId.systemDefault())
                     .toLocalDateTime(),
+                hazardCheckResult = HazardAnalyzeStatus.PASS
             )
         ).toInt()
     }
