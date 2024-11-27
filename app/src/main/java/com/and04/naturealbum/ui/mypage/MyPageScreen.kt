@@ -81,11 +81,13 @@ fun MyPageScreen(
 ) {
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = myPageViewModel.myFriend.collectAsStateWithLifecycle()
+    val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
 
     MyPageScreen(
         navigateToHome = navigateToHome,
         uiState = uiState,
         myFriends = myFriends,
+        recentSyncTime = recentSyncTime,
         signInWithGoogle = myPageViewModel::signInWithGoogle
     )
 }
@@ -95,6 +97,7 @@ fun MyPageScreen(
     navigateToHome: () -> Unit,
     uiState: State<UiState>,
     myFriends: State<List<MyFriend>>,
+    recentSyncTime: State<String>,
     signInWithGoogle: (Context) -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
@@ -120,6 +123,7 @@ fun MyPageScreen(
                 .fillMaxSize(),
             uiState = uiState,
             myFriends = myFriends,
+            recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
             snackBarHostState = snackBarHostState
         )
@@ -131,6 +135,7 @@ private fun MyPageContent(
     modifier: Modifier,
     uiState: State<UiState>,
     myFriends: State<List<MyFriend>>,
+    recentSyncTime: State<String>,
     signInWithGoogle: (Context) -> Unit,
     snackBarHostState: SnackbarHostState
 ) {
@@ -150,7 +155,8 @@ private fun MyPageContent(
                 UserProfileContent(
                     uri = photoUri,
                     email = email,
-                    snackBarHostState = snackBarHostState
+                    snackBarHostState = snackBarHostState,
+                    recentSyncTime = recentSyncTime
                 )
 
                 SocialContent(
@@ -171,7 +177,8 @@ private fun MyPageContent(
 private fun UserProfileContent(
     uri: Uri? = null,
     email: String? = null,
-    snackBarHostState: SnackbarHostState? = null
+    snackBarHostState: SnackbarHostState? = null,
+    recentSyncTime: State<String>? = null
 ) {
     UserProfileImage(
         uri = uri?.toString(),
@@ -191,7 +198,10 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
         if (!email.isNullOrBlank()) {
-            SyncContent(snackBarHostState = snackBarHostState!!)
+            SyncContent(
+                snackBarHostState = snackBarHostState!!,
+                recentSyncTime = recentSyncTime!!
+            )
         }
     }
 }
@@ -295,7 +305,8 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
 
 @Composable
 private fun SyncContent(
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    recentSyncTime: State<String>
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -342,7 +353,7 @@ private fun SyncContent(
     }
     Text(
         style = MaterialTheme.typography.bodySmall,
-        text = stringResource(R.string.my_page_not_yet_sync)
+        text = recentSyncTime.value
     )
 
 }
@@ -381,12 +392,14 @@ private fun MyPageScreenPreview() {
             )
         )
     }
+    val recentSyncTime = remember { mutableStateOf("2024-01-01") }
 
     NatureAlbumTheme {
         MyPageScreen(
             navigateToHome = {},
             uiState = uiState,
             myFriends = myFriends,
+            recentSyncTime = recentSyncTime,
             signInWithGoogle = {}
         )
     }

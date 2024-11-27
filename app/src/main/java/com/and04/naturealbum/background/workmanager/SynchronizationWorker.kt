@@ -10,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.UnSynchronizedAlbumsDto
@@ -26,6 +27,8 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
@@ -34,7 +37,8 @@ class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val roomRepository: DataRepository,
-    private val fireBaseRepository: FireBaseRepository
+    private val fireBaseRepository: FireBaseRepository,
+    private val syncDataStore: DataStoreManager
 ) : CoroutineWorker(appContext, workerParams) {
     companion object {
         private var IS_RUNNING = false
@@ -137,6 +141,10 @@ class SynchronizationWorker @AssistedInject constructor(
             label.await()
             photoDetail.await()
 
+            syncDataStore.setSyncTime(
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            )
             Result.success()
         } catch (e: Exception) {
             //TODO FireStore와 LocalDB 비교 후 같이면 Result.success() 다르면 retry()
