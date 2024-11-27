@@ -231,18 +231,18 @@ fun MyPageAlarm(
     currentUid: String,
 ) {
     LazyColumn {
-        items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
+        items(items = myAlarms, key = { friendRequest -> friendRequest.user.email }) { friendRequest ->
             MyPageAlarmItem(
-                myFriend = myFriend,
-                onAccept = { acceptFriendRequest(currentUid, myFriend.user.uid) },
-                onDenied = { rejectFriendRequest(currentUid, myFriend.user.uid) }
+                friendRequest = friendRequest,
+                onAccept = { acceptFriendRequest(currentUid, friendRequest.user.uid) },
+                onDenied = { rejectFriendRequest(currentUid, friendRequest.user.uid) }
             )
         }
     }
 }
 
 @Composable
-fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarmItem(friendRequest: FirebaseFriendRequest, onDenied: () -> Unit, onAccept: () -> Unit) {
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -257,11 +257,11 @@ fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAcc
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = myFriend.user.photoUrl,
+                model = friendRequest.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = "${myFriend.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
+            Text(text = "${friendRequest.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
         }
 
         Row(

@@ -64,9 +64,9 @@ fun FriendTestScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Button(onClick = { viewModel.fetchFriends("jeong") }) {
-                        Text("친구 목록 보기")
-                    }
+//                    Button(onClick = { viewModel.fetchFriends("jeong") }) {
+//                        Text("친구 목록 보기")
+//                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
