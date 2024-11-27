@@ -16,7 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,8 +33,6 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.ImageConvert
 import java.io.File
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun NatureAlbumApp() {
@@ -116,7 +114,10 @@ fun NatureAlbumNavHost(
             )
         }
 
-        composable(NavigateDestination.SavePhoto.route) {
+        composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
@@ -129,23 +130,27 @@ fun NatureAlbumNavHost(
                     }
                 },
                 label = selectedLabel,
-                onLabelSelect = { uri ->
-                    val encodedUrl = URLEncoder.encode(uri, StandardCharsets.UTF_8.toString())
-                    navController.navigate("${NavigateDestination.SearchLabel.route}/$encodedUrl")
+                onLabelSelect = {
+                    navController.navigate(NavigateDestination.SearchLabel.route)
                 },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                onNavigateToMyPage = {
+                    navController.navigate(NavigateDestination.MyPage.route)
+                },
+                viewModel = hiltViewModel(viewmodel),
             )
         }
 
-        composable("${NavigateDestination.SearchLabel.route}/{encodedUrl}") { backStackEntry ->
-            val uri = backStackEntry.arguments?.getString("encodedUrl")?.toUri()
+        composable(NavigateDestination.SearchLabel.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
 
             LabelSearchScreen(
-                imageUri = uri,
                 onSelected = { label ->
                     selectedLabel = label
                     navController.popBackStack()
                 },
+                savePhotoViewModel = hiltViewModel(viewmodel),
             )
         }
 
