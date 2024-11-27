@@ -20,6 +20,7 @@ object ImageConvert {
     private const val MAX_WIDTH = 800
     private const val MAX_HEIGHT = 600
     private const val COMPRESS_QUALITY = 80
+    private const val IN_SAMPLE_SIZE = 16
 
     fun resizeImage(uri: Uri): ResizePicture? {
         try {
@@ -131,13 +132,18 @@ object ImageConvert {
         return try {
             val uri = Uri.parse(uriString)
 
-            val options = BitmapFactory.Options().apply { inSampleSize = 16 } // 이미지 크기 축소
-            val bitmap = context.contentResolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it, null, options)
+            val options =
+                BitmapFactory.Options().apply { inSampleSize = IN_SAMPLE_SIZE } // 이미지 크기 축소
+            val bitmap = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream, null, options)
             } ?: return ""
 
             val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream) // 압축 품질
+            bitmap.compress(
+                Bitmap.CompressFormat.JPEG,
+                COMPRESS_QUALITY,
+                byteArrayOutputStream
+            ) // 압축 품질
             val byteArray = byteArrayOutputStream.toByteArray()
 
             Base64.encodeToString(byteArray, Base64.DEFAULT)
