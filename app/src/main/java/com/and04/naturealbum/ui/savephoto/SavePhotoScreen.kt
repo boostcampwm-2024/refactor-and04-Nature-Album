@@ -116,7 +116,6 @@ fun SavePhotoScreen(
         label = label,
     )
 
-
     if (photoSaveState.value is UiState.Success) {
         onSave()
     }
@@ -363,7 +362,6 @@ fun insertFirebaseService(
 private fun ScreenPreview() {
     NatureAlbumTheme {
         val uiState = rememberSaveable { mutableStateOf(UiState.Success(Unit)) }
-        val geminiUiState = rememberSaveable { mutableStateOf(UiState.Success("Label")) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
 

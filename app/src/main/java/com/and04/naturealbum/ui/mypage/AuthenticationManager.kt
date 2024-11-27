@@ -29,12 +29,11 @@ interface AuthResponse {
 }
 
 class AuthenticationManager @Inject constructor(
-    private val context: Context,
     private val fireBaseRepository: FireBaseRepository
 ) {
     private val auth = Firebase.auth
 
-    fun signInWithGoogle(): Flow<AuthResponse> = callbackFlow {
+    fun signInWithGoogle(context: Context): Flow<AuthResponse> = callbackFlow {
         try {
             val credential = getCredential(context)
             val firebaseCredential = getFirebaseCredential(credential) ?: return@callbackFlow

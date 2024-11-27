@@ -79,4 +79,7 @@
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
     <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
 
+    <!-- service -->
+    <string name="service_analyze_hazard_fail">유해성 검사에 실패했습니다.</string>
+
 </resources>

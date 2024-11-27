@@ -30,7 +30,7 @@ interface FireBaseRepository {
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean
 
     //SELECT
@@ -53,7 +53,7 @@ interface FireBaseRepository {
     suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean
 
     suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean
@@ -74,7 +74,7 @@ class FireBaseRepositoryImpl @Inject constructor(
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean {
         return try {
             val userDoc = fireStore.collection(USER).document(uid).get().await()
@@ -254,7 +254,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
-        labelData: FirebaseLabel
+        labelData: FirebaseLabel,
     ): Boolean {
         var requestSuccess = false
         fireStore.collection(USER).document(uid).collection(LABEL).document(labelName)
@@ -269,7 +269,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean {
         var requestSuccess = false
 

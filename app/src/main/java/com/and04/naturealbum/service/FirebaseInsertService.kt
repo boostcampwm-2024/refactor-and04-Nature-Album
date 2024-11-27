@@ -10,8 +10,12 @@ import androidx.core.net.toUri
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
+import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +32,12 @@ import javax.inject.Inject
 class FirebaseInsertService : Service() {
     @Inject
     lateinit var fireBaseRepository: FireBaseRepository
+
+    @Inject
+    lateinit var retrofitRepository: RetrofitRepository
+
+    @Inject
+    lateinit var photoDetailDao: PhotoDetailDao
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var job: Job? = null
 
@@ -49,6 +59,25 @@ class FirebaseInsertService : Service() {
             val description = intent.getStringExtra(SERVICE_DESCRIPTION) as String
 
             val storageJob = scope.launch {
+                val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, uri)
+
+                val hazardMapperResult =
+                    retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
+                if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
+                    photoDetailDao.updateHazardCheckResultByFIleName(
+                        HazardAnalyzeStatus.FAIL,
+                        fileName
+                    )
+                    Log.d("Hazard_Result", "fail")
+                    return@launch
+                } else {
+                    photoDetailDao.updateHazardCheckResultByFIleName(
+                        HazardAnalyzeStatus.PASS,
+                        fileName
+                    )
+                    Log.d("Hazard_Result", "pass")
+                }
+
                 val storageUri = fireBaseRepository
                     .saveImageFile(
                         uid = uid,
