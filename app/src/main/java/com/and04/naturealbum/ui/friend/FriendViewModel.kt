@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.ui.mypage.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,12 +33,13 @@ class FriendViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
 
-    private val _searchResults = MutableStateFlow<List<FirestoreUserWithStatus>>(emptyList())
-    val searchResults: StateFlow<List<FirestoreUserWithStatus>> = _searchResults
+    private val _searchResults = MutableStateFlow<Map<String, FirestoreUserWithStatus>>(emptyMap())
+    val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
     private val debouncePeriod = 100L
 
     private val uid: String? = UserManager.getUser()?.uid
+
 
     init {
         viewModelScope.launch {
@@ -92,11 +94,9 @@ class FriendViewModel @Inject constructor(
         viewModelScope.launch {
             val success = fireBaseRepository.sendFriendRequest(uid, targetUid)
             if (success) {
-                // 검색 쿼리를 재설정하여 실시간 업데이트 반영
-                // TODO. 재설정 하지 않고 할 수 있는 방법 생각해보기. 현재는 이렇게 해야 UI 바로 반영됨.
-                val currentQuery = _searchQuery.value
-                if (currentQuery.isNotBlank()) {
-                    fetchFilteredUsersAsFlow(uid, currentQuery)
+                _searchResults.value = _searchResults.value.toMutableMap().apply {
+                    this[targetUid] =
+                        this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
                 }
             }
         }

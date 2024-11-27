@@ -94,7 +94,7 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: () -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
@@ -141,7 +141,7 @@ private fun MyPageContent(
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
     Column(
@@ -261,7 +261,7 @@ private fun SocialContent(
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
     val currentUid = userUidState ?: return

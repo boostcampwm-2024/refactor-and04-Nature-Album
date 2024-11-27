@@ -37,7 +37,7 @@ interface FireBaseRepository {
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
     fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>>
     fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>>
-    fun searchUsersAsFlow(uid: String, query: String): Flow<List<FirestoreUserWithStatus>>
+    fun searchUsersAsFlow(uid: String, query: String): Flow<Map<String, FirestoreUserWithStatus>>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -323,7 +323,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override fun searchUsersAsFlow(
         uid: String,
         query: String
-    ): Flow<List<FirestoreUserWithStatus>> =
+    ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
             val listener = fireStore.collection(USER)
                 .whereGreaterThanOrEqualTo(EMAIL, query)
@@ -331,11 +331,11 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
                         Log.e("searchUsersAsFlow", "Listen failed: ${e.message}")
-                        trySend(emptyList())
+                        trySend(emptyMap())
                         return@addSnapshotListener
                     }
 
-                    val userList = mutableListOf<FirestoreUserWithStatus>()
+                    val userMap = mutableMapOf<String, FirestoreUserWithStatus>()
 
                     snapshot?.documents?.forEach { userDoc ->
                         launch {
@@ -378,13 +378,12 @@ class FireBaseRepositoryImpl @Inject constructor(
                                 Log.e("searchUsersAsFlow", "Error: ${ex.message}")
                             }
 
-                            userList.add(
-                                FirestoreUserWithStatus(
-                                    user = user,
-                                    status = friendStatus
-                                )
+                            userMap[userDoc.id] = FirestoreUserWithStatus(
+                                user = user,
+                                status = friendStatus
                             )
-                            trySend(userList).isSuccess
+
+                            trySend(userMap).isSuccess
                         }
                     }
                 }
