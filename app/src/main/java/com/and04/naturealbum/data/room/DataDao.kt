@@ -1,6 +1,7 @@
 package com.and04.naturealbum.data.room
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -122,4 +123,7 @@ interface PhotoDetailDao {
         hazardAnalyzeStatus: HazardAnalyzeStatus,
         fileName: String,
     )
+
+    @Delete
+    suspend fun deleteImage(photoDetail: PhotoDetail)
 }

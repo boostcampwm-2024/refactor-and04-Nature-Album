@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
@@ -23,10 +24,13 @@ import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
@@ -54,7 +58,9 @@ class SynchronizationWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val roomRepository: DataRepository,
     private val fireBaseRepository: FireBaseRepository,
-    private val syncDataStore: DataStoreManager
+    private val syncDataStore: DataStoreManager,
+    private val retrofitRepository: RetrofitRepository,
+    private val photoDetailDao: PhotoDetailDao,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -101,7 +107,6 @@ class SynchronizationWorker @AssistedInject constructor(
                     )
             }
         }
-
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context)
@@ -178,7 +183,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
                 unSynchronizedPhotoDetailsToServer.forEach { photo ->
                     launch {
-                        insertPhotoDetail(uid, photo)
+                        insertPhotoDetailToServer(uid, photo)
                     }
                 }
 
@@ -249,7 +254,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
     private suspend fun insertPhotoDetailAndAlbumToLocal(
         photo: FirebasePhotoInfoResponse,
-        fileNameToLabelUid: HashMap<String, Pair<Int, String>>
+        fileNameToLabelUid: HashMap<String, Pair<Int, String>>,
     ) = withContext(Dispatchers.IO + SupervisorJob()) {
 
         val valueList = fileNameToLabelUid.values.toList()
@@ -260,7 +265,11 @@ class SynchronizationWorker @AssistedInject constructor(
             val labelId = findAlbumData.first
             val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
 
-            insertAlbum(labelId, photoDetailId)
+            if (photoDetailId != -1) {
+                insertAlbum(labelId, photoDetailId)
+            } else {
+                // 반환값이 -1 => 사용자가 직접 삭제한 이미지 => insert X
+            }
         } else {
             val labelId =
                 fileNameToLabelUid[photo.label]?.first ?: roomRepository.getIdByName(photo.label)!!
@@ -268,9 +277,26 @@ class SynchronizationWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun insertPhotoDetail(uid: String, photo: SyncPhotoDetailsDto) {
-        //TODO 유해성 검사
-        
+    private suspend fun insertPhotoDetailToServer(uid: String, photo: SyncPhotoDetailsDto) {
+        // room에 저장된 유효성 검사 결과가 fail 이면 return
+        val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResultByFileName(photo.fileName)
+        if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
+
+        val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, photo.photoDetailUri)
+        val hazardMapperResult = retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
+        if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
+            photoDetailDao.updateHazardCheckResultByFIleName(
+                HazardAnalyzeStatus.FAIL, photo.fileName,
+            )
+            Log.d("Hazard_Result", "fail")
+            return
+        } else {
+            photoDetailDao.updateHazardCheckResultByFIleName(
+                HazardAnalyzeStatus.PASS, photo.fileName,
+            )
+            Log.d("Hazard_Result", "pass")
+        }
+
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
@@ -297,8 +323,14 @@ class SynchronizationWorker @AssistedInject constructor(
     private suspend fun insertPhotoDetailToLocal(
         photo: FirebasePhotoInfoResponse,
         labelId: Int,
-        uri: String
+        uri: String,
     ): Int {
+        val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
+        if (isDeletedImage) {
+            //todo 서버에서 사진 삭제
+            deletPhoto()
+            return -1
+        }
         return roomRepository.insertPhoto(
             PhotoDetail(
                 labelId = labelId,
@@ -324,6 +356,10 @@ class SynchronizationWorker @AssistedInject constructor(
                 photoDetailId = photoDetailId
             )
         )
+    }
+
+    private fun deletPhoto() {
+
     }
 
     private fun makeFileToUri(photoUri: String, fileName: String): String {

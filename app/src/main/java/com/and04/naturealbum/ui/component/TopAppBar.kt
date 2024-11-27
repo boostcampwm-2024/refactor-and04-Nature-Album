@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.mypage.UserManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,10 +34,19 @@ fun PortraitTopAppBar(navigationIcon: @Composable () -> Unit = { }, onClick: () 
         navigationIcon = navigationIcon,
         actions = {
             IconButton(onClick = { onClick() }) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
+                val profile = UserManager.getUserProfile()
+                if (profile == null) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+                    )
+                } else {
+                    AsyncImage(
+                        model = UserManager.getUserProfile(),
+                        contentDescription = stringResource(R.string.top_bar_navigate_to_my_page),
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -59,10 +71,19 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
             IconButton(
                 onClick = { onClick() },
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
+                val profile = UserManager.getUserProfile()
+                if (profile == null) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+                    )
+                } else {
+                    AsyncImage(
+                        model = UserManager.getUserProfile(),
+                        contentDescription = stringResource(R.string.top_bar_navigate_to_my_page),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
