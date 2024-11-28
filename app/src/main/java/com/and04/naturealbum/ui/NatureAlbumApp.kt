@@ -106,7 +106,7 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen()
+            MapScreen(state.lastLocation.value)
         }
     }
 }

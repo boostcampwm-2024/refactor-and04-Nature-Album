@@ -59,7 +59,8 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_DESCRIPTION
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_FILENAME
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LABEL
-import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LATITUDE
+import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.component.BackgroundImage
@@ -355,7 +356,8 @@ fun insertFirebaseService(
         putExtra(SERVICE_URI, model.toString())
         putExtra(SERVICE_FILENAME, fileName)
         putExtra(SERVICE_LABEL, label)
-        putExtra(SERVICE_LOCATION, location) //FIXME Location == null
+        putExtra(SERVICE_LOCATION_LATITUDE, location.latitude)
+        putExtra(SERVICE_LOCATION_LONGITUDE, location.longitude)
         putExtra(SERVICE_DESCRIPTION, description)
         putExtra(SERVICE_DATETIME, newTime)
     }

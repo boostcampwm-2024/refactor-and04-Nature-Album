@@ -61,7 +61,7 @@ fun HomeScreen(
         }
     var permissionsToRequestAgain by remember { mutableStateOf(listOf<String>()) }
 
-    val requestPermissionLauncher =
+    val requestCameraPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -90,6 +90,31 @@ fun HomeScreen(
             }
         }
 
+
+    val requestMapPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
+            when {
+                deniedPermissions.isEmpty() -> onNavigateToMap()
+
+                else -> {
+                    val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
+                        ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+                    }
+                    permissionsToRequestAgain = deniedPermissions.toList()
+                    if (hasPreviouslyDeniedPermission) {
+                        // TODO:  
+                        //permissionDialogState = PermissionDialogState.Explain
+                        onNavigateToMap()
+                    } else {
+                        onNavigateToMap()
+                    }
+                }
+            }
+        }
+
     val cameraPermissionHandler = remember {
         PermissionHandler(
             context = context,
@@ -102,7 +127,7 @@ fun HomeScreen(
                 )
             },
             onRequestPermission = { deniedPermissions ->
-                requestPermissionLauncher.launch(deniedPermissions)
+                requestCameraPermissionLauncher.launch(deniedPermissions)
             },
             showPermissionExplainDialog = {
                 permissionDialogState = PermissionDialogState.Explain
@@ -115,11 +140,9 @@ fun HomeScreen(
             context = context,
             allPermissionGranted = onNavigateToMap,
             onRequestPermission = { deniedPermissions ->
-                requestPermissionLauncher.launch(deniedPermissions)
+                requestMapPermissionLauncher.launch(deniedPermissions)
             },
-            showPermissionExplainDialog = {
-                permissionDialogState = PermissionDialogState.Explain
-            }
+            showPermissionExplainDialog = onNavigateToMap
         )
     }
 
