@@ -77,6 +77,10 @@ class NatureAlbumState(
         }
     }
 
+    fun popupBackStack() {
+        navController.popBackStack()
+    }
+
     fun getNavBackStackEntry() =
         navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
 
