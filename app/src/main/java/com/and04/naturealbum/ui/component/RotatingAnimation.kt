@@ -33,6 +33,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.and04.naturealbum.R
+
+enum class LoadingIcons(@DrawableRes val id: Int) {
+    RED_FISH(R.drawable.ic_fish_red),
+    ORANGE_FISH(R.drawable.ic_fish_orange),
+    DOG(R.drawable.ic_dog),
+    CAT(R.drawable.ic_cat),
+    BUTTERFLY_YELLOW(R.drawable.ic_butterfly_yellow),
+    BUTTERFLY_WHITE(R.drawable.ic_butterfly_white),
+}
 
 @Composable
 fun RotatingImageLoading(

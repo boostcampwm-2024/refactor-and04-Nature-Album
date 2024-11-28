@@ -54,12 +54,14 @@ fun FirebaseLabelResponse.toLabelItem() = LabelItem(labelName, backgroundColor)
 fun List<FirebasePhotoInfoResponse>.toFriendPhotoItems(labels: List<FirebaseLabelResponse>): List<PhotoItem> {
     val labelMap =
         labels.associate { firebaseLabel -> firebaseLabel.labelName to firebaseLabel.toLabelItem() }
-    return map { firebasePhotoInfo ->
-        PhotoItem(
-            firebasePhotoInfo.uri,
-            LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
-            labelMap.getValue(firebasePhotoInfo.label),
-            firebasePhotoInfo.datetime.toLocalDateTime()
-        )
+    return mapNotNull { firebasePhotoInfo ->
+        labelMap[firebasePhotoInfo.label]?.let { label ->
+            PhotoItem(
+                firebasePhotoInfo.uri,
+                LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
+                label,
+                firebasePhotoInfo.datetime.toLocalDateTime()
+            )
+        }
     }
 }
