@@ -220,8 +220,7 @@ class SynchronizationWorker @AssistedInject constructor(
             )
             Result.success()
         } catch (e: Exception) {
-            //TODO FireStore와 LocalDB 비교 후 같이면 Result.success() 다르면 retry()
-            Result.retry()
+            Result.failure()
         } finally {
             IS_RUNNING = false
             runSync(applicationContext)
