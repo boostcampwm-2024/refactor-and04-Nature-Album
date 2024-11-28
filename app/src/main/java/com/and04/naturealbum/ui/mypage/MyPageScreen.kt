@@ -35,12 +35,14 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,12 +59,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
-import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
@@ -122,7 +125,7 @@ fun MyPageScreenContent(
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    recentSyncTime: State<String>
+    recentSyncTime: State<String>,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -177,7 +180,7 @@ private fun MyPageContent(
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
 ) {
     val context = LocalContext.current
 
@@ -232,7 +235,7 @@ private fun UserProfileContent(
     emailState: String?,
     displayNameState: String?,
     snackBarHostState: SnackbarHostState? = null,
-    recentSyncTime: State<String>? = null
+    recentSyncTime: State<String>? = null,
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -406,11 +409,15 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
 @Composable
 private fun SyncContent(
     snackBarHostState: SnackbarHostState,
-    recentSyncTime: State<String>
+    recentSyncTime: State<String>,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val rotatingState = rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(recentSyncTime.value) {
+        rotatingState.value = false
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -421,6 +428,7 @@ private fun SyncContent(
                 when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
                         SynchronizationWorker.runImmediately(context)
+                        rotatingState.value = true
                     }
 
                     CONNECTED_DATA -> {
@@ -429,7 +437,8 @@ private fun SyncContent(
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
-                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button)
+                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button),
+                            rotatingState = rotatingState,
                         )
                     }
 
@@ -445,7 +454,8 @@ private fun SyncContent(
                 }
             }
         ) {
-            Icon(
+            RotatingButton(
+                rotatingState = rotatingState.value,
                 imageVector = Icons.Default.Sync,
                 contentDescription = stringResource(R.string.my_page_sync_icon_content_description)
             )
@@ -463,7 +473,8 @@ private fun startSnackBar(
     coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
     message: String,
-    actionLabel: String?
+    actionLabel: String?,
+    rotatingState: MutableState<Boolean> = mutableStateOf(false),
 ) {
     coroutineScope.launch {
         val result = snackBarHostState.showSnackbar(
@@ -474,6 +485,7 @@ private fun startSnackBar(
 
         if (result == SnackbarResult.ActionPerformed) {
             SynchronizationWorker.runImmediately(context)
+            rotatingState.value = true
         }
     }
 }
