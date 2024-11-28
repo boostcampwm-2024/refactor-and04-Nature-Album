@@ -7,6 +7,7 @@ enum class PermissionDialogState {
     None,
     Explain,
     GoToSettings,
+    AlarmExplain,
 }
 
 @Composable
@@ -36,6 +37,17 @@ fun PermissionDialogs(
                 },
                 onDismissRequest = { onDismiss() },
                 dialogText = R.string.Home_Screen_permission_go_to_settings,
+            )
+        }
+
+        PermissionDialogState.AlarmExplain -> {
+            MyDialog(
+                onConfirmation = {
+                    onDismiss()
+                    onRequestPermission()
+                },
+                onDismissRequest = { onDismiss() },
+                dialogText = R.string.my_page_permission_alarm_explain,
             )
         }
 

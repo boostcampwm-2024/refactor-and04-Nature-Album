@@ -1,8 +1,13 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -63,6 +69,8 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
+import com.and04.naturealbum.ui.PermissionHandler
+import com.and04.naturealbum.ui.component.PermissionDialogState
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
@@ -168,6 +176,7 @@ fun MyPageScreenContent(
     }
 }
 
+
 @Composable
 private fun MyPageContent(
     modifier: Modifier,
@@ -185,7 +194,18 @@ private fun MyPageContent(
     networkState: State<Int>,
     initializeFriendViewModel: (String) -> Unit,
 ) {
+    val requestPermissionLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {}
+
     val context = LocalContext.current
+    val permissionHandler = remember {
+        PermissionHandler(context = context,
+            allPermissionGranted = {},
+            onRequestPermission = { deniedPermissions ->
+                requestPermissionLauncher.launch(deniedPermissions)
+            },
+            showPermissionExplainDialog = {})
+    }
 
     Column(
         modifier = modifier,
@@ -201,6 +221,8 @@ private fun MyPageContent(
                 val userUid = success.data.userUid
 
                 userUid?.let { initializeFriendViewModel(userUid) }
+
+                permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
 
                 UserProfileContent(
                     uriState = userPhotoUri,
