@@ -81,7 +81,12 @@ class FirebaseInsertService : Service() {
                         uri = uri.toUri()
                     )
 
-                if (label.id == NEW_LABEL) {
+                val serverLabels = fireBaseRepository.getLabels(uid)
+                val serverNoLabel = serverLabels.none{ serverLabel ->
+                    serverLabel.labelName == label.name
+                }
+
+                if (serverNoLabel) {
                     fireBaseRepository
                         .insertLabel(
                             uid = uid,
