@@ -39,7 +39,12 @@ fun NatureAlbumApp(
                 locationHandler = state.locationHandler.value,
                 takePicture = { state.takePicture(takePictureLauncher) },
                 onNavigateToAlbum = { state.navigateToAlbum() },
-                onNavigateToMap = { state.navigateToMap() },
+                onNavigateToMap = {
+                    state.locationHandler.value.getLocation { location ->
+                        state.lastLocation.value = location
+                    }
+                    state.navigateToMap()
+                },
                 onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
@@ -69,7 +74,7 @@ fun NatureAlbumApp(
             LabelSearchScreen(
                 onSelected = { label ->
                     state.selectedLabel.value = label
-                    state.navController.popBackStack()
+                    state.popupBackStack()
                 },
                 savePhotoViewModel = hiltViewModel(viewmodel),
             )
@@ -102,11 +107,11 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen(navigateToHome = { state.navigateToHome() })
+            MyPageScreen(navigateToHome = { state.popupBackStack() })
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen()
+            MapScreen(state.lastLocation.value)
         }
     }
 }

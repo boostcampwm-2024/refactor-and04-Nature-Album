@@ -38,6 +38,12 @@ class PhotoInfoViewModel @Inject constructor(
         }
     }
 
+    fun setAlbumThumbnail(photoDetailId: Int){
+        viewModelScope.launch {
+            roomRepository.updateAlbumPhotoDetailByAlbumId(photoDetailId)
+        }
+    }
+
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
         val coords = "${photoDetail.longitude}%2C${photoDetail.latitude}"
         retrofitRepository.convertCoordsToAddress(coords = coords)

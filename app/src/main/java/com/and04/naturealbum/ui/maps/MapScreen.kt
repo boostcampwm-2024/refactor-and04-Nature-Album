@@ -1,29 +1,48 @@
 package com.and04.naturealbum.ui.maps
 
 import android.annotation.SuppressLint
-import android.graphics.PointF
+import android.location.Location
 import android.view.Gravity
 import android.view.View
-import androidx.annotation.IntRange
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Diversity3
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,13 +51,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -46,52 +67,82 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.component.BottomSheetState
+import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.ui.component.LoadingIcons
 import com.and04.naturealbum.ui.component.PartialBottomSheet
+import com.and04.naturealbum.ui.component.RotatingImageLoading
+import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
-import com.naver.maps.map.clustering.ClusterMarkerInfo
-import com.naver.maps.map.clustering.Clusterer
-import com.naver.maps.map.clustering.DefaultClusterMarkerUpdater
-import com.naver.maps.map.clustering.DefaultLeafMarkerUpdater
-import com.naver.maps.map.clustering.DefaultMarkerManager
-import com.naver.maps.map.clustering.LeafMarkerInfo
-import com.naver.maps.map.clustering.MarkerInfo
-import com.naver.maps.map.overlay.Align
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-private const val LEAF_NODE_SIZE = 1
-
-fun sizeToTint(
-    size: Int,
-    min: Color = Color(10, 0, 0),
-    max: Color = Color(255, 0, 0),
-    @IntRange(from = 1) threshold: Int = 20
-): Int = lerp(min, max, size / threshold.toFloat()).toArgb()
+private const val USER_SELECT_MAX = 4
 
 @SuppressLint("NewApi")
 @Composable
 fun MapScreen(
+    location: Location? = null,
     modifier: Modifier = Modifier,
     viewModel: MapScreenViewModel = hiltViewModel(),
 ) {
-    val photos = viewModel.photos.collectAsStateWithLifecycle()
-    val labels = viewModel.labels.collectAsStateWithLifecycle()
-    val idToPhoto = remember { mutableMapOf<Int, PhotoDetail>() } // id와 PhotoDetail 매핑
+    val friends = viewModel.friends.collectAsStateWithLifecycle()
+    val openDialog = remember { mutableStateOf(false) }
+
+    val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
+    val friendsPhotos = viewModel.friendsPhotos.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+
     val marker = remember { Marker() }
+    var pick by remember { mutableStateOf<PhotoItem?>(null) }
+    val displayPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
+
+    val clusterManagers: List<ClusterManager> = remember {
+        ColorRange.entries.map { colorRange ->
+            ClusterManager(
+                colorRange = colorRange,
+                onMarkerClick = { info ->
+                    Overlay.OnClickListener {
+                        displayPhotos.value = info.tag as List<PhotoItem>
+                        pick = displayPhotos.value
+                            .groupBy { photoItem -> photoItem.label }
+                            .maxBy { (_, photoItems) -> photoItems.size }.value
+                            .maxBy { photoItem -> photoItem.time }
+                        true
+                    }
+                },
+                onClusterChange = { info ->
+                    val changedCluster = info.tag as List<PhotoItem>
+                    if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
+                }
+            )
+        }
+    }
 
     val mapView = remember {
         MapView(context).apply {
             id = R.id.map_view_id
+            getMapAsync { naverMap ->
+                clusterManagers.forEach { cluster ->
+                    cluster.setMap(naverMap)
+                }
+                naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
+                    displayPhotos.value = emptyList()
+                    pick = null
+                }
+                val uiSettings = naverMap.uiSettings
+                uiSettings.logoGravity = Gravity.TOP or Gravity.START
+            }
         }
     }
 
@@ -107,77 +158,25 @@ fun MapScreen(
         }
     }
 
-    var pick by remember { mutableStateOf<PhotoDetail?>(null) }
-    var photoDetailIds by remember { mutableStateOf(listOf<Int>()) }
-    val displayPhotos = remember { mutableStateOf(listOf<PhotoDetail>()) }
-
-    LaunchedEffect(photoDetailIds) {
-        displayPhotos.value = photoDetailIds.map { labelId -> idToPhoto[labelId]!! }
-    }
-
     LaunchedEffect(pick) {
         mapView.getMapAsync { naverMap ->
             marker.map = pick?.let { pick ->
-                imageMarker.loadImage(pick.photoUri)
-                marker.position = LatLng(pick.latitude, pick.longitude)
+                imageMarker.loadImage(pick.uri)
+                marker.position = pick.position
                 naverMap
             }
         }
     }
 
-    val clusterImage = OverlayImage.fromResource(R.drawable.ic_cluster)
+    LaunchedEffect(myPhotos.value) {
+        clusterManagers[0].setPhotoItems(myPhotos.value)
+    }
 
-    val cluster: Clusterer<PhotoKey> = remember {
-        val onClickMarker: (MarkerInfo) -> Overlay.OnClickListener = { info ->
-            Overlay.OnClickListener {
-                photoDetailIds = info.tag as List<Int>
-                pick = photoDetailIds.map { labelId -> idToPhoto.getValue(labelId) }
-                    .groupBy { photoDetail -> photoDetail.labelId }
-                    .maxBy { (_, photos) -> photos.size }.value
-                    .maxBy { photoDetail -> photoDetail.datetime }
-                true
-            }
+    LaunchedEffect(friendsPhotos.value) {
+        clusterManagers.drop(1).forEachIndexed { index, cluster ->
+            cluster.setPhotoItems(friendsPhotos.value.getOrNull(index) ?: emptyList())
         }
-        Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
-            cluster.children.flatMap { node -> node.tag as List<*> }
-        }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
-            override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
-                marker.captionText = info.size.toString()
-                marker.iconTintColor = sizeToTint(info.size)
-                marker.onClickListener = onClickMarker(info)
-            }
-        }).leafMarkerUpdater(object : DefaultLeafMarkerUpdater() {
-            override fun updateLeafMarker(info: LeafMarkerInfo, marker: Marker) {
-                if ((info.tag as List<Int>).contains(pick?.id))
-                    photoDetailIds = info.tag as List<Int>
-                marker.captionText = LEAF_NODE_SIZE.toString()
-                marker.iconTintColor = sizeToTint(LEAF_NODE_SIZE)
-                marker.onClickListener = onClickMarker(info)
-            }
-        }).markerManager(object : DefaultMarkerManager() {
-            override fun createMarker(): Marker {
-                return Marker().apply {
-                    zIndex = -1
-                    icon = clusterImage
-                    isFlat = true
-                    anchor = PointF(0.5f, 0.5f)
-                    setCaptionAligns(Align.Center, Align.Center)
-                    captionTextSize = 24f
-                }
-            }
-        })
-    }.build()
 
-    LaunchedEffect(photos.value) {
-        if (displayPhotos.value.isEmpty()) displayPhotos.value = photos.value
-        photos.value.forEach { photoDetail -> idToPhoto[photoDetail.id] = photoDetail }
-        cluster.addAll(photos.value.associate { photoDetail ->
-            PhotoKey(
-                photoDetail.id, LatLng(photoDetail.latitude, photoDetail.longitude)
-            ) to listOf(photoDetail.id)
-        })
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
@@ -202,8 +201,9 @@ fun MapScreen(
         // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
             lifecycle.removeObserver(observer)
-            cluster.clear()
-            cluster.map = null
+            clusterManagers.forEach { cluster ->
+                cluster.clear()
+            }
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
         }
     }
@@ -211,49 +211,205 @@ fun MapScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
-            mapView.getMapAsync { naverMap ->
-                cluster.map = naverMap
-                naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
-                    displayPhotos.value = photos.value
-                    pick = null
+            mapView.getMapAsync { NaverMap ->
+                location?.let { position ->
+                    val cameraUpdate =
+                        CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
+                    NaverMap.moveCamera(cameraUpdate)
                 }
-                val uiSettings = naverMap.uiSettings
-                uiSettings.logoGravity = Gravity.TOP or Gravity.START
+            }
+        }
+
+        if (UserManager.isSignIn()) {
+            IconButton(
+                onClick = {
+                    viewModel.fetchFriends(UserManager.getUser()!!.uid)
+                    openDialog.value = true
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(48.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Diversity3,
+                    contentDescription = stringResource(R.string.map_show_friend_map)
+                )
             }
         }
 
         PartialBottomSheet(
-            initialState = BottomSheetState.Collapsed,
+            isVisible = displayPhotos.value.isNotEmpty(),
             modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f
         ) {
             PhotoGrid(
                 photos = displayPhotos,
-                labels = labels.value,
                 modifier = modifier,
-                onPhotoClick = { photo -> pick = photo })
+                onPhotoClick = { photo -> pick = photo }
+            )
         }
+    }
+
+    FriendDialog(
+        isOpen = openDialog,
+        friends = friends,
+        onDismiss = { openDialog.value = false },
+        onConfirm = { selectedFriends ->
+            viewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
+            openDialog.value = false
+        }
+    )
+}
+
+@Composable
+fun FriendDialog(
+    isOpen: State<Boolean> = remember { mutableStateOf(true) },
+    friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {},
+    onConfirm: (List<FirebaseFriend>) -> Unit = {}
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    var selectedFriends by remember { mutableStateOf<List<FirebaseFriend>>(emptyList()) }
+    if (isOpen.value) {
+        Dialog(
+            onDismissRequest = { onDismiss() },
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .sizeIn(maxHeight = screenHeight * 0.7f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.map_friend_dialog_title),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = stringResource(R.string.map_friend_dialog_body),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                LazyColumn(
+                    modifier = modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                ) {
+                    items(friends.value) { friend ->
+                        FriendDialogItem(friend = friend,
+                            isSelect = selectedFriends.contains(friend),
+                            onSelect = {
+                                if (selectedFriends.contains(friend)) {
+                                    selectedFriends = selectedFriends.filter { it != friend }
+                                } else if (selectedFriends.size < USER_SELECT_MAX) {
+                                    selectedFriends = selectedFriends + friend
+                                }
+                            })
+                        HorizontalDivider()
+                    }
+                }
+
+                Row(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = { onDismiss() }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_cancel_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.size(8.dp))
+
+                    TextButton(
+                        onClick = { onConfirm(selectedFriends) }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_confirm_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendDialogItem(
+    friend: FirebaseFriend,
+    isSelect: Boolean,
+    modifier: Modifier = Modifier,
+    onSelect: () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            modifier = modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            model = friend.user.photoUrl,
+            contentDescription = friend.user.displayName
+        )
+        Text(
+            modifier = modifier.weight(1f),
+            text = friend.user.email,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Checkbox(
+            checked = isSelect,
+            colors = CheckboxDefaults.colors().copy(
+                uncheckedBoxColor = MaterialTheme.colorScheme.primary,
+                uncheckedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
+            onCheckedChange = { onSelect() }
+        )
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
-    photos: State<List<PhotoDetail>>,
-    labels: List<Label>,
+    photos: State<List<PhotoItem>>,
     columnCount: Int = 3,
     modifier: Modifier = Modifier,
-    onPhotoClick: (PhotoDetail) -> Unit,
+    onPhotoClick: (PhotoItem) -> Unit,
 ) {
-    val labelIdToLabel = labels.associateBy { label -> label.id }
     val groupByLabel = photos
         .value
-        .groupBy { photoDetail -> photoDetail.labelId }
+        .groupBy { photoItem -> photoItem.label }
         .toList()
-        .sortedByDescending { (_, photoDetails) -> photoDetails.size }
-        .map { (labelId, photoDetails) ->
-            labelIdToLabel[labelId]!! to photoDetails.sortedByDescending { photoDetail -> photoDetail.datetime }
-        }
+        .sortedByDescending { (_, photoItem) -> photoItem.size }
 
     LazyColumn(
         modifier = modifier,
@@ -261,7 +417,7 @@ fun PhotoGrid(
     ) {
         groupByLabel.forEach { (label, photos) ->
             stickyHeader {
-                val backgroundColor = label.backgroundColor.toColor()
+                val backgroundColor = label.color.toColor()
                 SuggestionChip(
                     onClick = {},
                     label = { Text(text = label.name) },
@@ -278,9 +434,9 @@ fun PhotoGrid(
                     modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     row.forEach { photo ->
-                        AsyncImage(
-                            model = photo.photoUri,
-                            contentDescription = photo.description, // TODO: 해당 description 무엇으로 할지 확정
+                        SubcomposeAsyncImage(
+                            model = photo.uri,
+                            contentDescription = photo.label.name,
                             modifier = Modifier
                                 .wrapContentSize(Alignment.Center)
                                 .aspectRatio(1f)
@@ -288,7 +444,17 @@ fun PhotoGrid(
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable { onPhotoClick(photo) },
                             contentScale = ContentScale.Crop,
-                        )
+                        ) {
+                            val state by painter.state.collectAsState()
+                            if (state is AsyncImagePainter.State.Success) {
+                                SubcomposeAsyncImageContent()
+                            } else {
+                                RotatingImageLoading(
+                                    drawableRes = LoadingIcons.entries.random().id,
+                                    stringRes = null,
+                                )
+                            }
+                        }
                     }
                     repeat(columnCount - row.size) {
                         Box(modifier = Modifier.weight(1f))

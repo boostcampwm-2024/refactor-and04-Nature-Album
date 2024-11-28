@@ -26,6 +26,7 @@ interface DataRepository {
     suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun insertLabel(label: Label): Long
     suspend fun updateAlbum(album: Album)
+    suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int)
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -87,5 +88,9 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun updateAlbum(album: Album) {
         return albumDao.updateAlbum(album)
+    }
+
+    override suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int) {
+        return albumDao.updateAlbumPhotoDetailByAlbumId(photoDetailId)
     }
 }

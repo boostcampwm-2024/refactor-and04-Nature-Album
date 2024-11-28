@@ -33,9 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
@@ -80,7 +80,8 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPageSearch(
-    userWithStatusList: List<FirestoreUserWithStatus>,
+    onSearchQueryChange: (String) -> Unit,
+    userWithStatusList: Map<String, FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
 ) {
@@ -90,6 +91,14 @@ fun MyPageSearch(
     Column(
         Modifier.fillMaxSize()
     ) {
+
+        // TODO: 키보드 올라왔을 때 검색 결과 부분까지 위로 올라가는 것 필요
+        RequestedList(
+            userWithStatusList = userWithStatusList,
+            currentUid = currentUid,
+            sendFriendRequest = sendFriendRequest
+        )
+
         SearchBar(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally),
@@ -108,14 +117,14 @@ fun MyPageSearch(
                             contentDescription = stringResource(R.string.my_page_search_bar_search_icon)
                         )
                     },
-                    onQueryChange = { textField ->
-                        textFieldState = textField
-                    }
+                    onQueryChange = { query ->
+                        textFieldState = query
+                        onSearchQueryChange(query) // 검색 쿼리 변경 시 호출
+                    },
                 )
             },
-            expanded = expanded,
-            onExpandedChange = { expandedChange ->
-                expanded = expandedChange
+            expanded = false,
+            onExpandedChange = {
             },
         ) {
             // 검색 결과 리스트
@@ -126,30 +135,24 @@ fun MyPageSearch(
             )
         }
 
-        // 요청된 친구 리스트
-        RequestedList(
-            userWithStatusList = userWithStatusList,
-            currentUid = currentUid,
-            sendFriendRequest = sendFriendRequest
-        )
     }
 }
 
 @Composable
 fun RequestedList(
-    userWithStatusList: List<FirestoreUserWithStatus>,
+    userWithStatusList: Map<String, FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
 ) {
     LazyColumn {
-        items(
-            items = userWithStatusList,
-            key = { myFriend -> myFriend.user.email }) { userWithStatus ->
-            RequestedItem(
-                userWithStatus = userWithStatus,
-                currentUid = currentUid,
-                sendFriendRequest = sendFriendRequest
-            )
+        userWithStatusList.forEach { (uid, userWithStatus) ->
+            item(key = uid) {
+                RequestedItem(
+                    userWithStatus = userWithStatus,
+                    currentUid = currentUid,
+                    sendFriendRequest = sendFriendRequest
+                )
+            }
         }
     }
 }
@@ -164,61 +167,65 @@ fun RequestedItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                model = userWithStatus.user.photoUrl,
-                contentDescription = stringResource(R.string.my_page_user_profile_image),
-            )
 
-            Text(text = userWithStatus.user.email)
-        }
-
-
-        SuggestionChip(
-            onClick = {
-                if (userWithStatus.status == FriendStatus.NORMAL) {
-                    sendFriendRequest(currentUid, userWithStatus.user.uid)
-                }
-            },
-            label = {
-                val text = when (userWithStatus.status) {
-                    // 현재 uid 기준 상대방에게 [SENT: 요청 보낸 상태, RECEIVED: 요청 받은 상태, FRIEND: 친구 상태]
-                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
-                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
-                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
-                    else -> stringResource(R.string.my_page_friend_request)
-                }
-                Text(text = text)
-            },
-            colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = when (userWithStatus.status) {
-                    FriendStatus.SENT -> Color.LightGray
-                    FriendStatus.RECEIVED -> Color.Cyan
-                    FriendStatus.FRIEND -> Color.Green
-                    else -> MaterialTheme.colorScheme.primary
-                },
-                labelColor = when (userWithStatus.status) {
-                    FriendStatus.SENT -> Color.Black
-                    FriendStatus.RECEIVED -> Color.White
-                    FriendStatus.FRIEND -> Color.White
-                    else -> Color.White
-                }
-            )
+        AsyncImage(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            model = userWithStatus.user.photoUrl,
+            contentDescription = stringResource(R.string.my_page_user_profile_image),
         )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+
+            Text(
+                text = userWithStatus.user.email,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            SuggestionChip(
+                onClick = {
+                    if (userWithStatus.status == FriendStatus.NORMAL) {
+                        sendFriendRequest(currentUid, userWithStatus.user.uid)
+                    }
+                },
+                enabled = userWithStatus.status == FriendStatus.NORMAL,
+                label = {
+                    val text = when (userWithStatus.status) {
+                        FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
+                        FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
+                        FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
+                        else -> stringResource(R.string.my_page_friend_request)
+                    }
+                    Text(text = text)
+                },
+                colors = SuggestionChipDefaults.suggestionChipColors(
+                    containerColor = when (userWithStatus.status) {
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.secondary
+                    },
+                    labelColor = when (userWithStatus.status) {
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.onPrimary
+                        else -> MaterialTheme.colorScheme.onSecondary
+                    }
+                )
+            )
+        }
     }
 
     HorizontalDivider(thickness = 1.dp)
 }
+
 
 @Composable
 fun MyPageAlarm(
@@ -228,18 +235,24 @@ fun MyPageAlarm(
     currentUid: String,
 ) {
     LazyColumn {
-        items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
+        items(
+            items = myAlarms,
+            key = { friendRequest -> friendRequest.user.email }) { friendRequest ->
             MyPageAlarmItem(
-                myFriend = myFriend,
-                onAccept = { acceptFriendRequest(currentUid, myFriend.user.uid) },
-                onDenied = { rejectFriendRequest(currentUid, myFriend.user.uid) }
+                friendRequest = friendRequest,
+                onAccept = { acceptFriendRequest(currentUid, friendRequest.user.uid) },
+                onDenied = { rejectFriendRequest(currentUid, friendRequest.user.uid) }
             )
         }
     }
 }
 
 @Composable
-fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarmItem(
+    friendRequest: FirebaseFriendRequest,
+    onDenied: () -> Unit,
+    onAccept: () -> Unit
+) {
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -254,11 +267,11 @@ fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAcc
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = myFriend.user.photoUrl,
+                model = friendRequest.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = "${myFriend.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
+            Text(text = "${friendRequest.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
         }
 
         Row(

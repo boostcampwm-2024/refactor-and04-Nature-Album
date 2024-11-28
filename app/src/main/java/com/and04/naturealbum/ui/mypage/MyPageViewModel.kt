@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.datastore.DataStoreManager.Companion.NEVER_SYNC
-import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +30,6 @@ class MyPageViewModel @Inject constructor(
 
     private val _progressState = MutableStateFlow(false)
     val progressState: StateFlow<Boolean> = _progressState
-
-    private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
-    val myFriend: StateFlow<List<MyFriend>> = _myFriends
 
     val recentSyncTime: StateFlow<String> = syncDataStore.syncTime.stateIn(
         scope = viewModelScope,
@@ -77,7 +73,6 @@ class MyPageViewModel @Inject constructor(
     fun setProgressState(state: Boolean) {
         _progressState.value = state
     }
-
 
     private fun getUserInfoUiState(): UiState.Success<UserInfo> {
         val user = UserManager.getUser()
