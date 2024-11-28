@@ -5,11 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.datastore.DataStoreManager.Companion.NEVER_SYNC
-import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +24,6 @@ class MyPageViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState
-
-    private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
-    val myFriend: StateFlow<List<MyFriend>> = _myFriends
 
     val recentSyncTime: StateFlow<String> = syncDataStore.syncTime.stateIn(
         scope = viewModelScope,
@@ -47,7 +42,6 @@ class MyPageViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-
 
     private fun getUserInfoUiState(): UiState.Success<UserInfo> {
         val user = UserManager.getUser()

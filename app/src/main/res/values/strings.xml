@@ -85,6 +85,9 @@
     <string name="my_page_snackbar_confirm_button">확인</string>
     <string name="my_page_snackbar_network_state_data_keep_going">WIFI 상태가 아닙니다. 계속 진행하시겠습니까?</string>
     <string name="my_page_snackbar_network_state_disconnect">네트워크가 끊겼습니다.</string>
+    <string name="my_page_no_network_social_content_message">친구 기능은 네트워크가 연결되어야 사용할 수 있습니다.</string>
+    <string name="my_page_no_network_social_content_icon_description">네트워크가 없어서 나오는 아이콘 표시</string>
+    <string name="my_page_permission_alarm_explain">친구 요청을 알림으로 받기 위해 필요한 권한 요청입니다. 친구 요청이 올 때 알림을 원하신다면 허용해주세요.</string>
 
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
@@ -92,5 +95,11 @@
 
     <!-- service -->
     <string name="service_analyze_hazard_fail">유해성 검사에 실패했습니다.</string>
+
+    <!-- Notification -->
+    <string name="notification_default_title">알림 제목 없음</string>
+    <string name="notification_default_body">알림 내용 없음</string>
+    <string name="notification_channel_name">Nature Album</string>
+    <string name="my_page_login_no_network_message">로그인 하려면 네트워크 연결해주세요</string>
 
 </resources>

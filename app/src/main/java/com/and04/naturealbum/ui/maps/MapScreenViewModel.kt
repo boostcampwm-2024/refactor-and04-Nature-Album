@@ -54,12 +54,8 @@ class MapScreenViewModel @Inject constructor(
 
     fun fetchFriends(uid: String) {
         viewModelScope.launch {
-            try {
-                val friends = fireBaseRepository.getFriends(uid)
+            fireBaseRepository.getFriendsAsFlow(uid).collect { friends ->
                 _friends.value = friends
-                Log.d("FriendViewModel", "친구 목록: ${_friends.value}")
-            } catch (e: Exception) {
-                Log.d("FriendViewModel", e.toString())
             }
         }
     }

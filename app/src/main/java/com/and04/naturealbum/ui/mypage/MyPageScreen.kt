@@ -3,6 +3,9 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,12 +16,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,7 +39,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -46,7 +50,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +68,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
+import com.and04.naturealbum.ui.PermissionHandler
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
@@ -71,6 +78,7 @@ import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
 import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import com.and04.naturealbum.utils.NetworkViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -83,28 +91,30 @@ fun MyPageScreen(
     navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
     friendViewModel: FriendViewModel = hiltViewModel(),
+    networkViewModel: NetworkViewModel = hiltViewModel(),
 ) {
+    val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
-    val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
+    val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
-        allUsersInfoState = allUsersInfo,
+        searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
-        fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
-        fetchFriends = friendViewModel::fetchFriends,
-        fetchAllUsersInfo = friendViewModel::fetchAllUsersInfo,
         sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
-        recentSyncTime = recentSyncTime
+        onSearchQueryChange = friendViewModel::updateSearchQuery,
+        recentSyncTime = recentSyncTime,
+        networkState = networkState,
+        initializeFriendViewModel = friendViewModel::initialize
     )
 }
 
@@ -114,15 +124,15 @@ fun MyPageScreenContent(
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
     signInWithGoogle: (Context) -> Unit,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    recentSyncTime: State<String>
+    recentSyncTime: State<String>,
+    networkState: State<Int>,
+    initializeFriendViewModel: (String) -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -148,19 +158,20 @@ fun MyPageScreenContent(
             uiState = uiState,
             myFriendsState = myFriendsState,
             friendRequestsState = friendRequestsState,
-            allUsersInfoState = allUsersInfoState,
             recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
-            fetchReceivedFriendRequests = fetchReceivedFriendRequests,
-            fetchFriends = fetchFriends,
-            fetchAllUsersInfo = fetchAllUsersInfo,
             sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
-            snackBarHostState = snackBarHostState
+            searchResults = searchResults,
+            onSearchQueryChange = onSearchQueryChange,
+            snackBarHostState = snackBarHostState,
+            networkState = networkState,
+            initializeFriendViewModel = initializeFriendViewModel,
         )
     }
 }
+
 
 @Composable
 private fun MyPageContent(
@@ -168,18 +179,29 @@ private fun MyPageContent(
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
     signInWithGoogle: (Context) -> Unit,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
     recentSyncTime: State<String>,
-    snackBarHostState: SnackbarHostState
+    snackBarHostState: SnackbarHostState,
+    networkState: State<Int>,
+    initializeFriendViewModel: (String) -> Unit,
 ) {
+    val requestPermissionLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {}
+
     val context = LocalContext.current
+    val permissionHandler = remember {
+        PermissionHandler(context = context,
+            allPermissionGranted = {},
+            onRequestPermission = { deniedPermissions ->
+                requestPermissionLauncher.launch(deniedPermissions)
+            },
+            showPermissionExplainDialog = {})
+    }
 
     Column(
         modifier = modifier,
@@ -194,32 +216,39 @@ private fun MyPageContent(
                 val userDisplayName = success.data.userDisplayName
                 val userUid = success.data.userUid
 
+                userUid?.let { initializeFriendViewModel(userUid) }
+
+                permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
+
                 UserProfileContent(
                     uriState = userPhotoUri,
                     emailState = userEmail,
                     displayNameState = userDisplayName,
                     snackBarHostState = snackBarHostState,
-                    recentSyncTime = recentSyncTime
+                    recentSyncTime = recentSyncTime,
+                    networkState = networkState,
                 )
 
-                SocialContent(
-                    modifier = Modifier.weight(1f),
-                    userUidState = userUid,
-                    myFriendsState = myFriendsState,
-                    friendRequestsState = friendRequestsState,
-                    allUsersInfoState = allUsersInfoState,
-                    fetchReceivedFriendRequests = fetchReceivedFriendRequests,
-                    fetchFriends = fetchFriends,
-                    fetchAllUsersInfo = fetchAllUsersInfo,
-                    sendFriendRequest = sendFriendRequest,
-                    acceptFriendRequest = acceptFriendRequest,
-                    rejectFriendRequest = rejectFriendRequest,
-                )
+                if (networkState.value == DISCONNECTED) {
+                    NoNetworkSocialContent()
+                } else {
+                    SocialContent(
+                        modifier = Modifier.weight(1f),
+                        userUidState = userUid,
+                        myFriendsState = myFriendsState,
+                        friendRequestsState = friendRequestsState,
+                        sendFriendRequest = sendFriendRequest,
+                        acceptFriendRequest = acceptFriendRequest,
+                        rejectFriendRequest = rejectFriendRequest,
+                        searchResults = searchResults,
+                        onSearchQueryChange = onSearchQueryChange,
+                    )
+                }
             }
 
             else -> {
                 // 비회원일 때
-                UserProfileContent(null, null, null)
+                UserProfileContent()
                 LoginContent { signInWithGoogle(context) }
             }
         }
@@ -227,12 +256,37 @@ private fun MyPageContent(
 }
 
 @Composable
+private fun NoNetworkSocialContent() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Image(
+            imageVector = Icons.Default.WifiOff,
+            contentDescription = stringResource(R.string.my_page_no_network_social_content_icon_description),
+            modifier = Modifier
+                .size(48.dp)
+                .padding(bottom = 16.dp)
+        )
+        Text(
+            text = stringResource(R.string.my_page_no_network_social_content_message),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+    }
+}
+
+
+@Composable
 private fun UserProfileContent(
-    uriState: String?,
-    emailState: String?,
-    displayNameState: String?,
+    uriState: String? = null,
+    emailState: String? = null,
+    displayNameState: String? = null,
     snackBarHostState: SnackbarHostState? = null,
-    recentSyncTime: State<String>? = null
+    recentSyncTime: State<String>? = null,
+    networkState: State<Int>? = null,
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -262,7 +316,7 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
 
-        if (snackBarHostState != null) {
+        if (snackBarHostState != null && networkState?.value != DISCONNECTED) {
             SyncContent(
                 snackBarHostState = snackBarHostState,
                 recentSyncTime = recentSyncTime!!
@@ -293,13 +347,24 @@ private fun LoginContent(loginHandle: () -> Unit) {
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        val context = LocalContext.current
         Text(
             text = stringResource(R.string.my_page_login_txt),
             textAlign = TextAlign.Left
         )
 
         Button(
-            onClick = { loginHandle() },
+            onClick = {
+                if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.my_page_login_no_network_message),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    loginHandle()
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(30)
         ) {
@@ -315,18 +380,17 @@ private fun SocialContent(
     userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    allUsersInfoState: State<List<FirestoreUserWithStatus>>,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
-    fetchAllUsersInfo: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
+    onSearchQueryChange: (String) -> Unit,
 ) {
     val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
-    val allUsersInfo = allUsersInfoState.value
+    val friendRequestsCount = friendRequests.size
+    val searchResultsList = searchResults.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
@@ -336,22 +400,13 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_alarm)
     )
 
-    LaunchedEffect(Unit) {
-        fetchFriends(currentUid)
-    }
-
     Column(
         modifier = modifier
     ) {
         PrimaryTabRow(selectedTabIndex = tabState) {
             titles.forEachIndexed { index, title ->
-                MyPageCustomTab(tabState, index, title) {
+                MyPageCustomTab(tabState, index, title, friendRequestsCount) {
                     tabState = index
-                    when (index) {
-                        SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
-                        SOCIAL_SEARCH_TAB_INDEX -> fetchAllUsersInfo(currentUid)
-                        SOCIAL_ALARM_TAB_INDEX -> fetchReceivedFriendRequests(currentUid)
-                    }
                 }
             }
         }
@@ -359,25 +414,30 @@ private fun SocialContent(
         when (tabState) {
             SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
             SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
-                allUsersInfo,
-                currentUid,
-                sendFriendRequest
+                userWithStatusList = searchResultsList,
+                currentUid = currentUid,
+                sendFriendRequest = sendFriendRequest,
+                onSearchQueryChange = onSearchQueryChange
             )
 
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
-                friendRequests,
-                acceptFriendRequest,
-                rejectFriendRequest,
-                currentUid
+                myAlarms = friendRequests,
+                acceptFriendRequest = acceptFriendRequest,
+                rejectFriendRequest = rejectFriendRequest,
+                currentUid = currentUid
             )
         }
     }
 }
 
 @Composable
-private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: () -> Unit) {
-    val itemCount by remember { mutableIntStateOf(5) } // TODO : FIREBASE 알람 개수
-
+private fun MyPageCustomTab(
+    tabState: Int,
+    index: Int,
+    title: String,
+    friendRequestsCount: Int,
+    onClick: () -> Unit
+) {
     Tab(
         selected = tabState == index,
         onClick = onClick,
@@ -388,13 +448,13 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
                 )
 
                 Box {
-                    if (index == SOCIAL_ALARM_TAB_INDEX && itemCount > 0) {
+                    if (index == SOCIAL_ALARM_TAB_INDEX && friendRequestsCount > 0) {
                         Badge(
                             modifier = Modifier.padding(start = 8.dp),
                             containerColor = Color.Red,
                             contentColor = Color.White
                         ) {
-                            Text("$itemCount")
+                            Text("$friendRequestsCount")
                         }
                     }
                 }
