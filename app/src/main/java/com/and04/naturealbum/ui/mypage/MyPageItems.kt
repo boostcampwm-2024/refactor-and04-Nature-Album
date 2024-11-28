@@ -212,16 +212,12 @@ fun RequestedItem(
                 },
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = when (userWithStatus.status) {
-                        FriendStatus.SENT -> Color.LightGray
-                        FriendStatus.RECEIVED -> Color.Cyan
-                        FriendStatus.FRIEND -> Color.Green
-                        else -> MaterialTheme.colorScheme.primary
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.secondary
                     },
                     labelColor = when (userWithStatus.status) {
-                        FriendStatus.SENT -> Color.Black
-                        FriendStatus.RECEIVED -> Color.White
-                        FriendStatus.FRIEND -> Color.White
-                        else -> Color.White
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.onPrimary
+                        else -> MaterialTheme.colorScheme.onSecondary
                     }
                 )
             )
