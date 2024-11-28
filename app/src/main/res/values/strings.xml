@@ -88,4 +88,7 @@
     <!-- service -->
     <string name="service_analyze_hazard_fail">유해성 검사에 실패했습니다.</string>
 
+    <!-- component -->
+    <string name="rotating_icon_button">rotating_image</string>
+
 </resources>

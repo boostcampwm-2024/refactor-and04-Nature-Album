@@ -30,7 +30,7 @@ fun RotatingButton(
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1000),
         ),
-        label = "rotating_image"
+        label = stringResource(R.string.rotating_icon_button)
     )
     if (rotatingState) {
         Icon(
