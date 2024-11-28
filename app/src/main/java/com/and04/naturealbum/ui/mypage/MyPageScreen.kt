@@ -3,6 +3,7 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -344,13 +345,24 @@ private fun LoginContent(loginHandle: () -> Unit) {
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        val context = LocalContext.current
         Text(
             text = stringResource(R.string.my_page_login_txt),
             textAlign = TextAlign.Left
         )
 
         Button(
-            onClick = { loginHandle() },
+            onClick = {
+                if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.my_page_login_no_network_message),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    loginHandle()
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(30)
         ) {
