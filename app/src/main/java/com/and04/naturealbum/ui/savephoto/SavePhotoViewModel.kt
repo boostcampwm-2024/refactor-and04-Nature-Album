@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -60,6 +59,7 @@ class SavePhotoViewModel @Inject constructor(
         location: Location,
         description: String,
         isRepresented: Boolean,
+        time: LocalDateTime
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
 
@@ -79,8 +79,8 @@ class SavePhotoViewModel @Inject constructor(
                             latitude = location.latitude,
                             longitude = location.longitude,
                             description = description,
-                            datetime = LocalDateTime.now(ZoneId.of("UTC")),
                             hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED,
+                            datetime = time,
                         )
                     )
                 }

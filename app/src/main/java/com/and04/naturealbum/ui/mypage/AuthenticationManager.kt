@@ -8,6 +8,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.and04.naturealbum.BuildConfig
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -38,7 +39,7 @@ class AuthenticationManager @Inject constructor(
             val credential = getCredential(context)
             val firebaseCredential = getFirebaseCredential(credential) ?: return@callbackFlow
 
-            handleFirebaseSignIn(firebaseCredential) { authResponse ->
+            handleFirebaseSignIn(context, firebaseCredential) { authResponse ->
                 trySend(authResponse)
             }
 
@@ -89,6 +90,7 @@ class AuthenticationManager @Inject constructor(
     }
 
     private fun handleFirebaseSignIn(
+        context: Context,
         firebaseCredential: AuthCredential,
         trySend: (AuthResponse) -> Unit,
     ) {
@@ -138,6 +140,8 @@ class AuthenticationManager @Inject constructor(
                     Log.e("FirebaseSignIn", "User not authenticated")
                     trySend(AuthResponse.Error("User not authenticated"))
                 }
+                getUserToken { authResponse -> trySend(authResponse) }
+                SynchronizationWorker.runSync(context)
             }
             .addOnFailureListener { failureResult ->
                 Log.e("FirebaseSignIn", "Sign-in failed: ${failureResult.message}")
