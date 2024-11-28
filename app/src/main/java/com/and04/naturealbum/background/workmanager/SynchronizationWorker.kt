@@ -140,6 +140,12 @@ class SynchronizationWorker @AssistedInject constructor(
                 val labels = fireBaseRepository.getLabels(uid)
                 val allLocalLabels = roomRepository.getSyncCheckAlbums()
 
+                val duplicationLabels = allLocalLabels.filter { label ->
+                    labels.any { firebaseLabel ->
+                        isUnSyncLabel(label, firebaseLabel)
+                    }
+                }
+
                 val unSynchronizedLabelsToServer = allLocalLabels.filter { label ->
                     labels.none { firebaseLabel ->
                         firebaseLabel.labelName == label.labelName
@@ -149,6 +155,12 @@ class SynchronizationWorker @AssistedInject constructor(
                 val unSynchronizedLabelsToLocal = labels.filter { label ->
                     allLocalLabels.none { localLabel ->
                         localLabel.labelName == label.labelName
+                    }
+                }
+
+                duplicationLabels.forEach { duplicationLabel ->
+                    launch {
+                        insertLabelToServer(uid, duplicationLabel)
                     }
                 }
 
@@ -270,7 +282,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
     private suspend fun insertPhotoDetail(uid: String, photo: SyncPhotoDetailsDto) {
         //TODO 유해성 검사
-        
+
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,
@@ -307,10 +319,10 @@ class SynchronizationWorker @AssistedInject constructor(
                 latitude = photo.latitude ?: 0.0, //FIXME 위치 NULL 해결 되면 삭제
                 longitude = photo.longitude ?: 0.0,
                 description = photo.description,
-                datetime = LocalDateTime
-                    .parse(photo.datetime, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .atZone(ZoneId.of("UTC"))
-                    .withZoneSameInstant(ZoneId.systemDefault())
+                datetime = LocalDateTime.parse(
+                    photo.datetime,
+                    DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                ).atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.systemDefault())
                     .toLocalDateTime(),
                 hazardCheckResult = HazardAnalyzeStatus.PASS
             )
@@ -350,5 +362,11 @@ class SynchronizationWorker @AssistedInject constructor(
             "${context.packageName}.fileprovider",
             imageFile
         ).toString()
+    }
+
+    private fun isUnSyncLabel(label: SyncAlbumsDto, firebaseLabel: FirebaseLabelResponse): Boolean {
+        return (firebaseLabel.labelName == label.labelName) &&
+                ((firebaseLabel.fileName != label.fileName)
+                        || (firebaseLabel.backgroundColor != label.labelBackgroundColor))
     }
 }
