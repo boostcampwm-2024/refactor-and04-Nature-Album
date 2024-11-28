@@ -72,6 +72,7 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.ui.component.LoadingIcons
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.mypage.UserManager
@@ -449,8 +450,8 @@ fun PhotoGrid(
                                 SubcomposeAsyncImageContent()
                             } else {
                                 RotatingImageLoading(
-                                    drawableRes = R.drawable.fish_loading_image,
-                                    stringRes = null
+                                    drawableRes = LoadingIcons.entries.random().id,
+                                    stringRes = null,
                                 )
                             }
                         }
