@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,10 +68,13 @@ import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.NetworkManager
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
 import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import com.and04.naturealbum.utils.NetworkViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -82,7 +87,9 @@ fun MyPageScreen(
     navigateToHome: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
     friendViewModel: FriendViewModel = hiltViewModel(),
+    networkViewModel: NetworkViewModel = hiltViewModel(),
 ) {
+    val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     val uiState = myPageViewModel.uiState.collectAsStateWithLifecycle()
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
     val receivedFriendRequests =
@@ -101,7 +108,8 @@ fun MyPageScreen(
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
         onSearchQueryChange = friendViewModel::updateSearchQuery,
-        recentSyncTime = recentSyncTime
+        recentSyncTime = recentSyncTime,
+        networkState = networkState,
     )
 }
 
@@ -117,7 +125,8 @@ fun MyPageScreenContent(
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    recentSyncTime: State<String>
+    recentSyncTime: State<String>,
+    networkState: State<Int>,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -151,6 +160,7 @@ fun MyPageScreenContent(
             searchResults = searchResults,
             onSearchQueryChange = onSearchQueryChange,
             snackBarHostState = snackBarHostState,
+            networkState = networkState,
         )
     }
 }
@@ -169,6 +179,7 @@ private fun MyPageContent(
     onSearchQueryChange: (String) -> Unit,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
+    networkState: State<Int>,
 ) {
     val context = LocalContext.current
 
@@ -191,23 +202,29 @@ private fun MyPageContent(
                     displayNameState = userDisplayName,
                     snackBarHostState = snackBarHostState,
                     recentSyncTime = recentSyncTime,
+                    networkState = networkState,
                 )
-                SocialContent(
-                    modifier = Modifier.weight(1f),
-                    userUidState = userUid,
-                    myFriendsState = myFriendsState,
-                    friendRequestsState = friendRequestsState,
-                    sendFriendRequest = sendFriendRequest,
-                    acceptFriendRequest = acceptFriendRequest,
-                    rejectFriendRequest = rejectFriendRequest,
-                    searchResults = searchResults,
-                    onSearchQueryChange = onSearchQueryChange,
-                )
+
+                if (networkState.value == DISCONNECTED) {
+                    NoNetworkSocialContent()
+                } else {
+                    SocialContent(
+                        modifier = Modifier.weight(1f),
+                        userUidState = userUid,
+                        myFriendsState = myFriendsState,
+                        friendRequestsState = friendRequestsState,
+                        sendFriendRequest = sendFriendRequest,
+                        acceptFriendRequest = acceptFriendRequest,
+                        rejectFriendRequest = rejectFriendRequest,
+                        searchResults = searchResults,
+                        onSearchQueryChange = onSearchQueryChange,
+                    )
+                }
             }
 
             else -> {
                 // 비회원일 때
-                UserProfileContent(null, null, null)
+                UserProfileContent(null, null, null, null, null, null)
                 LoginContent { signInWithGoogle(context) }
             }
         }
@@ -215,12 +232,37 @@ private fun MyPageContent(
 }
 
 @Composable
+private fun NoNetworkSocialContent() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_wifi_off_24dp_5f6368_fill0_wght400_grad0_opsz24),
+            contentDescription = stringResource(R.string.my_page_no_network_social_content_icon_description),
+            modifier = Modifier
+                .size(48.dp)
+                .padding(bottom = 16.dp)
+        )
+        Text(
+            text = stringResource(R.string.my_page_no_network_social_content_message),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+    }
+}
+
+
+@Composable
 private fun UserProfileContent(
     uriState: String?,
     emailState: String?,
     displayNameState: String?,
     snackBarHostState: SnackbarHostState? = null,
-    recentSyncTime: State<String>? = null
+    recentSyncTime: State<String>? = null,
+    networkState: State<Int>?,
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -250,7 +292,7 @@ private fun UserProfileContent(
             textAlign = TextAlign.Center
         )
 
-        if (snackBarHostState != null) {
+        if (snackBarHostState != null && networkState?.value != DISCONNECTED) {
             SyncContent(
                 snackBarHostState = snackBarHostState,
                 recentSyncTime = recentSyncTime!!
