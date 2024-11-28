@@ -263,19 +263,19 @@ class SynchronizationWorker @AssistedInject constructor(
         val findAlbumData = valueList.find { value -> value.second == photo.fileName }
         val uri = makeFileToUri(photo.uri, photo.fileName)
 
-        if (findAlbumData != null) {
-            val labelId = findAlbumData.first
-            val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
 
-            if (photoDetailId != -1) {
-                insertAlbum(labelId, photoDetailId)
-            } else {
-                // 반환값이 -1 => 사용자가 직접 삭제한 이미지 => insert X
-            }
+        val labelId = findAlbumData?.first
+            ?: fileNameToLabelUid[photo.label]?.first
+            ?: roomRepository.getIdByName(photo.label)!!
+
+        val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
+        if (isDeletedImage) {
+            deletServerPhoto(photo, labelId)
         } else {
-            val labelId =
-                fileNameToLabelUid[photo.label]?.first ?: roomRepository.getIdByName(photo.label)!!
-            insertPhotoDetailToLocal(photo, labelId, uri)
+            val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
+            if (findAlbumData != null) {
+                insertAlbum(labelId, photoDetailId)
+            }
         }
     }
 
@@ -327,11 +327,6 @@ class SynchronizationWorker @AssistedInject constructor(
         labelId: Int,
         uri: String,
     ): Int {
-        val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
-        if (isDeletedImage) {
-            deletServerPhoto(photo, labelId)
-            return -1
-        }
         return roomRepository.insertPhoto(
             PhotoDetail(
                 labelId = labelId,
