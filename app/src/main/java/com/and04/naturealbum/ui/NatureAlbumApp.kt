@@ -3,15 +3,8 @@ package com.and04.naturealbum.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.and04.naturealbum.ui.album.AlbumScreen
@@ -53,7 +46,7 @@ fun NatureAlbumApp(
 
         composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
             val viewmodel = remember(backStackEntry) {
-                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+                state.getNavBackStackEntry()
             }
             SavePhotoScreen(
                 location = state.lastLocation.value,
@@ -70,13 +63,13 @@ fun NatureAlbumApp(
 
         composable(NavigateDestination.SearchLabel.route) { backStackEntry ->
             val viewmodel = remember(backStackEntry) {
-                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+                state.getNavBackStackEntry()
             }
 
             LabelSearchScreen(
                 onSelected = { label ->
-                    selectedLabel = label
-                    navController.popBackStack()
+                    state.selectedLabel.value = label
+                    state.navController.popBackStack()
                 },
                 savePhotoViewModel = hiltViewModel(viewmodel),
             )

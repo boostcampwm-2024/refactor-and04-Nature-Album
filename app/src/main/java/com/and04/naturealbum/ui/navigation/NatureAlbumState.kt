@@ -61,7 +61,11 @@ class NatureAlbumState(
         fileName.value = "temp_${System.currentTimeMillis()}.jpg"
         imageFile.value = File(context.filesDir, fileName.value)
         imageUri.value =
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile.value!!)
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                imageFile.value!!
+            )
 
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
             putExtra(MediaStore.EXTRA_OUTPUT, imageUri.value)
@@ -72,6 +76,9 @@ class NatureAlbumState(
             }
         }
     }
+
+    fun getNavBackStackEntry() =
+        navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
 
     fun navigateToAlbum() = navController.navigate(NavigateDestination.Album.route)
 
@@ -119,7 +126,7 @@ fun rememberNatureAlbumState(
             ).apply {
                 imageUri.value = Uri.parse(restoredMap["imageUri"] as String)
                 fileName.value = restoredMap["fileName"] as String
-                lastLocation.value = restoredMap["lastLocation"] as Location
+                lastLocation.value = restoredMap["lastLocation"] as Location?
             }
         }
     )
