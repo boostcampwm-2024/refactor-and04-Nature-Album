@@ -27,11 +27,30 @@ import javax.inject.Inject
 class SavePhotoViewModel @Inject constructor(
     private val repository: DataRepository,
 ) : ViewModel() {
-    private val _geminiApiUiState = MutableStateFlow<UiState<String>>(UiState.Idle)
-    val geminiApiUiState: StateFlow<UiState<String>> = _geminiApiUiState
-
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
+
+    private val _uiState = MutableStateFlow<UiState<String>>(UiState.Idle)
+    val uiState: StateFlow<UiState<String>> = _uiState
+
+    fun getGeneratedContent(bitmap: Bitmap?) = viewModelScope.launch {
+        try {
+            bitmap?.let { nonNullBitmap ->
+                _uiState.emit(UiState.Loading)
+                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
+                val content = content {
+                    image(nonNullBitmap)
+                    text(GEMINI_PROMPT)
+                }
+
+                val result = model.generateContent(content)
+                _uiState.emit(UiState.Success(result.text ?: ""))
+            }
+        } catch (e: Exception) {
+            Log.e("Error", e.message.toString())
+            _uiState.emit(UiState.Error(e.message.toString()))
+        }
+    }
 
     fun savePhoto(
         uri: String,
@@ -90,25 +109,9 @@ class SavePhotoViewModel @Inject constructor(
         }
     }
 
-    fun getGeneratedContent(bitmap: Bitmap?) {
-        bitmap?.let { nonNullBitmap ->
-            viewModelScope.launch {
-                _geminiApiUiState.emit(UiState.Loading)
-                val model = Firebase.vertexAI.generativeModel(GEMINI_MODEL)
-                val content = content {
-                    image(nonNullBitmap)
-                    text(GEMINI_PROMPT)
-                }
-
-                val result = model.generateContent(content)
-                _geminiApiUiState.emit(UiState.Success(result.text ?: ""))
-            }
-        }
-    }
-
     companion object {
         private const val GEMINI_MODEL = "gemini-1.5-flash"
         private const val GEMINI_PROMPT =
-            "이 이미지를 보고 어떤 생물인지 생물 도감의 이름(학명 또는 일반명)으로 가장 유사한 하나의 단어를 답해주세요. 학명이 있다면 학명을 우선 사용하세요. 추가 설명은 하지 마세요."
+            "이 이미지를 보고 어떤 생물인지 생물 도감의 이름(학명 또는 일반명)으로 가장 유사한 하나의 단어를 답해주세요. 학명이 있다면 학명을 우선 사용하세요. 추가 설명은 하지 마세요. 한국어를 사용하세요."
     }
 }

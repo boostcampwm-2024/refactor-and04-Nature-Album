@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,9 +59,9 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.PermissionDialogState
+import com.and04.naturealbum.ui.component.PermissionDialogs
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.home.PermissionDialogState
-import com.and04.naturealbum.ui.home.PermissionDialogs
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
@@ -280,7 +279,8 @@ private fun ItemContainer(
             }
         }
 
-        is UiState.Error -> { /* TODO ERROR */ }
+        is UiState.Error -> { /* TODO ERROR */
+        }
     }
 }
 
