@@ -144,12 +144,14 @@ private fun SearchContent(
             onSelected = onSelected,
         )
 
-        GeminiLabelContent(
-            uiState = uiState,
-            labelsState = labelsState,
-            randomColor = randomColor,
-            onSelected = onSelected,
-        )
+//        TODO 추후 시연할 때 주석 해제
+//        GeminiLabelContent(
+//            uiState = uiState,
+//            labelsState = labelsState,
+//            randomColor = randomColor,
+//            onSelected = onSelected,
+//        )
+
 
     }
 }
