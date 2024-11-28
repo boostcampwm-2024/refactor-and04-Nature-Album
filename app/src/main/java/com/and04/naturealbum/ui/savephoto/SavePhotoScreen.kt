@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.background.service.FirebaseInsertService
@@ -65,7 +64,6 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.labelsearch.getRandomColor
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
@@ -89,58 +87,39 @@ fun SavePhotoScreen(
     description: String = "",
     label: Label? = null,
     onNavigateToMyPage: () -> Unit,
-    viewModel: SavePhotoViewModel = hiltViewModel(),
+    viewModel: SavePhotoViewModel,
 ) {
     val context = LocalContext.current
 
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
-    val geminiApiState = viewModel.geminiApiUiState.collectAsStateWithLifecycle()
 
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
-    when (val success = geminiApiState.value) {
-        is UiState.Success -> {
-            val labelName = success.data
-            val geminiLabel =
-                Label(
-                    backgroundColor = getRandomColor(),
-                    name = labelName.trim()
-                )
+    //TODO 시연용
+//    if (uiState.value is UiState.Idle && NetworkState.isActiveNetwork()) {
+//        val bitmap = loadImageFromUri(context, model)
+//        viewModel.getGeneratedContent(bitmap)
+//    }
 
-            SavePhotoScreen(
-                model = model,
-                fileName = fileName,
-                location = location,
-                photoSaveState = photoSaveState,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = { newDescription ->
-                    rememberDescription.value = newDescription
-                },
-                isRepresented = isRepresented,
-                onRepresentedChange = { isRepresented.value = !isRepresented.value },
-                onNavigateToMyPage = onNavigateToMyPage,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = viewModel::savePhoto,
-                label = geminiLabel,
-            )
-        }
-
-        is UiState.Loading -> {
-            RotatingImageLoading(
-                drawableRes = R.drawable.fish_loading_image,
-                stringRes = R.string.save_photo_screen_loading,
-            )
-        }
-
-        is UiState.Idle -> {
-            val bitmap = loadImageFromUri(context, model)
-            viewModel.getGeneratedContent(bitmap)
-        }
-
-        is UiState.Error -> { /* TODO ERROR */ }
-    }
+    SavePhotoScreen(
+        model = model,
+        fileName = fileName,
+        location = location,
+        photoSaveState = photoSaveState,
+        rememberDescription = rememberDescription,
+        onDescriptionChange = { newDescription ->
+            rememberDescription.value = newDescription
+        },
+        isRepresented = isRepresented,
+        onRepresentedChange = { isRepresented.value = !isRepresented.value },
+        onNavigateToMyPage = onNavigateToMyPage,
+        onLabelSelect = onLabelSelect,
+        onBack = onBack,
+        savePhoto = viewModel::savePhoto,
+        label = label,
+    )
 
     if (photoSaveState.value is UiState.Success) {
         onSave()
@@ -161,7 +140,7 @@ fun SavePhotoScreen(
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit,
-    label: Label
+    label: Label,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
@@ -351,6 +330,16 @@ fun Description(
     }
 }
 
+private fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
+    } catch (e: IOException) {
+        null
+    }
+}
+
 fun insertFirebaseService(
     context: Context,
     model: Uri,
@@ -374,23 +363,12 @@ fun insertFirebaseService(
     context.startService(intent)
 }
 
-fun loadImageFromUri(context: Context, uri: Uri): Bitmap? {
-    return try {
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            BitmapFactory.decodeStream(inputStream)
-        }
-    } catch (e: IOException) {
-        null
-    }
-}
-
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 private fun ScreenPreview() {
     NatureAlbumTheme {
         val uiState = rememberSaveable { mutableStateOf(UiState.Success(Unit)) }
-        val geminiUiState = rememberSaveable { mutableStateOf(UiState.Success("Label")) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
 
