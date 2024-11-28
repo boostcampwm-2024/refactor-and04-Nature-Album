@@ -2,12 +2,10 @@ package com.and04.naturealbum.ui.albumfolder
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.home.PermissionDialogState
+import com.and04.naturealbum.ui.component.PermissionDialogState
 
 @Stable
 class AlbumFolderState(
@@ -15,7 +13,7 @@ class AlbumFolderState(
     editMode: Boolean,
     checkList: Set<PhotoDetail>,
     selectAll: Boolean,
-    permissionDialogState: PermissionDialogState
+    permissionDialogState: PermissionDialogState,
 ) {
     var imgDownLoading = mutableStateOf(imgDownLoading)
     var editMode = mutableStateOf(editMode)
