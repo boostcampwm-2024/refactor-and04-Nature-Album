@@ -270,7 +270,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
     private suspend fun insertPhotoDetail(uid: String, photo: SyncPhotoDetailsDto) {
         //TODO 유해성 검사
-        
+
         val storageUri = fireBaseRepository
             .saveImageFile(
                 uid = uid,

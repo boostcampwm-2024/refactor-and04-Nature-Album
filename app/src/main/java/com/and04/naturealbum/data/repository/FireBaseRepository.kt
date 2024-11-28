@@ -38,6 +38,8 @@ interface FireBaseRepository {
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): List<FirebaseLabelResponse>
     suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse>
+    suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>>
+    suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>>
     suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
     suspend fun getFriends(uid: String): List<FirebaseFriend>
     suspend fun getAllUsers(): List<FirestoreUser>
@@ -111,6 +113,22 @@ class FireBaseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>> {
+        return try {
+            withContext(Dispatchers.IO) {
+                val labels = uids.map { uid ->
+                    async {
+                        getLabels(uid)
+                    }
+                }.awaitAll()
+                uids.zip(labels).toMap()
+            }
+        } catch (e: Exception) {
+            Log.e("getLabels", "Error fetching labels: ${e.message}")
+            emptyMap()
+        }
+    }
+
     override suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse> {
         val photosQuerySet =
             fireStore.collection(USER).document(uid).collection(PHOTOS).get().await()
@@ -119,6 +137,22 @@ class FireBaseRepositoryImpl @Inject constructor(
             document.toObject(FirebasePhotoInfoResponse::class.java)?.copy(
                 fileName = document.id
             )
+        }
+    }
+
+    override suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>> {
+        return try {
+            withContext(Dispatchers.IO) {
+                val photos = uids.map { uid ->
+                    async {
+                        getPhotos(uid)
+                    }
+                }.awaitAll()
+                uids.zip(photos).toMap()
+            }
+        } catch (e: Exception) {
+            Log.e("getPhotos", "Error fetching photos: ${e.message}")
+            emptyMap()
         }
     }
 
@@ -163,7 +197,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                 }
                 friendRequest
             } catch (e: Exception) {
-                Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
+                Log.e(
+                    "getFriendRequests",
+                    "Error mapping document: ${document.id}, ${e.message}"
+                )
                 null
             }
         }
@@ -310,12 +347,16 @@ class FireBaseRepositoryImpl @Inject constructor(
         val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
 
         if (!currentUserSnapshot.exists() || !targetUserSnapshot.exists()) {
-            Log.e("sendFriendRequest", "User data not found for uid: $uid or targetUid: $targetUid")
+            Log.e(
+                "sendFriendRequest",
+                "User data not found for uid: $uid or targetUid: $targetUid"
+            )
             return false
         }
 
-        val currentUser = currentUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = uid)
-            ?: return false
+        val currentUser =
+            currentUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = uid)
+                ?: return false
         val targetUser =
             targetUserSnapshot.toObject(FirestoreUser::class.java)?.copy(uid = targetUid)
                 ?: return false
@@ -349,7 +390,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                     targetFriendRequest
                 )
             }.await()
-            Log.d("sendFriendRequest", "Friend request successfully sent from $uid to $targetUid")
+            Log.d(
+                "sendFriendRequest",
+                "Friend request successfully sent from $uid to $targetUid"
+            )
             true
         } catch (e: Exception) {
             Log.e("sendFriendRequest", "Error sending friend request: ${e.message}", e)
