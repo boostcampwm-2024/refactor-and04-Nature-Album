@@ -84,7 +84,7 @@ fun ClippingButtonWithFile(
 
         else -> null
     }
-    
+
     val parsedPathData = svgData?.pathData ?: ""
     val parsedViewportWidth = svgData?.viewportWidth ?: 1f
     val parsedViewportHeight = svgData?.viewportHeight ?: 1f
@@ -110,7 +110,7 @@ private fun ClippingButton(
     pathData: String,
     viewportWidth: Float,
     viewportHeight: Float,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
 
     val path = PathParser().parsePathString(pathData).toPath()

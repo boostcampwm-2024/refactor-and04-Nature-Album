@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,11 +27,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,13 +45,42 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.ui.savephoto.SavePhotoViewModel
+import com.and04.naturealbum.utils.toColor
+
+@Composable
+fun LabelSearchScreen(
+    onSelected: (Label) -> Unit,
+    viewModel: LabelSearchViewModel = hiltViewModel(),
+    savePhotoViewModel: SavePhotoViewModel,
+) {
+    val uiState = savePhotoViewModel.uiState.collectAsStateWithLifecycle()
+    val labelsState = viewModel.labels.collectAsStateWithLifecycle()
+
+    val query = rememberSaveable { mutableStateOf("") }
+    val randomColor = rememberSaveable { mutableStateOf("") }
+
+    LabelSearchScreen(
+        uiState = uiState,
+        query = query,
+        labelsState = labelsState,
+        randomColor = randomColor,
+        onSelected = onSelected,
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LabelSearchScreen(
-    onSelected: (Label) -> Unit = {}
+    uiState: State<UiState<String>>,
+    query: MutableState<String>,
+    labelsState: State<List<Label>>,
+    randomColor: MutableState<String>,
+    onSelected: (Label) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -66,42 +97,34 @@ fun LabelSearchScreen(
             )
         }
     ) { innerPadding ->
-        SearchContent(innerPadding, onSelected)
+        SearchContent(
+            innerPadding = innerPadding,
+            uiState = uiState,
+            query = query,
+            labelsState = labelsState,
+            randomColor = randomColor,
+            onSelected = onSelected,
+        )
     }
 }
+
 
 @Composable
 private fun SearchContent(
     innerPadding: PaddingValues,
+    uiState: State<UiState<String>>,
+    query: MutableState<String>,
+    labelsState: State<List<Label>>,
+    randomColor: MutableState<String>,
     onSelected: (Label) -> Unit,
-    labelSearchViewModel: LabelSearchViewModel = hiltViewModel()
 ) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var randomColor by rememberSaveable { mutableStateOf("") }
-    val labelsState by labelSearchViewModel.labels.collectAsState()
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
     ) {
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = query,
-            onValueChange = { changeQuery ->
-                if (changeQuery.length > 100) return@TextField
-                else query = changeQuery
-            },
-            placeholder = { Text(stringResource(R.string.label_search_label_search)) },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                errorContainerColor = Color.Transparent
-            ),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
-        )
+
+        LabelTextField(query = query)
 
         Text(
             modifier = Modifier.padding(12.dp),
@@ -109,51 +132,51 @@ private fun SearchContent(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        LazyColumn {
-            val queryLabelList = labelsState.filter { label -> label.name.contains(query) }
-            items(queryLabelList) { label ->
-                UnderLineSuggestionChip(label, onSelected)
-            }
-        }
+        LabelChipList(
+            query = query,
+            labelsState = labelsState,
+            onSelected = onSelected,
+        )
 
-        Row(
-            modifier = Modifier.padding(start = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val blankToastText = stringResource(R.string.label_search_blank_query_toast)
-            val nestToastText = stringResource(R.string.label_search_nest_label_toast)
-            Text(stringResource(R.string.label_search_create))
-            Spacer(Modifier.size(4.dp))
-            SuggestionChip(
-                onClick = {
-                    if (query.isBlank()) {
-                        Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
-                        return@SuggestionChip
-                    } else if (labelsState.any { it.name == query }) {
-                        Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
-                        return@SuggestionChip
-                    }
+        CreateLabelContent(
+            query = query,
+            labelsState = labelsState,
+            randomColor = randomColor,
+            onSelected = onSelected,
+        )
 
-                    onSelected(
-                        Label(
-                            backgroundColor = randomColor,
-                            name = query
-                        )
-                    )
-                },
-                label = { Text(query) },
-                colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = Color(
-                        randomColor.ifBlank {
-                            randomColor = getRandomColor()
-                            randomColor
-                        }.toLong(16)
-                    ),
-                    labelColor = if (Color(randomColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
-                )
-            )
-        }
+//        TODO 추후 시연할 때 주석 해제
+//        GeminiLabelContent(
+//            uiState = uiState,
+//            labelsState = labelsState,
+//            randomColor = randomColor,
+//            onSelected = onSelected,
+//        )
+
+
     }
+}
+
+@Composable
+fun LabelTextField(
+    query: MutableState<String>,
+) {
+    TextField(
+        modifier = Modifier.fillMaxWidth(),
+        value = query.value,
+        onValueChange = { changeQuery ->
+            if (changeQuery.length > 100) return@TextField
+            else query.value = changeQuery
+        },
+        placeholder = { Text(stringResource(R.string.label_search_label_search)) },
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            errorContainerColor = Color.Transparent
+        ),
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
+    )
 }
 
 @Composable
@@ -168,7 +191,7 @@ fun UnderLineSuggestionChip(
         label = { Text(label.name) },
 
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = Color(label.backgroundColor.toLong(16)),
+            containerColor = label.backgroundColor.toColor(),
             labelColor = if (Color(label.backgroundColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
         )
     )
@@ -181,8 +204,166 @@ fun UnderLineSuggestionChip(
     )
 }
 
+@Composable
+fun LabelChipList(
+    query: State<String>,
+    labelsState: State<List<Label>>,
+    onSelected: (Label) -> Unit,
+) {
+    LazyColumn {
+        val queryLabelList =
+            labelsState.value.filter { label -> label.name.contains(query.value) }
+
+        items(
+            items = queryLabelList,
+            key = { label -> label.id }
+        ) { label ->
+            UnderLineSuggestionChip(label, onSelected)
+        }
+    }
+}
+
+@Composable
+fun CreateLabelContent(
+    query: MutableState<String>,
+    labelsState: State<List<Label>>,
+    randomColor: MutableState<String>,
+    onSelected: (Label) -> Unit,
+) {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier.padding(start = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val blankToastText = stringResource(R.string.label_search_blank_query_toast)
+        val nestToastText = stringResource(R.string.label_search_nest_label_toast)
+        Text(stringResource(R.string.label_search_create))
+        Spacer(Modifier.size(4.dp))
+        SuggestionChip(
+            onClick = {
+                if (query.value.isBlank()) {
+                    Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
+                    return@SuggestionChip
+                } else if (labelsState.value.any { label -> label.name == query.value }) {
+                    Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
+                    return@SuggestionChip
+                }
+
+                onSelected(
+                    Label(
+                        backgroundColor = randomColor.value,
+                        name = query.value
+                    )
+                )
+            },
+            label = { Text(query.value) },
+            colors = SuggestionChipDefaults.suggestionChipColors(
+                containerColor =
+                randomColor.value.ifBlank {
+                    randomColor.value = getRandomColor()
+                    randomColor.value
+                }.toColor(),
+                labelColor = if (Color(randomColor.value.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
+            )
+        )
+    }
+}
+
+@Composable
+fun GeminiLabelContent(
+    uiState: State<UiState<String>>,
+    labelsState: State<List<Label>>,
+    randomColor: MutableState<String>,
+    onSelected: (Label) -> Unit,
+) {
+    Row(
+        modifier = Modifier.padding(start = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(stringResource(R.string.label_by_gemini_search_create))
+
+        Spacer(Modifier.size(4.dp))
+
+        GeminiLabelChip(
+            uiState = uiState,
+            labelsState = labelsState,
+            randomColor = randomColor,
+            onSelected = onSelected,
+        )
+    }
+}
+
+@Composable
+fun GeminiLabelChip(
+    uiState: State<UiState<String>>,
+    labelsState: State<List<Label>>,
+    randomColor: MutableState<String>,
+    onSelected: (Label) -> Unit,
+) {
+    val context = LocalContext.current
+    val nestToastText = stringResource(R.string.label_search_nest_label_toast)
+
+    when (val success = uiState.value) {
+        is UiState.Success -> {
+            val labelByGemini = success.data.trim()
+            SuggestionChip(
+                onClick = {
+                    if (labelsState.value.any { label -> label.name == labelByGemini }) {
+                        Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
+                        return@SuggestionChip
+                    }
+
+                    onSelected(
+                        Label(
+                            backgroundColor = randomColor.value,
+                            name = labelByGemini
+                        )
+                    )
+                },
+                label = {
+                    Text(
+                        text = labelByGemini,
+                    )
+                },
+                colors = SuggestionChipDefaults.suggestionChipColors(
+                    containerColor = Color(
+                        randomColor.value.ifBlank {
+                            randomColor.value = getRandomColor()
+                            randomColor.value
+                        }.toLong(16)
+                    ),
+                    labelColor = if (Color(randomColor.value.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
+                )
+            )
+        }
+
+        is UiState.Idle, UiState.Loading -> {
+            CircularProgressIndicator(
+                modifier = Modifier.width(32.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
+
+        is UiState.Error -> {
+            /* TODO ERROR */
+        }
+    }
+}
+
 @Preview
 @Composable
 fun PreviewFunc() {
-    LabelSearchScreen()
+    val uiState = remember { mutableStateOf(UiState.Success("새")) }
+    val dummy = remember { mutableStateOf("") }
+    val listDummy = remember { mutableStateOf<List<Label>>(listOf()) }
+
+    LabelSearchScreen(
+        uiState = uiState,
+        query = dummy,
+        labelsState = listDummy,
+        randomColor = dummy,
+        onSelected = {},
+    )
 }

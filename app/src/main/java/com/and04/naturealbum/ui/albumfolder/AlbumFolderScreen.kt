@@ -59,9 +59,9 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.PermissionDialogState
+import com.and04.naturealbum.ui.component.PermissionDialogs
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.home.PermissionDialogState
-import com.and04.naturealbum.ui.home.PermissionDialogs
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
