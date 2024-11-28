@@ -3,6 +3,15 @@ package com.and04.naturealbum.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.and04.naturealbum.ui.album.AlbumScreen
@@ -42,7 +51,10 @@ fun NatureAlbumApp(
             )
         }
 
-        composable(NavigateDestination.SavePhoto.route) {
+        composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
             SavePhotoScreen(
                 location = state.lastLocation.value,
                 model = state.imageUri.value,
@@ -52,15 +64,21 @@ fun NatureAlbumApp(
                 label = state.selectedLabel.value,
                 onLabelSelect = { state.navigateToSearchLabel() },
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                viewModel = hiltViewModel(viewmodel),
             )
         }
 
-        composable(NavigateDestination.SearchLabel.route) {
+        composable(NavigateDestination.SearchLabel.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
+
             LabelSearchScreen(
                 onSelected = { label ->
-                    state.selectedLabel.value = label
-                    state.navController.popBackStack()
+                    selectedLabel = label
+                    navController.popBackStack()
                 },
+                savePhotoViewModel = hiltViewModel(viewmodel),
             )
         }
 
