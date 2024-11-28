@@ -14,12 +14,11 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -36,11 +35,9 @@ interface FireBaseRepository {
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
     suspend fun getLabels(uid: String): Task<QuerySnapshot>
-    suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest>
-    suspend fun getFriends(uid: String): List<FirebaseFriend>
-    suspend fun getAllUsers(): List<FirestoreUser>
-    suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus>
-    suspend fun getReceivedFriendRequests(uid: String): List<FirebaseFriendRequest>
+    fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>>
+    fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>>
+    fun searchUsersAsFlow(uid: String, query: String): Flow<Map<String, FirestoreUserWithStatus>>
 
     //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
@@ -59,7 +56,6 @@ interface FireBaseRepository {
     suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean
     suspend fun acceptFriendRequest(uid: String, targetUid: String): Boolean
     suspend fun rejectFriendRequest(uid: String, targetUid: String): Boolean
-    suspend fun searchUsers(uid: String, query: String): List<FirestoreUserWithStatus>
 
     //UPDATE
     suspend fun saveFcmToken(uid: String, token: String): Boolean
@@ -103,143 +99,64 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).get()
     }
 
-    override suspend fun getFriends(uid: String): List<FirebaseFriend> {
-        return try {
-            fireStore.collection(USER)
-                .document(uid)
-                .collection(FRIENDS)
-                .get()
-                .await()
-                .documents
-                .mapNotNull { document ->
+    override fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>> = callbackFlow {
+        val listener = fireStore.collection(USER).document(uid).collection(FRIENDS)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("getFriendsAsFlow", "Listen failed: ${e.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                Log.d("getFriendsAsFlow", "Snapshot size: ${snapshot?.size() ?: 0}")
+                val friendList = snapshot?.documents?.mapNotNull { documentSnapshot ->
                     try {
-                        document.toObject(FirebaseFriend::class.java) // 전체 객체 직렬화
+                        documentSnapshot.toObject(FirebaseFriend::class.java)
                     } catch (e: Exception) {
-                        Log.e(
-                            "getFriends",
-                            "Failed to deserialize friend: ${document.id}, ${e.message}"
-                        )
+                        Log.e("getFriendsAsFlow", "Mapping failed: ${e.message}")
                         null
                     }
-                }
-        } catch (e: Exception) {
-            Log.e("getFriends", "Error fetching friends: ${e.message}")
-            emptyList()
-        }
-    }
 
-    override suspend fun getFriendRequests(uid: String): List<FirebaseFriendRequest> {
-        val documents = fireStore.collection(USER)
-            .document(uid)
-            .collection(FRIEND_REQUESTS)
-            .get()
-            .await()
-            .documents
-
-        return documents.mapNotNull { document ->
-            try {
-                val friendRequest = document.toObject(FirebaseFriendRequest::class.java)
-                if (friendRequest == null) {
-                    Log.e("getFriendRequests", "Failed to map document: ${document.id}")
-                }
-                friendRequest
-            } catch (e: Exception) {
-                Log.e("getFriendRequests", "Error mapping document: ${document.id}, ${e.message}")
-                null
+                } ?: emptyList()
+                Log.d("getFriendsAsFlow", "Mapped friends: $friendList")
+                trySend(friendList) // 데이터가 변경되면 Flow로 보냄
             }
-        }
+        awaitClose { listener.remove() } // Flow가 닫힐 때 리스너 제거
     }
 
-    override suspend fun getReceivedFriendRequests(uid: String): List<FirebaseFriendRequest> {
-        Log.d("getReceivedFriendRequests", "$uid")
-        val documents = fireStore.collection(USER)
-            .document(uid)
-            .collection(FRIEND_REQUESTS)
-            .get()
-            .await()
-            .documents
-
-        return documents.mapNotNull { document ->
-            try {
-                val friendRequest = document.toObject(FirebaseFriendRequest::class.java)
-                if (friendRequest == null) {
-                    Log.e("getReceivedFriendRequests", "Failed to map document: ${document.id}")
-                }
-                friendRequest
-            } catch (e: Exception) {
-                Log.e(
-                    "getReceivedFriendRequests",
-                    "Error mapping document: ${document.id}, ${e.message}"
-                )
-                null
-            }
-        }.filter { friendRequest ->
-            Log.d("getReceivedFriendRequests", friendRequest.toString())
-            Log.d(
-                "getReceivedFriendRequests",
-                "${friendRequest.status} ${FriendStatus.RECEIVED} ${friendRequest}"
-            )
-            friendRequest.status == FriendStatus.RECEIVED
-        }
-    }
-
-    override suspend fun getAllUsers(): List<FirestoreUser> {
-        return fireStore.collection(USER).get().await().toObjects(FirestoreUser::class.java)
-    }
-
-    override suspend fun getAllUsersInfo(uid: String): List<FirestoreUserWithStatus> {
-        try {
-            val userDocs = fireStore.collection(USER).get().await()
-            val result = withContext(Dispatchers.IO + SupervisorJob()) {
-                userDocs.map { userDoc ->
-                    async {
-                        if (userDoc.id == uid) return@async null
-
-                        val user = userDoc.toObject(FirestoreUser::class.java)
-                        var friendStatus = FriendStatus.NORMAL
-
-                        if (userDoc.id.isNotEmpty()) {
-                            val friendRequestDocTask = fireStore.collection(USER)
-                                .document(userDoc.id)
-                                .collection(FRIEND_REQUESTS)
-                                .document(uid)
-                                .get()
-
-                            val friendDocTask = fireStore.collection(USER)
-                                .document(uid)
-                                .collection(FRIENDS)
-                                .document(userDoc.id)
-                                .get()
-
-                            val friendDoc = friendDocTask.await()
-                            val friendRequestDoc = friendRequestDocTask.await()
-
-                            if (friendRequestDoc.exists()) {
-                                val request =
-                                    friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                                // 상대방(equest?.status) 기준 => 현재 uid 에게 보냈는지, 받았는지 확인
-                                friendStatus = if (request?.status == FriendStatus.RECEIVED) {
-                                    FriendStatus.SENT // 현재 uid 기준 [상대방 RECEIVED : 나  SENT]
-                                } else {
-                                    FriendStatus.RECEIVED // 현재 uid 기준 [상대방 SENT : 나  RECEIVED]
-                                }
-                            }
-                            if (friendDoc.exists()) {
-                                friendStatus = FriendStatus.FRIEND
-                            }
-                            FirestoreUserWithStatus(user = user, status = friendStatus)
-                        } else null
+    override fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>> =
+        callbackFlow {
+            val listener = fireStore.collection(USER)
+                .document(uid)
+                .collection(FRIEND_REQUESTS).addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        Log.e("getReceivedFriendRequests", "Listen failed: ${e.message}")
+                        trySend(emptyList())
+                        return@addSnapshotListener
                     }
-
-                }.awaitAll()
-            }
-            return result.filterNotNull()
-        } catch (e: Exception) {
-            Log.e("FireBaseRepository", "getAllUsersInfo Error: ${e.message}")
+                    Log.d("getReceivedFriendRequests", "Snapshot size: ${snapshot?.size() ?: 0}")
+                    val receivedFriendRequestList =
+                        snapshot?.documents?.mapNotNull { documentSnapshot ->
+                            try {
+                                val friendRequest =
+                                    documentSnapshot.toObject(FirebaseFriendRequest::class.java)
+                                if (friendRequest?.status == FriendStatus.RECEIVED) {
+                                    friendRequest
+                                } else {
+                                    null
+                                }
+                            } catch (e: Exception) {
+                                Log.e("getReceivedFriendRequests", "Mapping failed: ${e.message}")
+                                null
+                            }
+                        } ?: emptyList()
+                    Log.d(
+                        "getReceivedFriendRequests",
+                        "Mapped receivedFriendRequestList: $receivedFriendRequestList"
+                    )
+                    trySend(receivedFriendRequestList)
+                }
+            awaitClose { listener.remove() }
         }
-        return emptyList()
-    }
-
 
     override suspend fun saveImageFile(
         uid: String,
@@ -382,7 +299,6 @@ class FireBaseRepositoryImpl @Inject constructor(
         }
     }
 
-
     // 거절했을 경우
     override suspend fun rejectFriendRequest(uid: String, targetUid: String): Boolean {
         return try {
@@ -404,62 +320,76 @@ class FireBaseRepositoryImpl @Inject constructor(
     }
 
     // 검색했을 경우
-    override suspend fun searchUsers(uid: String, query: String): List<FirestoreUserWithStatus> {
-        return try {
-            val userDocs = fireStore.collection(USER).whereGreaterThanOrEqualTo(EMAIL, query)
-                .whereLessThanOrEqualTo(
-                    EMAIL, query + QUERY_SUFFIX
-                ).get().await()
-
-            val result = withContext(Dispatchers.IO + SupervisorJob()) {
-                userDocs.map { userDoc ->
-                    async {
-                        if (userDoc.id == uid) return@async null
-
-                        val user = userDoc.toObject(FirestoreUser::class.java)
-                        var friendStatus = FriendStatus.NORMAL
-
-                        if (userDoc.id.isNotEmpty()) {
-                            val friendRequestDocTask = fireStore.collection(USER)
-                                .document(userDoc.id)
-                                .collection(FRIEND_REQUESTS)
-                                .document(uid)
-                                .get()
-
-                            val friendDocTask = fireStore.collection(USER)
-                                .document(uid)
-                                .collection(FRIENDS)
-                                .document(userDoc.id)
-                                .get()
-
-                            val friendDoc = friendDocTask.await()
-                            val friendRequestDoc = friendRequestDocTask.await()
-
-                            if (friendRequestDoc.exists()) {
-                                val request =
-                                    friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
-                                // 상대방(equest?.status) 기준 => 현재 uid 에게 보냈는지, 받았는지 확인
-                                friendStatus = if (request?.status == FriendStatus.RECEIVED) {
-                                    FriendStatus.SENT // 현재 uid 기준 [상대방 RECEIVED : 나  SENT]
-                                } else {
-                                    FriendStatus.RECEIVED // 현재 uid 기준 [상대방 SENT : 나  RECEIVED]
-                                }
-                            }
-                            if (friendDoc.exists()) {
-                                friendStatus = FriendStatus.FRIEND
-                            }
-                            FirestoreUserWithStatus(user = user, status = friendStatus)
-                        } else null
+    override fun searchUsersAsFlow(
+        uid: String,
+        query: String
+    ): Flow<Map<String, FirestoreUserWithStatus>> =
+        callbackFlow {
+            val listener = fireStore.collection(USER)
+                .whereGreaterThanOrEqualTo(EMAIL, query)
+                .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        Log.e("searchUsersAsFlow", "Listen failed: ${e.message}")
+                        trySend(emptyMap())
+                        return@addSnapshotListener
                     }
 
-                }.awaitAll()
-            }
-            return result.filterNotNull()
-        } catch (e: Exception) {
-            Log.e("FireBaseRepository", "searchUsersByEmail Error: ${e.message}")
-            return emptyList()
+                    val userMap = mutableMapOf<String, FirestoreUserWithStatus>()
+
+                    snapshot?.documents?.forEach { userDoc ->
+                        launch {
+                            if (userDoc.id == uid) return@launch
+
+                            val user = userDoc.toObject(FirestoreUser::class.java) ?: return@launch
+                            var friendStatus = FriendStatus.NORMAL
+
+                            try {
+                                val (friendRequestDoc, friendDoc) = listOf(
+                                    fireStore.collection(USER)
+                                        .document(userDoc.id)
+                                        .collection(FRIEND_REQUESTS)
+                                        .document(uid)
+                                        .get(),
+                                    fireStore.collection(USER)
+                                        .document(uid)
+                                        .collection(FRIENDS)
+                                        .document(userDoc.id)
+                                        .get()
+                                ).map { taskResult -> taskResult.await() }
+
+                                // 친구 상태 결정
+                                friendStatus = when {
+                                    friendDoc.exists() -> FriendStatus.FRIEND
+                                    friendRequestDoc.exists() -> {
+                                        val request =
+                                            friendRequestDoc.toObject(FirebaseFriendRequest::class.java)
+                                        // 상대방(equest?.status) 기준 => 현재 uid 에게 보냈는지, 받았는지 확인
+                                        if (request?.status == FriendStatus.RECEIVED) {
+                                            FriendStatus.SENT // 현재 uid 기준 [상대방 RECEIVED : 나  SENT]
+                                        } else {
+                                            FriendStatus.RECEIVED // 현재 uid 기준 [상대방 SENT : 나  RECEIVED]
+                                        }
+                                    }
+
+                                    else -> FriendStatus.NORMAL
+                                }
+                            } catch (ex: Exception) {
+                                Log.e("searchUsersAsFlow", "Error: ${ex.message}")
+                            }
+
+                            userMap[userDoc.id] = FirestoreUserWithStatus(
+                                user = user,
+                                status = friendStatus
+                            )
+
+                            trySend(userMap).isSuccess
+                        }
+                    }
+                }
+
+            awaitClose { listener.remove() }
         }
-    }
 
     override suspend fun saveFcmToken(uid: String, token: String): Boolean {
         return try {

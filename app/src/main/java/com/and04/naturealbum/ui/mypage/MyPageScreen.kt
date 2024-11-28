@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,7 +71,6 @@ fun MyPageScreen(
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
-    //val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
     val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
@@ -83,14 +80,11 @@ fun MyPageScreen(
         friendRequestsState = receivedFriendRequests,
         searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
-        fetchReceivedFriendRequests = friendViewModel::fetchReceivedFriendRequests,
-        fetchFriends = friendViewModel::fetchFriends,
         sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
         onSearchQueryChange = friendViewModel::updateSearchQuery,
-
-        )
+    )
 }
 
 @Composable
@@ -100,9 +94,7 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: () -> Unit,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
@@ -130,8 +122,6 @@ fun MyPageScreenContent(
             myFriendsState = myFriendsState,
             friendRequestsState = friendRequestsState,
             signInWithGoogle = signInWithGoogle,
-            fetchReceivedFriendRequests = fetchReceivedFriendRequests,
-            fetchFriends = fetchFriends,
             sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
@@ -148,16 +138,12 @@ private fun MyPageContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: () -> Unit,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,8 +167,7 @@ private fun MyPageContent(
                     userUidState = userUid,
                     myFriendsState = myFriendsState,
                     friendRequestsState = friendRequestsState,
-                    fetchReceivedFriendRequests = fetchReceivedFriendRequests,
-                    fetchFriends = fetchFriends,
+
                     sendFriendRequest = sendFriendRequest,
                     acceptFriendRequest = acceptFriendRequest,
                     rejectFriendRequest = rejectFriendRequest,
@@ -273,17 +258,16 @@ private fun SocialContent(
     userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    fetchReceivedFriendRequests: (String) -> Unit,
-    fetchFriends: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<List<FirestoreUserWithStatus>>,
+    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
 ) {
     val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
+    val friendRequestsCount = friendRequests.size
     val searchResultsList = searchResults.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
@@ -294,22 +278,13 @@ private fun SocialContent(
         stringResource(R.string.my_page_social_alarm)
     )
 
-    LaunchedEffect(Unit) {
-        fetchFriends(currentUid)
-    }
-
     Column(
         modifier = modifier
     ) {
         PrimaryTabRow(selectedTabIndex = tabState) {
             titles.forEachIndexed { index, title ->
-                MyPageCustomTab(tabState, index, title) {
+                MyPageCustomTab(tabState, index, title, friendRequestsCount) {
                     tabState = index
-                    when (index) {
-                        SOCIAL_LIST_TAB_INDEX -> fetchFriends(currentUid)
-                        //SOCIAL_SEARCH_TAB_INDEX -> 검색 탭은 onSearchQueryChange와 searchResults로 관리
-                        SOCIAL_ALARM_TAB_INDEX -> fetchReceivedFriendRequests(currentUid)
-                    }
                 }
             }
         }
@@ -334,9 +309,13 @@ private fun SocialContent(
 }
 
 @Composable
-private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: () -> Unit) {
-    val itemCount by remember { mutableIntStateOf(5) } // TODO : FIREBASE 알람 개수
-
+private fun MyPageCustomTab(
+    tabState: Int,
+    index: Int,
+    title: String,
+    friendRequestsCount: Int,
+    onClick: () -> Unit
+) {
     Tab(
         selected = tabState == index,
         onClick = onClick,
@@ -347,13 +326,13 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
                 )
 
                 Box {
-                    if (index == SOCIAL_ALARM_TAB_INDEX && itemCount > 0) {
+                    if (index == SOCIAL_ALARM_TAB_INDEX && friendRequestsCount > 0) {
                         Badge(
                             modifier = Modifier.padding(start = 8.dp),
                             containerColor = Color.Red,
                             contentColor = Color.White
                         ) {
-                            Text("$itemCount")
+                            Text("$friendRequestsCount")
                         }
                     }
                 }

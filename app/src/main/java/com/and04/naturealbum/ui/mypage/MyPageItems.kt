@@ -81,7 +81,7 @@ fun MyPageSocialItem(myFriend: FirebaseFriend) {
 @Composable
 fun MyPageSearch(
     onSearchQueryChange: (String) -> Unit,
-    userWithStatusList: List<FirestoreUserWithStatus>,
+    userWithStatusList: Map<String, FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
 ) {
@@ -140,19 +140,19 @@ fun MyPageSearch(
 
 @Composable
 fun RequestedList(
-    userWithStatusList: List<FirestoreUserWithStatus>,
+    userWithStatusList: Map<String, FirestoreUserWithStatus>,
     currentUid: String,
     sendFriendRequest: (String, String) -> Unit,
 ) {
     LazyColumn {
-        items(
-            items = userWithStatusList,
-            key = { myFriend -> myFriend.user.email }) { userWithStatus ->
-            RequestedItem(
-                userWithStatus = userWithStatus,
-                currentUid = currentUid,
-                sendFriendRequest = sendFriendRequest
-            )
+        userWithStatusList.forEach { (uid, userWithStatus) ->
+            item(key = uid) {
+                RequestedItem(
+                    userWithStatus = userWithStatus,
+                    currentUid = currentUid,
+                    sendFriendRequest = sendFriendRequest
+                )
+            }
         }
     }
 }
@@ -193,6 +193,7 @@ fun RequestedItem(
                     sendFriendRequest(currentUid, userWithStatus.user.uid)
                 }
             },
+            enabled = userWithStatus.status == FriendStatus.NORMAL, // NORMAL 상태에서만 클릭 가능
             label = {
                 val text = when (userWithStatus.status) {
                     // 현재 uid 기준 상대방에게 [SENT: 요청 보낸 상태, RECEIVED: 요청 받은 상태, FRIEND: 친구 상태]
@@ -231,18 +232,24 @@ fun MyPageAlarm(
     currentUid: String,
 ) {
     LazyColumn {
-        items(items = myAlarms, key = { myFriend -> myFriend.user.email }) { myFriend ->
+        items(
+            items = myAlarms,
+            key = { friendRequest -> friendRequest.user.email }) { friendRequest ->
             MyPageAlarmItem(
-                myFriend = myFriend,
-                onAccept = { acceptFriendRequest(currentUid, myFriend.user.uid) },
-                onDenied = { rejectFriendRequest(currentUid, myFriend.user.uid) }
+                friendRequest = friendRequest,
+                onAccept = { acceptFriendRequest(currentUid, friendRequest.user.uid) },
+                onDenied = { rejectFriendRequest(currentUid, friendRequest.user.uid) }
             )
         }
     }
 }
 
 @Composable
-fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAccept: () -> Unit) {
+fun MyPageAlarmItem(
+    friendRequest: FirebaseFriendRequest,
+    onDenied: () -> Unit,
+    onAccept: () -> Unit
+) {
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -257,11 +264,11 @@ fun MyPageAlarmItem(myFriend: FirebaseFriendRequest, onDenied: () -> Unit, onAcc
                     .size(40.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                model = myFriend.user.photoUrl,
+                model = friendRequest.user.photoUrl,
                 contentDescription = stringResource(R.string.my_page_user_profile_image),
             )
 
-            Text(text = "${myFriend.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
+            Text(text = "${friendRequest.user.displayName}${stringResource(R.string.my_page_alarm_txt)}")
         }
 
         Row(
