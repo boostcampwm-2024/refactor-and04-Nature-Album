@@ -27,7 +27,7 @@ class NetworkManager @Inject constructor(
 
         override fun onLost(network: android.net.Network) {
             super.onLost(network)
-            updateNetworkState()
+            _networkState.value = NetworkState.DISCONNECTED
         }
 
         override fun onCapabilitiesChanged(
@@ -41,18 +41,33 @@ class NetworkManager @Inject constructor(
 
     init {
         updateNetworkState() // 초기 상태 업데이트
-        connectivityManager.registerDefaultNetworkCallback(networkCallback) // 네트워크 콜백 등록
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
     private fun updateNetworkState() {
         val currentNetwork = connectivityManager.activeNetwork
         val caps = connectivityManager.getNetworkCapabilities(currentNetwork)
 
-        _networkState.value = when {
-            caps == null -> NetworkState.DISCONNECTED
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkState.CONNECTED_WIFI
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkState.CONNECTED_DATA
-            else -> NetworkState.DISCONNECTED
+        val newState = when {
+            currentNetwork == null || caps == null -> {
+                NetworkState.DISCONNECTED
+            }
+
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                NetworkState.CONNECTED_WIFI
+            }
+
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                NetworkState.CONNECTED_DATA
+            }
+
+            else -> {
+                NetworkState.DISCONNECTED
+            }
+        }
+
+        if (_networkState.value != newState) {
+            _networkState.value = newState
         }
     }
 }

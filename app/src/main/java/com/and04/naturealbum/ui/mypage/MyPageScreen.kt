@@ -1,11 +1,8 @@
 package com.and04.naturealbum.ui.mypage
 
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -59,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -70,19 +66,16 @@ import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.PermissionHandler
-import com.and04.naturealbum.ui.component.PermissionDialogState
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.NetworkManager
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
 import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.NetworkViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
