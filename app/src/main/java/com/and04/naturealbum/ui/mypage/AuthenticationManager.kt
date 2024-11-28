@@ -7,8 +7,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.and04.naturealbum.BuildConfig
-import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
+import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -30,7 +30,7 @@ interface AuthResponse {
 }
 
 class AuthenticationManager @Inject constructor(
-    private val fireBaseRepository: FireBaseRepository
+    private val fireBaseRepository: FireBaseRepository,
 ) {
     private val auth = Firebase.auth
 
@@ -157,7 +157,7 @@ class AuthenticationManager @Inject constructor(
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean {
         Log.d("Firestore", "Checking if user exists in Firestore: UID=$uid")
         return try {

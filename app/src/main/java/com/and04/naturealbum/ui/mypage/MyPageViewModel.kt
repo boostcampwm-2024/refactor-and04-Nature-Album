@@ -9,7 +9,6 @@ import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +21,7 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val authenticationManager: AuthenticationManager,
     private val userManager: UserManager,
-    private val syncDataStore: DataStoreManager
+    private val syncDataStore: DataStoreManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState

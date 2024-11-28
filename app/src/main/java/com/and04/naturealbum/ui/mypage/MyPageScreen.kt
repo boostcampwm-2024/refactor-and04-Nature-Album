@@ -65,6 +65,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
@@ -184,46 +185,57 @@ private fun MyPageContent(
 ) {
     val context = LocalContext.current
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(32.dp),
-    ) {
-        // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
+
+    Box(modifier = modifier) {
         when (val success = uiState.value) {
             is UiState.Success -> {
-                val userEmail = success.data.userEmail
-                val userPhotoUri = success.data.userPhotoUri
-                val userDisplayName = success.data.userDisplayName
-                val userUid = success.data.userUid
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                ) {
+                    val userEmail = success.data.userEmail
+                    val userPhotoUri = success.data.userPhotoUri
+                    val userDisplayName = success.data.userDisplayName
+                    val userUid = success.data.userUid
+                    UserProfileContent(
+                        uriState = userPhotoUri,
+                        emailState = userEmail,
+                        displayNameState = userDisplayName,
+                        snackBarHostState = snackBarHostState,
+                        recentSyncTime = recentSyncTime
+                    )
 
-                UserProfileContent(
-                    uriState = userPhotoUri,
-                    emailState = userEmail,
-                    displayNameState = userDisplayName,
-                    snackBarHostState = snackBarHostState,
-                    recentSyncTime = recentSyncTime
-                )
-
-                SocialContent(
-                    modifier = Modifier.weight(1f),
-                    userUidState = userUid,
-                    myFriendsState = myFriendsState,
-                    friendRequestsState = friendRequestsState,
-                    allUsersInfoState = allUsersInfoState,
-                    fetchReceivedFriendRequests = fetchReceivedFriendRequests,
-                    fetchFriends = fetchFriends,
-                    fetchAllUsersInfo = fetchAllUsersInfo,
-                    sendFriendRequest = sendFriendRequest,
-                    acceptFriendRequest = acceptFriendRequest,
-                    rejectFriendRequest = rejectFriendRequest,
-                )
+                    SocialContent(
+                        modifier = Modifier.weight(1f),
+                        userUidState = userUid,
+                        myFriendsState = myFriendsState,
+                        friendRequestsState = friendRequestsState,
+                        allUsersInfoState = allUsersInfoState,
+                        fetchReceivedFriendRequests = fetchReceivedFriendRequests,
+                        fetchFriends = fetchFriends,
+                        fetchAllUsersInfo = fetchAllUsersInfo,
+                        sendFriendRequest = sendFriendRequest,
+                        acceptFriendRequest = acceptFriendRequest,
+                        rejectFriendRequest = rejectFriendRequest,
+                    )
+                }
             }
 
             else -> {
                 // 비회원일 때
-                UserProfileContent(null, null, null)
-                LoginContent { signInWithGoogle(context) }
+                val progressIndicatorState = rememberSaveable { mutableStateOf(false) }
+                Box {
+                    ProgressIndicator(progressIndicatorState.value)
+                }
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                ) {
+                    UserProfileContent(null, null, null)
+                    LoginContent(progressIndicatorState) { signInWithGoogle(context) }
+                }
             }
         }
     }
@@ -291,7 +303,7 @@ private fun UserProfileImage(uri: String?, modifier: Modifier) {
 }
 
 @Composable
-private fun LoginContent(loginHandle: () -> Unit) {
+private fun LoginContent(progressIndicatorState: MutableState<Boolean>, loginHandle: () -> Unit) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -302,7 +314,10 @@ private fun LoginContent(loginHandle: () -> Unit) {
         )
 
         Button(
-            onClick = { loginHandle() },
+            onClick = {
+                loginHandle()
+                progressIndicatorState.value = true
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(30)
         ) {
