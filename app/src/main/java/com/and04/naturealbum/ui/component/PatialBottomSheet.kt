@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,20 +45,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 enum class BottomSheetState {
-    Hide,
-    Collapsed,
-    HalfExpanded,
-    Expanded
+    Hide, Collapsed, HalfExpanded, Expanded
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PartialBottomSheet(
-    isVisibe: Boolean = false,
-    initialState: BottomSheetState = BottomSheetState.Collapsed,
+    isVisible: Boolean = false,
     modifier: Modifier = Modifier,
     handleIcon: ImageVector = Icons.Default.DragHandle,
     handleHeight: Dp = 36.dp,
@@ -71,6 +69,7 @@ fun PartialBottomSheet(
     contentPadding: PaddingValues = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp),
     content: @Composable () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val handleHeightPx = if (showHandleCollapsed) with(density) { handleHeight.toPx() } else 0f
@@ -82,13 +81,10 @@ fun PartialBottomSheet(
         BottomSheetState.Expanded to screenHeightPx * (1 - fullExpansionSize)
     )
 
-    var currentState by remember { mutableStateOf(initialState) }
-
-    var bottomPadding by remember { mutableStateOf(with(density) { mapStatePosition[initialState]!!.toDp() }) }
+    var bottomPadding by remember { mutableStateOf(with(density) { mapStatePosition[BottomSheetState.Hide]!!.toDp() }) }
 
     val state = remember {
-        AnchoredDraggableState(
-            initialValue = currentState,
+        AnchoredDraggableState(initialValue = BottomSheetState.Hide,
             anchors = DraggableAnchors {
                 mapStatePosition.forEach { (state, position) -> state at position }
             },
@@ -99,33 +95,24 @@ fun PartialBottomSheet(
         )
     }
 
-    LaunchedEffect(state.currentValue) {
-        currentState = state.currentValue
-        bottomPadding = with(density) { mapStatePosition[currentState]!!.toDp() }
+    LaunchedEffect(state.targetValue) {
+        bottomPadding = with(density) { mapStatePosition[state.targetValue]!!.toDp() }
     }
 
-    LaunchedEffect(currentState) {
-        bottomPadding = with(density) { mapStatePosition[currentState]!!.toDp() }
-        state.animateTo(currentState)
-    }
-
-    LaunchedEffect(isVisibe) {
-        if (isVisibe) {
+    LaunchedEffect(isVisible) {
+        if (isVisible) {
             bottomPadding =
                 with(density) { mapStatePosition[BottomSheetState.HalfExpanded]!!.toDp() }
-            currentState = BottomSheetState.HalfExpanded
-            state.animateTo(currentState)
+            state.animateTo(BottomSheetState.HalfExpanded)
         } else {
             bottomPadding = with(density) { mapStatePosition[BottomSheetState.Hide]!!.toDp() }
-            currentState = BottomSheetState.Hide
-            state.animateTo(currentState)
+            state.animateTo(BottomSheetState.Hide)
         }
     }
 
 
     ElevatedCard(
-        modifier = modifier
-            .offset { IntOffset(0, state.requireOffset().roundToInt()) },
+        modifier = modifier.offset { IntOffset(0, state.requireOffset().roundToInt()) },
         shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
     ) {
         Icon(imageVector = handleIcon,
@@ -138,22 +125,24 @@ fun PartialBottomSheet(
                     orientation = Orientation.Vertical,
                 )
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
+                    interactionSource = remember { MutableInteractionSource() }, indication = null
                 ) {
-                    currentState = when (currentState) {
-                        BottomSheetState.Hide -> BottomSheetState.Hide
-                        BottomSheetState.Collapsed -> BottomSheetState.HalfExpanded
-                        BottomSheetState.HalfExpanded -> BottomSheetState.Collapsed
-                        BottomSheetState.Expanded -> BottomSheetState.HalfExpanded
+                    scope.launch {
+                        state.animateTo(
+                            when (state.currentValue) {
+                                BottomSheetState.Hide -> BottomSheetState.Hide
+                                BottomSheetState.Collapsed -> BottomSheetState.HalfExpanded
+                                BottomSheetState.HalfExpanded -> BottomSheetState.Collapsed
+                                BottomSheetState.Expanded -> BottomSheetState.HalfExpanded
+                            }
+                        )
                     }
                 })
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding)
-                .padding(bottom = bottomPadding),
-            contentAlignment = Alignment.TopCenter
+                .padding(bottom = bottomPadding), contentAlignment = Alignment.TopCenter
         ) {
             content()
         }
@@ -161,51 +150,6 @@ fun PartialBottomSheet(
 
 }
 
-
-@Preview
-@Composable
-fun BottomSheetScreenCollapsedPreView(
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-    ) {
-        PartialBottomSheet(
-            initialState = BottomSheetState.Collapsed,
-            showHandleCollapsed = false
-        ) { }
-    }
-}
-
-@Preview
-@Composable
-fun BottomSheetScreenHalfExpandedPreView(
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-    ) {
-        // BottomSheet
-        PartialBottomSheet(
-            initialState = BottomSheetState.HalfExpanded
-        ) {
-            Column {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Blue)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Black)
-                )
-            }
-        }
-    }
-}
 
 @Preview
 @Composable
@@ -217,8 +161,8 @@ fun BottomSheetScreenExpandedPreView(
             .background(Color.White),
     ) {
         PartialBottomSheet(
+            isVisible = true,
             modifier = Modifier.padding(horizontal = 16.dp),
-            initialState = BottomSheetState.Expanded
         ) {
             Column {
                 Box(

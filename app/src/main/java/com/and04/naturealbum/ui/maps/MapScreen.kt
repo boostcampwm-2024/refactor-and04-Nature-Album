@@ -68,7 +68,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
@@ -238,8 +237,7 @@ fun MapScreen(
         }
 
         PartialBottomSheet(
-            isVisibe = displayPhotos.value.isNotEmpty(),
-            initialState = BottomSheetState.Collapsed,
+            isVisible = displayPhotos.value.isNotEmpty(),
             modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f
         ) {
