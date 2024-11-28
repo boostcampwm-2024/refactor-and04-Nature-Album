@@ -23,12 +23,13 @@ fun RotatingButton(
     imageVector: ImageVector,
     contentDescription: String,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "init_animation")
+    val infiniteTransition =
+        rememberInfiniteTransition(stringResource(R.string.rotating_icon_button))
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = -360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000),
+            animation = tween(durationMillis = 1_000),
         ),
         label = stringResource(R.string.rotating_icon_button)
     )
