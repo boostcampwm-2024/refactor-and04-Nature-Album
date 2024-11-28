@@ -1,8 +1,7 @@
-package com.and04.naturealbum.ui.home
+package com.and04.naturealbum.ui.component
 
 import androidx.compose.runtime.Composable
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.component.MyDialog
 
 enum class PermissionDialogState {
     None,
