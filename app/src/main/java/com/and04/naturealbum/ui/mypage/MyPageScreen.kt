@@ -39,6 +39,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -218,7 +219,9 @@ private fun MyPageContent(
 
                 userUid?.let { initializeFriendViewModel(userUid) }
 
-                permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
+                SideEffect {
+                    permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
+                }
 
                 UserProfileContent(
                     uriState = userPhotoUri,
