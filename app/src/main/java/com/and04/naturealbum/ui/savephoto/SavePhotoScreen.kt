@@ -99,7 +99,7 @@ fun SavePhotoScreen(
     val isRepresented = rememberSaveable { mutableStateOf(false) }
 
     //TODO 시연용
-//    if (uiState.value is UiState.Idle && NetworkState.isActiveNetwork()) {
+//    if (uiState.value is UiState.Idle && NetworkState.getNetWorkCode() != DISCONNECTED) {
 //        val bitmap = loadImageFromUri(context, model)
 //        viewModel.getGeneratedContent(bitmap)
 //    }

@@ -32,9 +32,11 @@
     <string name="save_photo_screen_saving">저장중</string>
     <string name="save_photo_screen_loading">불러오는중..</string>
 
+    <!-- Photo Info -->
     <string name="photo_info_screen_calender_icon">달력 아이콘</string>
     <string name="photo_info_screen_location_icon">위치 아이콘</string>
     <string name="photo_info_screen_description_icon">설명 아이콘</string>
+    <string name="photo_info_set_thumbnail_btn_txt">대표 이미지 설정</string>
 
     <!--Album Folder -->
     <string name="album_folder_screen_save_button">선택한 사진 저장</string>
