@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
@@ -17,13 +18,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,11 +39,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,12 +59,19 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.NetworkState
+import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
+import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
+import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 private const val SOCIAL_LIST_TAB_INDEX = 0
 private const val SOCIAL_SEARCH_TAB_INDEX = 1
@@ -71,6 +87,7 @@ fun MyPageScreen(
     val myFriends = friendViewModel.friends.collectAsStateWithLifecycle()
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
+    val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
     val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
@@ -84,6 +101,7 @@ fun MyPageScreen(
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
         onSearchQueryChange = friendViewModel::updateSearchQuery,
+        recentSyncTime = recentSyncTime
     )
 }
 
@@ -93,26 +111,30 @@ fun MyPageScreenContent(
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    signInWithGoogle: () -> Unit,
+    signInWithGoogle: (Context) -> Unit,
     searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
+    recentSyncTime: State<String>
 ) {
-
-    Scaffold(topBar = {
-        PortraitTopAppBar(
-            navigationIcon = {
-                IconButton(onClick = { navigateToHome() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
-                    )
+    val snackBarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        topBar = {
+            PortraitTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { navigateToHome() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
+                        )
+                    }
                 }
-            }
-        )
-    }) { innerPadding ->
+            )
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+    ) { innerPadding ->
         MyPageContent(
             modifier = Modifier
                 .padding(innerPadding)
@@ -121,12 +143,14 @@ fun MyPageScreenContent(
             uiState = uiState,
             myFriendsState = myFriendsState,
             friendRequestsState = friendRequestsState,
+            recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
             sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
             searchResults = searchResults,
             onSearchQueryChange = onSearchQueryChange,
+            snackBarHostState = snackBarHostState,
         )
     }
 }
@@ -137,13 +161,17 @@ private fun MyPageContent(
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    signInWithGoogle: () -> Unit,
+    signInWithGoogle: (Context) -> Unit,
     sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     searchResults: State<Map<String, FirestoreUserWithStatus>>,
     onSearchQueryChange: (String) -> Unit,
+    recentSyncTime: State<String>,
+    snackBarHostState: SnackbarHostState,
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -161,13 +189,14 @@ private fun MyPageContent(
                     uriState = userPhotoUri,
                     emailState = userEmail,
                     displayNameState = userDisplayName,
+                    snackBarHostState = snackBarHostState,
+                    recentSyncTime = recentSyncTime,
                 )
                 SocialContent(
                     modifier = Modifier.weight(1f),
                     userUidState = userUid,
                     myFriendsState = myFriendsState,
                     friendRequestsState = friendRequestsState,
-
                     sendFriendRequest = sendFriendRequest,
                     acceptFriendRequest = acceptFriendRequest,
                     rejectFriendRequest = rejectFriendRequest,
@@ -179,7 +208,7 @@ private fun MyPageContent(
             else -> {
                 // 비회원일 때
                 UserProfileContent(null, null, null)
-                LoginContent { signInWithGoogle() }
+                LoginContent { signInWithGoogle(context) }
             }
         }
     }
@@ -190,6 +219,8 @@ private fun UserProfileContent(
     uriState: String?,
     emailState: String?,
     displayNameState: String?,
+    snackBarHostState: SnackbarHostState? = null,
+    recentSyncTime: State<String>? = null
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -201,17 +232,31 @@ private fun UserProfileContent(
             .fillMaxHeight(0.2f)
             .aspectRatio(1f)
     )
-    Text(
-        text = displayName,
+
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-    Text(
-        text = email,
-        modifier = Modifier.fillMaxWidth(),
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center
-    )
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = displayName,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = email,
+            modifier = Modifier.fillMaxWidth(),
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        if (snackBarHostState != null) {
+            SyncContent(
+                snackBarHostState = snackBarHostState,
+                recentSyncTime = recentSyncTime!!
+            )
+        }
+    }
 }
 
 @Composable
@@ -341,6 +386,80 @@ private fun MyPageCustomTab(
     )
 }
 
+@Composable
+private fun SyncContent(
+    snackBarHostState: SnackbarHostState,
+    recentSyncTime: State<String>
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(stringResource(R.string.my_page_sync))
+        IconButton(
+            onClick = {
+                when (NetworkState.getNetWorkCode()) {
+                    CONNECTED_WIFI -> {
+                        SynchronizationWorker.runImmediately(context)
+                    }
+
+                    CONNECTED_DATA -> {
+                        startSnackBar(
+                            context = context,
+                            coroutineScope = coroutineScope,
+                            snackBarHostState = snackBarHostState,
+                            message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
+                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button)
+                        )
+                    }
+
+                    DISCONNECTED -> {
+                        startSnackBar(
+                            context = context,
+                            coroutineScope = coroutineScope,
+                            snackBarHostState = snackBarHostState,
+                            message = context.getString(R.string.my_page_snackbar_network_state_disconnect),
+                            actionLabel = null
+                        )
+                    }
+                }
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Sync,
+                contentDescription = stringResource(R.string.my_page_sync_icon_content_description)
+            )
+        }
+    }
+    Text(
+        style = MaterialTheme.typography.bodySmall,
+        text = recentSyncTime.value
+    )
+
+}
+
+private fun startSnackBar(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+    message: String,
+    actionLabel: String?
+) {
+    coroutineScope.launch {
+        val result = snackBarHostState.showSnackbar(
+            message = message,
+            actionLabel = actionLabel,
+            duration = SnackbarDuration.Long,
+        )
+
+        if (result == SnackbarResult.ActionPerformed) {
+            SynchronizationWorker.runImmediately(context)
+        }
+    }
+}
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
@@ -356,6 +475,7 @@ private fun MyPageScreenPreview() {
             )
         )
     }
+    val recentSyncTime = remember { mutableStateOf("2024-01-01") }
 
     // 테스트용 사용자 정보
     val userEmail = remember { mutableStateOf("test@example.com") }

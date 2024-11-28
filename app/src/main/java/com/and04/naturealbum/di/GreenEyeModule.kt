@@ -1,7 +1,6 @@
 package com.and04.naturealbum.di
 
-import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_ID
-import com.and04.naturealbum.BuildConfig.NAVER_MAP_CLIENT_SECRET
+import com.and04.naturealbum.BuildConfig.NAVER_EYE_SECRET
 import com.and04.naturealbum.data.retorifit.NaverApi
 import dagger.Module
 import dagger.Provides
@@ -14,21 +13,20 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object ReverseGeocodeModule {
-
+object GreenEyeModule {
     @Provides
-    @ReverseGeocode
-    fun provideReverseGeocodeBaseUrl(): String = "https://naveropenapi.apigw.ntruss.com/"
+    @GreenEye
+    fun provideGreenEyeBaseUrl(): String = "https://clovagreeneye.apigw.ntruss.com/"
 
     @Singleton
     @Provides
-    @ReverseGeocode
-    fun provideReverseGeocodeOkHttpClient(): OkHttpClient {
+    @GreenEye
+    fun provideGreenEyeOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .addHeader("x-ncp-apigw-api-key-id", NAVER_MAP_CLIENT_ID)
-                    .addHeader("x-ncp-apigw-api-key", NAVER_MAP_CLIENT_SECRET)
+                    .addHeader("X-GREEN-EYE-SECRET", NAVER_EYE_SECRET)
+                    .addHeader("Content-Type", "application/json")
                     .build()
                 chain.proceed(request)
             }
@@ -37,22 +35,23 @@ object ReverseGeocodeModule {
 
     @Singleton
     @Provides
-    @ReverseGeocode
-    fun provideReverseGeocodeRetrofit(
-        @ReverseGeocode okHttpClient: OkHttpClient,
-        @ReverseGeocode provideReverseGeocodeBaseUrl: String,
+    @GreenEye
+    fun provideGreenEyeRetrofit(
+        @GreenEye okHttpClient: OkHttpClient,
+        @GreenEye provideGreenEyeBaseUrl: String,
     ): Retrofit {
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
-            .baseUrl(provideReverseGeocodeBaseUrl)
+            .baseUrl(provideGreenEyeBaseUrl)
             .build()
     }
 
     @Provides
     @Singleton
-    @ReverseGeocode
-    fun provideReverseGeocodeApi(@ReverseGeocode retrofit: Retrofit): NaverApi {
+    @GreenEye
+    fun provideGreenEyeApi(@GreenEye retrofit: Retrofit): NaverApi {
         return retrofit.create(NaverApi::class.java)
     }
 }
+

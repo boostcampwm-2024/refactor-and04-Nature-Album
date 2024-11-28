@@ -117,9 +117,11 @@ dependencies {
 
     //Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.work)
     kapt(libs.hilt.android.compiler)
     kapt(libs.kotlinx.metadata.jvm)
-    implementation(libs.androidx.hilt.navigation.compose)
+    kapt(libs.androidx.hilt.compiler)
 
     //location
     implementation(libs.play.services.location)
@@ -158,10 +160,16 @@ dependencies {
 
     // gemini
     implementation(libs.firebase.vertexai)
-    
+
     //retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    //WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+    //Preferences Datastore
+    implementation(libs.androidx.datastore.preferences)
 }
 
 kapt {

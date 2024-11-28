@@ -5,14 +5,15 @@ import android.util.Log
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
+import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -29,12 +30,13 @@ interface FireBaseRepository {
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean
 
     //SELECT
     suspend fun getLabel(uid: String, label: String): Task<DocumentSnapshot>
-    suspend fun getLabels(uid: String): Task<QuerySnapshot>
+    suspend fun getLabels(uid: String): List<FirebaseLabelResponse>
+    suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse>
     fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>>
     fun getReceivedFriendRequestsAsFlow(uid: String): Flow<List<FirebaseFriendRequest>>
     fun searchUsersAsFlow(uid: String, query: String): Flow<Map<String, FirestoreUserWithStatus>>
@@ -50,7 +52,7 @@ interface FireBaseRepository {
     suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean
 
     suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean
@@ -70,7 +72,7 @@ class FireBaseRepositoryImpl @Inject constructor(
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean {
         return try {
             val userDoc = fireStore.collection(USER).document(uid).get().await()
@@ -94,9 +96,26 @@ class FireBaseRepositoryImpl @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(LABEL).document(label).get()
     }
 
-    override suspend fun getLabels(uid: String): Task<QuerySnapshot> {
+    override suspend fun getLabels(uid: String): List<FirebaseLabelResponse> {
 
-        return fireStore.collection(USER).document(uid).collection(LABEL).get()
+        val querySnapshot = fireStore.collection(USER).document(uid).collection(LABEL).get().await()
+
+        return querySnapshot.documents.mapNotNull { document ->
+            document.toObject(FirebaseLabelResponse::class.java)?.copy(
+                labelName = document.id
+            )
+        }
+    }
+
+    override suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse> {
+        val photosQuerySet =
+            fireStore.collection(USER).document(uid).collection(PHOTOS).get().await()
+
+        return photosQuerySet.documents.mapNotNull { document ->
+            document.toObject(FirebasePhotoInfoResponse::class.java)?.copy(
+                fileName = document.id
+            )
+        }
     }
 
     override fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>> = callbackFlow {
@@ -171,7 +190,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
-        labelData: FirebaseLabel
+        labelData: FirebaseLabel,
     ): Boolean {
         var requestSuccess = false
         fireStore.collection(USER).document(uid).collection(LABEL).document(labelName)
@@ -186,7 +205,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun insertPhotoInfo(
         uid: String,
         fileName: String,
-        photoData: FirebasePhotoInfo
+        photoData: FirebasePhotoInfo,
     ): Boolean {
         var requestSuccess = false
 

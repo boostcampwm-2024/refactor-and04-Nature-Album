@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
+import com.and04.naturealbum.data.dto.SyncAlbumsDto
+import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 
 @Dao
 interface LabelDao {
@@ -54,6 +56,37 @@ interface AlbumDao {
     )
     suspend fun getAllAlbum(): List<AlbumDto>
 
+    @Query(
+        """
+        SELECT
+            label.id AS labelId,
+            label.name AS labelName,
+            label.background_color AS labelBackgroundColor,
+            photo_detail.photo_uri AS photoDetailUri,
+            photo_detail.file_name As fileName
+        FROM album
+        JOIN label ON album.label_id = label.id
+        JOIN photo_detail ON album.photo_detail_id = photo_detail.id
+    """
+    )
+    suspend fun getSyncCheckAlbums(): List<SyncAlbumsDto>
+
+    @Query(
+        """
+        SELECT
+            label.name AS labelName,
+            photo_detail.photo_uri AS photoDetailUri,
+            photo_detail.file_name As fileName,
+            photo_detail.longitude As longitude,
+            photo_detail.latitude As latitude,
+            photo_detail.description As description,
+            photo_detail.datetime As datetime
+        FROM label
+        JOIN photo_detail ON label.id == photo_detail.label_id
+    """
+    )
+    suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
+
     @Query("SELECT * FROM album")
     suspend fun getALLAlbum(): List<Album>
 
@@ -78,4 +111,15 @@ interface PhotoDetailDao {
     @Query("SELECT * FROM photo_detail WHERE label_id = :labelId")
     suspend fun getAllPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
 
+    @Query("SELECT hazard_check_result FROM photo_detail WHERE id = :id")
+    suspend fun getHazardCheckResultById(id: Int): HazardAnalyzeStatus
+
+    @Query("SELECT hazard_check_result FROM photo_detail WHERE file_name = :fileName")
+    suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
+
+    @Query("UPDATE photo_detail SET hazard_check_result = :hazardAnalyzeStatus WHERE file_name = :fileName")
+    suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    )
 }

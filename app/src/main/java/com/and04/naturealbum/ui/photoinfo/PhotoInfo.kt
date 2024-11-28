@@ -47,6 +47,7 @@ import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.toColor
+import com.and04.naturealbum.utils.toDate
 
 @Composable
 fun PhotoInfo(
@@ -107,7 +108,8 @@ private fun Content(
             PhotoDetailInfo(innerPadding, photoDetail, label, address)
         }
 
-        is UiState.Error -> { /* TODO ERROR */ }
+        is UiState.Error -> { /* TODO ERROR */
+        }
     }
 }
 
@@ -184,7 +186,7 @@ private fun PhotoInfoLandscape(
             RowInfo(
                 imgVector = Icons.Default.DateRange,
                 contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-                text = photoDetail.datetime.toString() // TODO: date format
+                text = photoDetail.datetime.toDate()
             )
 
             RowInfo(
@@ -241,7 +243,7 @@ private fun PhotoInfoPortrait(
         RowInfo(
             imgVector = Icons.Default.DateRange,
             contentDescription = stringResource(R.string.photo_info_screen_calender_icon),
-            text = photoDetail.datetime.toString() // TODO: date format
+            text = photoDetail.datetime.toDate()
         )
 
         RowInfo(
