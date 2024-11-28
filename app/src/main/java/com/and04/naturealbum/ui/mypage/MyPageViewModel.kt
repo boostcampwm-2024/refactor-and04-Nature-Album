@@ -4,18 +4,21 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.datastore.DataStoreManager.Companion.NEVER_SYNC
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,6 +41,23 @@ class MyPageViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = NEVER_SYNC
     )
+
+    private val _syncWorking = MutableStateFlow(false)
+    val syncWorking: StateFlow<Boolean> = _syncWorking
+
+    fun startSync() {
+        viewModelScope.launch {
+            var syncWorkingStatus = false
+            while (true) {
+                val status = SynchronizationWorker.isWorking()
+                _syncWorking.value = status
+
+                if (syncWorkingStatus && !status) break
+                syncWorkingStatus = status
+                delay(1_00L)
+            }
+        }
+    }
 
     fun signInWithGoogle(context: Context) {
         authenticationManager.signInWithGoogle(context).onEach { response ->

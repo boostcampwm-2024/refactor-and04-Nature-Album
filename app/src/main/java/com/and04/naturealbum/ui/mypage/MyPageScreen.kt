@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -95,6 +96,7 @@ fun MyPageScreen(
     val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
     val progressState = myPageViewModel.progressState.collectAsStateWithLifecycle()
+    val syncWorking = myPageViewModel.syncWorking.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
@@ -112,6 +114,8 @@ fun MyPageScreen(
         recentSyncTime = recentSyncTime,
         progressState = progressState,
         setProgressState = myPageViewModel::setProgressState,
+        syncWorking = syncWorking,
+        startSync = myPageViewModel::startSync
     )
 }
 
@@ -132,6 +136,8 @@ fun MyPageScreenContent(
     recentSyncTime: State<String>,
     progressState: State<Boolean>,
     setProgressState: (Boolean) -> Unit,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -169,6 +175,8 @@ fun MyPageScreenContent(
             snackBarHostState = snackBarHostState,
             progressState = progressState,
             setProgressState = setProgressState,
+            syncWorking = syncWorking,
+            startSync = startSync
         )
     }
 }
@@ -191,6 +199,8 @@ private fun MyPageContent(
     snackBarHostState: SnackbarHostState,
     progressState: State<Boolean>,
     setProgressState: (Boolean) -> Unit,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -212,7 +222,9 @@ private fun MyPageContent(
                         emailState = userEmail,
                         displayNameState = userDisplayName,
                         snackBarHostState = snackBarHostState,
-                        recentSyncTime = recentSyncTime
+                        recentSyncTime = recentSyncTime,
+                        syncWorking = syncWorking,
+                        startSync = startSync
                     )
 
                     SocialContent(
@@ -259,6 +271,8 @@ private fun UserProfileContent(
     displayNameState: String?,
     snackBarHostState: SnackbarHostState? = null,
     recentSyncTime: State<String>? = null,
+    syncWorking: State<Boolean>? = null,
+    startSync: () -> Unit = {}
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -291,7 +305,9 @@ private fun UserProfileContent(
         if (snackBarHostState != null) {
             SyncContent(
                 snackBarHostState = snackBarHostState,
-                recentSyncTime = recentSyncTime!!
+                recentSyncTime = recentSyncTime!!,
+                syncWorking = syncWorking!!,
+                startSync = startSync
             )
         }
     }
@@ -440,25 +456,25 @@ private fun MyPageCustomTab(tabState: Int, index: Int, title: String, onClick: (
 private fun SyncContent(
     snackBarHostState: SnackbarHostState,
     recentSyncTime: State<String>,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val rotatingState = rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(recentSyncTime.value) {
-        rotatingState.value = false
-    }
     Row(
+        modifier = Modifier.padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(stringResource(R.string.my_page_sync))
         IconButton(
+            modifier = Modifier.size(24.dp),
             onClick = {
                 when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
                         SynchronizationWorker.runImmediately(context)
-                        rotatingState.value = true
+                        startSync()
                     }
 
                     CONNECTED_DATA -> {
@@ -468,7 +484,7 @@ private fun SyncContent(
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
                             actionLabel = context.getString(R.string.my_page_snackbar_confirm_button),
-                            rotatingState = rotatingState,
+                            onClickActionPerformed = startSync
                         )
                     }
 
@@ -485,7 +501,7 @@ private fun SyncContent(
             }
         ) {
             RotatingButton(
-                rotatingState = rotatingState.value,
+                rotatingState = syncWorking.value,
                 imageVector = Icons.Default.Sync,
                 contentDescription = stringResource(R.string.my_page_sync_icon_content_description)
             )
@@ -504,7 +520,7 @@ private fun startSnackBar(
     snackBarHostState: SnackbarHostState,
     message: String,
     actionLabel: String?,
-    rotatingState: MutableState<Boolean> = mutableStateOf(false),
+    onClickActionPerformed: () -> Unit = {},
 ) {
     coroutineScope.launch {
         val result = snackBarHostState.showSnackbar(
@@ -515,7 +531,7 @@ private fun startSnackBar(
 
         if (result == SnackbarResult.ActionPerformed) {
             SynchronizationWorker.runImmediately(context)
-            rotatingState.value = true
+            onClickActionPerformed()
         }
     }
 }
