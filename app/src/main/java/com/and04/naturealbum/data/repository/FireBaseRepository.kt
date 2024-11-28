@@ -7,10 +7,10 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
+import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
-import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -64,7 +64,8 @@ interface FireBaseRepository {
 
     //UPDATE
 
-
+    //DELETE
+    suspend fun deleteImageFile(uid: String, label: String, fileName: String)
 }
 
 class FireBaseRepositoryImpl @Inject constructor(
@@ -270,6 +271,18 @@ class FireBaseRepositoryImpl @Inject constructor(
         return task.storage.downloadUrl.await()
     }
 
+    override suspend fun deleteImageFile(uid: String, label: String, fileName: String) {
+        try {
+            // 스토리지 삭제
+            fireStorage.getReference("$uid/$label/$fileName").delete().await()
+            //스토어 삭제
+            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName).delete()
+                .await()
+        } catch (e: Exception) {
+            Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
+        }
+    }
+
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
@@ -399,6 +412,7 @@ class FireBaseRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             false
         }
+
     }
 
 

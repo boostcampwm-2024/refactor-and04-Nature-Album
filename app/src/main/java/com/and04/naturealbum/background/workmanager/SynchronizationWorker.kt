@@ -30,7 +30,9 @@ import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.ImageConvert
+import com.and04.naturealbum.utils.NetworkState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
@@ -327,8 +329,7 @@ class SynchronizationWorker @AssistedInject constructor(
     ): Int {
         val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
         if (isDeletedImage) {
-            //todo 서버에서 사진 삭제
-            deletPhoto()
+            deletServerPhoto(photo, labelId)
             return -1
         }
         return roomRepository.insertPhoto(
@@ -358,8 +359,17 @@ class SynchronizationWorker @AssistedInject constructor(
         )
     }
 
-    private fun deletPhoto() {
-
+    private suspend fun deletServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
+        val uid = UserManager.getUser()?.uid
+        Log.d("FireBaseRepository", "1111: $uid")
+        if (NetworkState.getNetWorkCode() != 0 && !uid.isNullOrEmpty()) {
+            val label = roomRepository.getLabelById(labelId)
+            fireBaseRepository.deleteImageFile(
+                uid = uid,
+                label = label.name,
+                fileName = photo.fileName,
+            )
+        }
     }
 
     private fun makeFileToUri(photoUri: String, fileName: String): String {
