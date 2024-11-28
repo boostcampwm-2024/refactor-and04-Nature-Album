@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,9 +67,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.PartialBottomSheet
+import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
@@ -428,7 +433,7 @@ fun PhotoGrid(
                     modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     row.forEach { photo ->
-                        AsyncImage(
+                        SubcomposeAsyncImage(
                             model = photo.uri,
                             contentDescription = photo.label.name,
                             modifier = Modifier
@@ -438,7 +443,17 @@ fun PhotoGrid(
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable { onPhotoClick(photo) },
                             contentScale = ContentScale.Crop,
-                        )
+                        ) {
+                            val state by painter.state.collectAsState()
+                            if (state is AsyncImagePainter.State.Success) {
+                                SubcomposeAsyncImageContent()
+                            } else {
+                                RotatingImageLoading(
+                                    drawableRes = R.drawable.fish_loading_image,
+                                    stringRes = null
+                                )
+                            }
+                        }
                     }
                     repeat(columnCount - row.size) {
                         Box(modifier = Modifier.weight(1f))
