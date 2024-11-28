@@ -33,9 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
@@ -167,62 +167,65 @@ fun RequestedItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                model = userWithStatus.user.photoUrl,
-                contentDescription = stringResource(R.string.my_page_user_profile_image),
-            )
 
-            Text(text = userWithStatus.user.email)
-        }
-
-
-        SuggestionChip(
-            onClick = {
-                if (userWithStatus.status == FriendStatus.NORMAL) {
-                    sendFriendRequest(currentUid, userWithStatus.user.uid)
-                }
-            },
-            enabled = userWithStatus.status == FriendStatus.NORMAL, // NORMAL 상태에서만 클릭 가능
-            label = {
-                val text = when (userWithStatus.status) {
-                    // 현재 uid 기준 상대방에게 [SENT: 요청 보낸 상태, RECEIVED: 요청 받은 상태, FRIEND: 친구 상태]
-                    FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
-                    FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
-                    FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
-                    else -> stringResource(R.string.my_page_friend_request)
-                }
-                Text(text = text)
-            },
-            colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = when (userWithStatus.status) {
-                    FriendStatus.SENT -> Color.LightGray
-                    FriendStatus.RECEIVED -> Color.Cyan
-                    FriendStatus.FRIEND -> Color.Green
-                    else -> MaterialTheme.colorScheme.primary
-                },
-                labelColor = when (userWithStatus.status) {
-                    FriendStatus.SENT -> Color.Black
-                    FriendStatus.RECEIVED -> Color.White
-                    FriendStatus.FRIEND -> Color.White
-                    else -> Color.White
-                }
-            )
+        AsyncImage(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            model = userWithStatus.user.photoUrl,
+            contentDescription = stringResource(R.string.my_page_user_profile_image),
         )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+
+            Text(
+                text = userWithStatus.user.email,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            SuggestionChip(
+                onClick = {
+                    if (userWithStatus.status == FriendStatus.NORMAL) {
+                        sendFriendRequest(currentUid, userWithStatus.user.uid)
+                    }
+                },
+                enabled = userWithStatus.status == FriendStatus.NORMAL,
+                label = {
+                    val text = when (userWithStatus.status) {
+                        FriendStatus.SENT -> stringResource(R.string.my_page_friend_requested)
+                        FriendStatus.RECEIVED -> stringResource(R.string.my_page_friend_request_received)
+                        FriendStatus.FRIEND -> stringResource(R.string.my_page_friend)
+                        else -> stringResource(R.string.my_page_friend_request)
+                    }
+                    Text(text = text)
+                },
+                colors = SuggestionChipDefaults.suggestionChipColors(
+                    containerColor = when (userWithStatus.status) {
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.secondary
+                    },
+                    labelColor = when (userWithStatus.status) {
+                        FriendStatus.NORMAL -> MaterialTheme.colorScheme.onPrimary
+                        else -> MaterialTheme.colorScheme.onSecondary
+                    }
+                )
+            )
+        }
     }
 
     HorizontalDivider(thickness = 1.dp)
 }
+
 
 @Composable
 fun MyPageAlarm(

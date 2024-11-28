@@ -7,7 +7,6 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
-import com.and04.naturealbum.ui.mypage.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,11 +36,17 @@ class FriendViewModel @Inject constructor(
     val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
     private val debouncePeriod = 100L
+    private var uid: String? = null
 
-    private val uid: String? = UserManager.getUser()?.uid
+    fun initialize(userUid: String) {
+        if (uid == userUid) return // 이미 로그인된 상태라면 중복 초기화 방지
+        uid = userUid
+        listenToFriends()
+        listenToReceivedFriendRequests()
+        startSearchQueryListener()
+    }
 
-
-    init {
+    private fun startSearchQueryListener() {
         viewModelScope.launch {
             _searchQuery
                 .debounce(debouncePeriod) // debouncePeriod 동안 입력 없을 때만 처리
@@ -53,8 +58,6 @@ class FriendViewModel @Inject constructor(
                     }
                 }
         }
-        listenToFriends()
-        listenToReceivedFriendRequests()
     }
 
     fun updateSearchQuery(query: String) {
