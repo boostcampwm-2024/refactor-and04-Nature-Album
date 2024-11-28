@@ -70,12 +70,10 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.BottomSheetState
 import com.and04.naturealbum.ui.component.PartialBottomSheet
-import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
@@ -92,8 +90,7 @@ fun MapScreen(
     viewModel: MapScreenViewModel = hiltViewModel(),
 ) {
     val friends = viewModel.friends.collectAsStateWithLifecycle()
-    val openAlertDialog = remember { mutableStateOf(false) }
-    var showFriends by remember { mutableStateOf(emptyList<FirebaseFriend>()) }
+    val openDialog = remember { mutableStateOf(false) }
 
     val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
     val friendsPhotos = viewModel.friendsPhotos.collectAsStateWithLifecycle()
@@ -210,8 +207,9 @@ fun MapScreen(
         // AndroidView를 MapView로 바로 설정
         AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
             mapView.getMapAsync { NaverMap ->
-                location?.let{ position ->
-                    val cameraUpdate = CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
+                location?.let { position ->
+                    val cameraUpdate =
+                        CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
                     NaverMap.moveCamera(cameraUpdate)
                 }
             }
@@ -221,7 +219,7 @@ fun MapScreen(
             IconButton(
                 onClick = {
                     viewModel.fetchFriends(UserManager.getUser()!!.uid)
-                    openAlertDialog.value = true
+                    openDialog.value = true
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -251,15 +249,14 @@ fun MapScreen(
             )
         }
     }
+
     FriendDialog(
-        isOpen = openAlertDialog,
+        isOpen = openDialog,
         friends = friends,
-        prevSelectedFriends = showFriends,
-        onDismiss = { openAlertDialog.value = false },
+        onDismiss = { openDialog.value = false },
         onConfirm = { selectedFriends ->
-            viewModel.fetchFriendsPhotos(selectedFriends.map { it.user.uid })
-            showFriends = selectedFriends
-            openAlertDialog.value = false
+            viewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
+            openDialog.value = false
         }
     )
 }
@@ -268,14 +265,12 @@ fun MapScreen(
 fun FriendDialog(
     isOpen: State<Boolean> = remember { mutableStateOf(true) },
     friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
-    prevSelectedFriends: List<FirebaseFriend> = emptyList(),
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
     onConfirm: (List<FirebaseFriend>) -> Unit = {}
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    var selectedFriends by remember { mutableStateOf(prevSelectedFriends) }
-
+    var selectedFriends by remember { mutableStateOf<List<FirebaseFriend>>(emptyList()) }
     if (isOpen.value) {
         Dialog(
             onDismissRequest = { onDismiss() },

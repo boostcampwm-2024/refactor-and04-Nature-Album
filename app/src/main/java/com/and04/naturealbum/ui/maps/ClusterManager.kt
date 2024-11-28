@@ -20,9 +20,9 @@ import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
 class ClusterManager(
-    val colorRange: ColorRange,
-    val onMarkerClick: (MarkerInfo) -> Overlay.OnClickListener,
-    val onClusterChange: (MarkerInfo) -> Unit
+    private val colorRange: ColorRange,
+    private val onMarkerClick: (MarkerInfo) -> Overlay.OnClickListener,
+    private val onClusterChange: (MarkerInfo) -> Unit
 ) {
     private val cluster: Clusterer<PhotoKey>
 
