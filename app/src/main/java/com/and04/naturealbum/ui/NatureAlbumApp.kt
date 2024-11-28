@@ -1,11 +1,5 @@
 package com.and04.naturealbum.ui
 
-import android.app.Activity.RESULT_OK
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.location.Location
-import android.net.Uri
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -20,97 +14,40 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.maps.MapScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
+import com.and04.naturealbum.ui.navigation.NatureAlbumState
+import com.and04.naturealbum.ui.navigation.NavigateDestination
+import com.and04.naturealbum.ui.navigation.rememberNatureAlbumState
 import com.and04.naturealbum.ui.photoinfo.PhotoInfo
 import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
-import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.ImageConvert
-import java.io.File
 
 @Composable
-fun NatureAlbumApp() {
-    val navController = rememberNavController()
-
-    NatureAlbumTheme {
-        NatureAlbumNavHost(navController)
-    }
-}
-
-@Composable
-fun NatureAlbumNavHost(
-    navController: NavHostController,
+fun NatureAlbumApp(
+    state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
-    val context = LocalContext.current
-    var lastLocation: Location? by rememberSaveable { mutableStateOf(null) }
-    val locationHandler = remember {
-        LocationHandler(
-            context = context
-        )
-    }
-
-    var imageUri: Uri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
-    var fileName: String by rememberSaveable { mutableStateOf("") }
-    var imageFile: File? = remember { null }
-
-    var selectedLabel: Label? by rememberSaveable { mutableStateOf(null) }
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val resizePicture = ImageConvert.resizeImage(imageUri)!!
-                imageFile?.delete()
-                imageUri = resizePicture.uri
-                fileName = resizePicture.fileName
-
-                locationHandler.getLocation { location -> lastLocation = location }
-                navController.navigate(NavigateDestination.SavePhoto.route) {
-                    launchSingleTop = true
-                }
-            } else {
-                imageUri = Uri.EMPTY
-                navController.navigate(NavigateDestination.Home.route) {
-                    popUpTo(NavigateDestination.Home.route) { inclusive = false }
-                    selectedLabel = null
-                    launchSingleTop = true
-                }
-            }
+            state.handleLauncher(result)
         }
-    val takePicture = {
-        // TODO: imageUri가 EMPTY가 아닐때 해당 파일 삭제
-        fileName = "temp_${System.currentTimeMillis()}.jpg"
-        imageFile = File(context.filesDir, fileName)
-        imageUri =
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile!!)
-
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-            putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-            try {
-                takePictureLauncher.launch(this)
-            } catch (e: ActivityNotFoundException) {
-                // TODO: 카메라 전환 오류 처리
-            }
-        }
-    }
 
     NavHost(
-        navController = navController,
+        navController = state.navController,
         startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
             HomeScreen(
-                locationHandler = locationHandler,
-                takePicture = { takePicture() },
-                onNavigateToAlbum = { navController.navigate(NavigateDestination.Album.route) },
-                onNavigateToMap = { navController.navigate(NavigateDestination.Map.route) },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                locationHandler = state.locationHandler.value,
+                takePicture = { state.takePicture(takePictureLauncher) },
+                onNavigateToAlbum = { state.navigateToAlbum() },
+                onNavigateToMap = { state.navigateToMap() },
+                onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
 
@@ -119,23 +56,14 @@ fun NatureAlbumNavHost(
                 navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
             }
             SavePhotoScreen(
-                location = lastLocation,
-                model = imageUri,
-                fileName = fileName,
-                onBack = { takePicture() },
-                onSave = {
-                    navController.navigate(NavigateDestination.Album.route) {
-                        popUpTo(NavigateDestination.Home.route) { inclusive = false }
-                        selectedLabel = null
-                    }
-                },
-                label = selectedLabel,
-                onLabelSelect = {
-                    navController.navigate(NavigateDestination.SearchLabel.route)
-                },
-                onNavigateToMyPage = {
-                    navController.navigate(NavigateDestination.MyPage.route)
-                },
+                location = state.lastLocation.value,
+                model = state.imageUri.value,
+                fileName = state.fileName.value,
+                onBack = { state.takePicture(takePictureLauncher) },
+                onSave = { state.navigateSavePhotoToAlbum() },
+                label = state.selectedLabel.value,
+                onLabelSelect = { state.navigateToSearchLabel() },
+                onNavigateToMyPage = { state.navigateToMyPage() },
                 viewModel = hiltViewModel(viewmodel),
             )
         }
@@ -156,10 +84,8 @@ fun NatureAlbumNavHost(
 
         composable(NavigateDestination.Album.route) {
             AlbumScreen(
-                onLabelClick = { labelId ->
-                    navController.navigate("${NavigateDestination.AlbumFolder.route}/$labelId")
-                },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                onLabelClick = { labelId -> state.navigateToAlbumFolder(labelId) },
+                onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
 
@@ -168,10 +94,8 @@ fun NatureAlbumNavHost(
 
             AlbumFolderScreen(
                 selectedAlbumLabel = labelId,
-                onPhotoClick = { photoDetailId ->
-                    navController.navigate("${NavigateDestination.PhotoInfo.route}/$photoDetailId")
-                },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
+                onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
 
@@ -180,12 +104,12 @@ fun NatureAlbumNavHost(
 
             PhotoInfo(
                 selectedPhotoDetail = photoDetailId,
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen(navigateToHome = { navController.navigate(NavigateDestination.Home.route) })
+            MyPageScreen(navigateToHome = { state.navigateToHome() })
         }
 
         composable(NavigateDestination.Map.route) {
