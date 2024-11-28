@@ -356,7 +356,6 @@ class SynchronizationWorker @AssistedInject constructor(
 
     private suspend fun deletServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
         val uid = UserManager.getUser()?.uid
-        Log.d("FireBaseRepository", "1111: $uid")
         if (NetworkState.getNetWorkCode() != 0 && !uid.isNullOrEmpty()) {
             val label = roomRepository.getLabelById(labelId)
             fireBaseRepository.deleteImageFile(
