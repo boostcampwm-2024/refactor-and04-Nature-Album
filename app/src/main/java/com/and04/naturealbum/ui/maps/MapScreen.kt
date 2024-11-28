@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.location.Location
 import android.view.Gravity
 import android.view.View
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -156,6 +157,13 @@ fun MapScreen(
                 }
             })
         }
+    }
+
+    BackHandler(
+        enabled = (pick != null)
+    ) {
+        pick = null
+        displayPhotos.value = emptyList()
     }
 
     LaunchedEffect(pick) {
