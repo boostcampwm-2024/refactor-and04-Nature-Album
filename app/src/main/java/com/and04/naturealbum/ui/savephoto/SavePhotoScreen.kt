@@ -140,7 +140,7 @@ fun SavePhotoScreen(
     onLabelSelect: () -> Unit,
     onBack: () -> Unit,
     savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit,
-    label: Label,
+    label: Label?,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
