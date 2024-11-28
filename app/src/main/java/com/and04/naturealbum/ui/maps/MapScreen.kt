@@ -238,6 +238,7 @@ fun MapScreen(
         }
 
         PartialBottomSheet(
+            isVisibe = displayPhotos.value.isNotEmpty(),
             initialState = BottomSheetState.Collapsed,
             modifier = modifier.padding(horizontal = 16.dp),
             fullExpansionSize = 0.95f

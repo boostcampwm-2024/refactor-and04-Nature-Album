@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
 enum class BottomSheetState {
+    Hide,
     Collapsed,
     HalfExpanded,
     Expanded
@@ -55,6 +56,7 @@ enum class BottomSheetState {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PartialBottomSheet(
+    isVisibe: Boolean = false,
     initialState: BottomSheetState = BottomSheetState.Collapsed,
     modifier: Modifier = Modifier,
     handleIcon: ImageVector = Icons.Default.DragHandle,
@@ -74,6 +76,7 @@ fun PartialBottomSheet(
     val handleHeightPx = if (showHandleCollapsed) with(density) { handleHeight.toPx() } else 0f
 
     val mapStatePosition = mapOf(
+        BottomSheetState.Hide to screenHeightPx,
         BottomSheetState.Collapsed to screenHeightPx - handleHeightPx,
         BottomSheetState.HalfExpanded to screenHeightPx * (1 - halfExpansionSize),
         BottomSheetState.Expanded to screenHeightPx * (1 - fullExpansionSize)
@@ -81,10 +84,11 @@ fun PartialBottomSheet(
 
     var currentState by remember { mutableStateOf(initialState) }
 
-    var bottomPadding by remember { mutableStateOf(with(density){mapStatePosition[initialState]!!.toDp()}) }
+    var bottomPadding by remember { mutableStateOf(with(density) { mapStatePosition[initialState]!!.toDp() }) }
 
     val state = remember {
-        AnchoredDraggableState(initialValue = currentState,
+        AnchoredDraggableState(
+            initialValue = currentState,
             anchors = DraggableAnchors {
                 mapStatePosition.forEach { (state, position) -> state at position }
             },
@@ -97,49 +101,63 @@ fun PartialBottomSheet(
 
     LaunchedEffect(state.currentValue) {
         currentState = state.currentValue
-        bottomPadding = with(density){mapStatePosition[currentState]!!.toDp()}
+        bottomPadding = with(density) { mapStatePosition[currentState]!!.toDp() }
     }
 
     LaunchedEffect(currentState) {
-        bottomPadding = with(density){mapStatePosition[currentState]!!.toDp()}
+        bottomPadding = with(density) { mapStatePosition[currentState]!!.toDp() }
         state.animateTo(currentState)
     }
 
-
-        ElevatedCard(
-            modifier = modifier
-                .offset { IntOffset(0, state.requireOffset().roundToInt()) },
-            shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
-        ) {
-            Icon(imageVector = handleIcon,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(handleHeight)
-                    .anchoredDraggable(
-                        state = state,
-                        orientation = Orientation.Vertical,
-                    )
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        currentState = when (currentState) {
-                            BottomSheetState.Collapsed -> BottomSheetState.HalfExpanded
-                            BottomSheetState.HalfExpanded -> BottomSheetState.Collapsed
-                            BottomSheetState.Expanded -> BottomSheetState.HalfExpanded
-                        }
-                    })
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding)
-                    .padding(bottom = bottomPadding),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                content()
-            }
+    LaunchedEffect(isVisibe) {
+        if (isVisibe) {
+            bottomPadding =
+                with(density) { mapStatePosition[BottomSheetState.HalfExpanded]!!.toDp() }
+            currentState = BottomSheetState.HalfExpanded
+            state.animateTo(currentState)
+        } else {
+            bottomPadding = with(density) { mapStatePosition[BottomSheetState.Hide]!!.toDp() }
+            currentState = BottomSheetState.Hide
+            state.animateTo(currentState)
         }
+    }
+
+
+    ElevatedCard(
+        modifier = modifier
+            .offset { IntOffset(0, state.requireOffset().roundToInt()) },
+        shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+    ) {
+        Icon(imageVector = handleIcon,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(handleHeight)
+                .anchoredDraggable(
+                    state = state,
+                    orientation = Orientation.Vertical,
+                )
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    currentState = when (currentState) {
+                        BottomSheetState.Hide -> BottomSheetState.Hide
+                        BottomSheetState.Collapsed -> BottomSheetState.HalfExpanded
+                        BottomSheetState.HalfExpanded -> BottomSheetState.Collapsed
+                        BottomSheetState.Expanded -> BottomSheetState.HalfExpanded
+                    }
+                })
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding)
+                .padding(bottom = bottomPadding),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            content()
+        }
+    }
 
 }
 
