@@ -74,7 +74,7 @@ fun NatureAlbumApp(
             LabelSearchScreen(
                 onSelected = { label ->
                     state.selectedLabel.value = label
-                    state.navController.popBackStack()
+                    state.popupBackStack()
                 },
                 savePhotoViewModel = hiltViewModel(viewmodel),
             )
@@ -107,7 +107,7 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.MyPage.route) {
-            MyPageScreen(navigateToHome = { state.navigateToHome() })
+            MyPageScreen(navigateToHome = { state.popupBackStack() })
         }
 
         composable(NavigateDestination.Map.route) {
