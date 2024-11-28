@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -113,7 +114,10 @@ fun NatureAlbumNavHost(
             )
         }
 
-        composable(NavigateDestination.SavePhoto.route) {
+        composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
             SavePhotoScreen(
                 location = lastLocation,
                 model = imageUri,
@@ -129,15 +133,25 @@ fun NatureAlbumNavHost(
                 onLabelSelect = {
                     navController.navigate(NavigateDestination.SearchLabel.route)
                 },
-                onNavigateToMyPage = { navController.navigate(NavigateDestination.MyPage.route) },
+                onNavigateToMyPage = {
+                    navController.navigate(NavigateDestination.MyPage.route)
+                },
+                viewModel = hiltViewModel(viewmodel),
             )
         }
 
-        composable(NavigateDestination.SearchLabel.route) {
-            LabelSearchScreen(onSelected = { label ->
-                selectedLabel = label
-                navController.popBackStack()
-            })
+        composable(NavigateDestination.SearchLabel.route) { backStackEntry ->
+            val viewmodel = remember(backStackEntry) {
+                navController.getBackStackEntry(NavigateDestination.SavePhoto.route)
+            }
+
+            LabelSearchScreen(
+                onSelected = { label ->
+                    selectedLabel = label
+                    navController.popBackStack()
+                },
+                savePhotoViewModel = hiltViewModel(viewmodel),
+            )
         }
 
         composable(NavigateDestination.Album.route) {
