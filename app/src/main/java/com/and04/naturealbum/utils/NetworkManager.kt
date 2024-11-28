@@ -14,7 +14,7 @@ class NetworkManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val _networkState = MutableStateFlow(NetworkState.DISCONNECTED)
-    val networkState: StateFlow<Int> get() = _networkState
+    val networkState: StateFlow<Int> = _networkState
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -48,7 +48,7 @@ class NetworkManager @Inject constructor(
         val currentNetwork = connectivityManager.activeNetwork
         val caps = connectivityManager.getNetworkCapabilities(currentNetwork)
 
-        val newState = when {
+        _networkState.value = when {
             currentNetwork == null || caps == null -> {
                 NetworkState.DISCONNECTED
             }
@@ -64,10 +64,6 @@ class NetworkManager @Inject constructor(
             else -> {
                 NetworkState.DISCONNECTED
             }
-        }
-
-        if (_networkState.value != newState) {
-            _networkState.value = newState
         }
     }
 }

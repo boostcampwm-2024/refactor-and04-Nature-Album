@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -246,7 +248,7 @@ private fun MyPageContent(
 
             else -> {
                 // 비회원일 때
-                UserProfileContent(null, null, null, null, null, null)
+                UserProfileContent()
                 LoginContent { signInWithGoogle(context) }
             }
         }
@@ -261,7 +263,7 @@ private fun NoNetworkSocialContent() {
         verticalArrangement = Arrangement.Center,
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_wifi_off_24dp_5f6368_fill0_wght400_grad0_opsz24),
+            imageVector = Icons.Default.WifiOff,
             contentDescription = stringResource(R.string.my_page_no_network_social_content_icon_description),
             modifier = Modifier
                 .size(48.dp)
@@ -279,12 +281,12 @@ private fun NoNetworkSocialContent() {
 
 @Composable
 private fun UserProfileContent(
-    uriState: String?,
-    emailState: String?,
-    displayNameState: String?,
+    uriState: String? = null,
+    emailState: String? = null,
+    displayNameState: String? = null,
     snackBarHostState: SnackbarHostState? = null,
     recentSyncTime: State<String>? = null,
-    networkState: State<Int>?,
+    networkState: State<Int>? = null,
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
