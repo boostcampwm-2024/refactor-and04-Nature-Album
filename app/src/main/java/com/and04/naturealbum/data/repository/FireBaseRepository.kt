@@ -11,6 +11,8 @@ import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
+import com.and04.naturealbum.data.dto.FirestoreUser.Companion.EMPTY
+import com.and04.naturealbum.data.dto.FirestoreUser.Companion.UNKNOWN
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -85,9 +87,9 @@ class FireBaseRepositoryImpl @Inject constructor(
             if (!userDoc.exists()) {
                 val firestoreUser = FirestoreUser(
                     uid = uid,
-                    displayName = displayName ?: "NoName User",
+                    displayName = displayName ?: UNKNOWN,
                     email = email,
-                    photoUrl = photoUrl ?: ""
+                    photoUrl = photoUrl ?: EMPTY
                 )
                 fireStore.collection(USER).document(uid).set(firestoreUser)
             }

@@ -48,7 +48,12 @@ data class FirestoreUser(
     val displayName: String = "",
     val email: String = "",
     val photoUrl: String = "",
-)
+) {
+    companion object {
+        const val UNKNOWN = "Unknown"
+        const val EMPTY = ""
+    }
+}
 
 data class FirestoreUserWithStatus(
     val user: FirestoreUser = FirestoreUser(),
