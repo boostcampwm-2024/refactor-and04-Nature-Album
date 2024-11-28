@@ -109,6 +109,7 @@ fun rememberNatureAlbumState(
             mapOf(
                 "imageUri" to state.imageUri.value.toString(),
                 "fileName" to state.fileName.value,
+                "lastLocation" to state.lastLocation.value,
             )
         },
         restore = { restoredMap ->
@@ -118,6 +119,7 @@ fun rememberNatureAlbumState(
             ).apply {
                 imageUri.value = Uri.parse(restoredMap["imageUri"] as String)
                 fileName.value = restoredMap["fileName"] as String
+                lastLocation.value = restoredMap["lastLocation"] as Location
             }
         }
     )
