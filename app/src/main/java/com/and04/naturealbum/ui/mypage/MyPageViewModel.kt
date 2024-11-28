@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.mypage
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.datastore.DataStoreManager
@@ -26,6 +27,9 @@ class MyPageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(setInitUiState())
     val uiState: StateFlow<UiState<UserInfo>> = _uiState
 
+    private val _progressState = MutableStateFlow(false)
+    val progressState: StateFlow<Boolean> = _progressState
+
     private val _myFriends = MutableStateFlow<List<MyFriend>>(emptyList())
     val myFriend: StateFlow<List<MyFriend>> = _myFriends
 
@@ -37,14 +41,25 @@ class MyPageViewModel @Inject constructor(
 
     fun signInWithGoogle(context: Context) {
         authenticationManager.signInWithGoogle(context).onEach { response ->
+            Log.d("FFFF", "111")
             when (response) {
                 is AuthResponse.Success -> {
+                    Log.d("FFFF", "2222")
                     _uiState.emit(
                         getUserInfoUiState()
                     )
+                    Log.d("FFFF", "3333")
                 }
             }
+            //닫혔을 때
+            _progressState.value = false
         }.launchIn(viewModelScope)
+        //열렸을 때
+        _progressState.value = true
+    }
+
+    fun setProgressState(state: Boolean) {
+        _progressState.value = state
     }
 
 

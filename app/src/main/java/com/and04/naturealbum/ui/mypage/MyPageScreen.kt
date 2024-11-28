@@ -94,6 +94,7 @@ fun MyPageScreen(
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val allUsersInfo = friendViewModel.allUsersWithStatus.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
+    val progressState = myPageViewModel.progressState.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
@@ -108,7 +109,9 @@ fun MyPageScreen(
         sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
-        recentSyncTime = recentSyncTime
+        recentSyncTime = recentSyncTime,
+        progressState = progressState,
+        setProgressState = myPageViewModel::setProgressState,
     )
 }
 
@@ -127,6 +130,8 @@ fun MyPageScreenContent(
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -161,7 +166,9 @@ fun MyPageScreenContent(
             sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
-            snackBarHostState = snackBarHostState
+            snackBarHostState = snackBarHostState,
+            progressState = progressState,
+            setProgressState = setProgressState,
         )
     }
 }
@@ -182,6 +189,8 @@ private fun MyPageContent(
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -224,9 +233,8 @@ private fun MyPageContent(
 
             else -> {
                 // 비회원일 때
-                val progressIndicatorState = rememberSaveable { mutableStateOf(false) }
                 Box {
-                    ProgressIndicator(progressIndicatorState.value)
+                    ProgressIndicator(progressState.value)
                 }
                 Column(
                     modifier = modifier,
@@ -234,7 +242,10 @@ private fun MyPageContent(
                     verticalArrangement = Arrangement.spacedBy(32.dp),
                 ) {
                     UserProfileContent(null, null, null)
-                    LoginContent(progressIndicatorState) { signInWithGoogle(context) }
+                    LoginContent(
+                        progressState = progressState,
+                        setProgressState = setProgressState,
+                    ) { signInWithGoogle(context) }
                 }
             }
         }
@@ -303,7 +314,11 @@ private fun UserProfileImage(uri: String?, modifier: Modifier) {
 }
 
 @Composable
-private fun LoginContent(progressIndicatorState: MutableState<Boolean>, loginHandle: () -> Unit) {
+private fun LoginContent(
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
+    loginHandle: () -> Unit,
+) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -316,7 +331,7 @@ private fun LoginContent(progressIndicatorState: MutableState<Boolean>, loginHan
         Button(
             onClick = {
                 loginHandle()
-                progressIndicatorState.value = true
+                setProgressState(true)
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(30)
