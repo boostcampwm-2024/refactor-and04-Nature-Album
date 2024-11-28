@@ -2,6 +2,8 @@ package com.and04.naturealbum.ui.photoinfo
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,13 +12,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +76,7 @@ fun PhotoInfo(
         onNavigateToMyPage = onNavigateToMyPage,
         uiState = uiState,
         address = address,
+        setAlbumThumbnail = photoInfoViewModel::setAlbumThumbnail,
     )
 }
 
@@ -78,6 +85,7 @@ fun PhotoInfo(
     onNavigateToMyPage: () -> Unit,
     uiState: State<UiState<AlbumData>>,
     address: State<String>,
+    setAlbumThumbnail: (Int) -> Unit,
 ) {
     Scaffold(
         topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
@@ -85,7 +93,8 @@ fun PhotoInfo(
         Content(
             innerPadding = innerPadding,
             uiState = uiState,
-            address = address
+            address = address,
+            setAlbumThumbnail = setAlbumThumbnail,
         )
     }
 }
@@ -95,6 +104,7 @@ private fun Content(
     innerPadding: PaddingValues,
     uiState: State<UiState<AlbumData>>,
     address: State<String>,
+    setAlbumThumbnail: (Int) -> Unit,
 ) {
     when (val success = uiState.value) {
         is UiState.Idle, UiState.Loading -> {
@@ -105,7 +115,13 @@ private fun Content(
             val photoDetail = success.data.photoDetails
             val label = success.data.label
 
-            PhotoDetailInfo(innerPadding, photoDetail, label, address)
+            PhotoDetailInfo(
+                innerPadding = innerPadding,
+                photoDetail = photoDetail,
+                label = label,
+                address = address,
+                setAlbumThumbnail = setAlbumThumbnail,
+            )
         }
 
         is UiState.Error -> { /* TODO ERROR */
@@ -119,6 +135,7 @@ private fun PhotoDetailInfo(
     photoDetail: PhotoDetail,
     label: Label,
     address: State<String>,
+    setAlbumThumbnail: (Int) -> Unit,
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -128,7 +145,8 @@ private fun PhotoDetailInfo(
             innerPadding = innerPadding,
             photoDetail = photoDetail,
             label = label,
-            address = address
+            address = address,
+            setAlbumThumbnail = setAlbumThumbnail,
         )
     } else {
         PhotoInfoPortrait(
@@ -136,6 +154,7 @@ private fun PhotoDetailInfo(
             photoDetail = photoDetail,
             label = label,
             address = address,
+            setAlbumThumbnail = setAlbumThumbnail,
         )
     }
 }
@@ -146,6 +165,7 @@ private fun PhotoInfoLandscape(
     photoDetail: PhotoDetail,
     label: Label,
     address: State<String>,
+    setAlbumThumbnail: (Int) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -200,6 +220,11 @@ private fun PhotoInfoLandscape(
                 contentDescription = stringResource(R.string.photo_info_screen_description_icon),
                 text = photoDetail.description
             )
+
+            SetThumbnailContent(
+                photoDetail = photoDetail,
+                setAlbumThumbnail = setAlbumThumbnail,
+            )
         }
     }
 }
@@ -210,6 +235,7 @@ private fun PhotoInfoPortrait(
     photoDetail: PhotoDetail,
     label: Label,
     address: State<String>,
+    setAlbumThumbnail: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -257,6 +283,11 @@ private fun PhotoInfoPortrait(
             contentDescription = stringResource(R.string.photo_info_screen_description_icon),
             text = photoDetail.description
         )
+
+        SetThumbnailContent(
+            photoDetail = photoDetail,
+            setAlbumThumbnail = setAlbumThumbnail,
+        )
     }
 }
 
@@ -277,6 +308,17 @@ private fun RowInfo(
     }
 }
 
+@Composable
+fun SetThumbnailContent(
+    photoDetail: PhotoDetail,
+    setAlbumThumbnail: (Int) -> Unit,
+) {
+    Button(onClick = { setAlbumThumbnail(photoDetail.id) }) {
+        Text(text = stringResource(R.string.photo_info_set_thumbnail_btn_txt))
+    }
+}
+
+
 @Preview
 @Composable
 private fun PhotoInfoPreview() {
@@ -295,6 +337,7 @@ private fun PhotoInfoPreview() {
     PhotoInfo(
         onNavigateToMyPage = {},
         uiState = uiState,
-        address = address
+        address = address,
+        setAlbumThumbnail = { },
     )
 }
