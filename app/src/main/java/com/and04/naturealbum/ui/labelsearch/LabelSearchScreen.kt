@@ -50,6 +50,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.savephoto.SavePhotoViewModel
+import com.and04.naturealbum.utils.toColor
 
 @Composable
 fun LabelSearchScreen(
@@ -190,7 +191,7 @@ fun UnderLineSuggestionChip(
         label = { Text(label.name) },
 
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = Color(label.backgroundColor.toLong(16)),
+            containerColor = label.backgroundColor.toColor(),
             labelColor = if (Color(label.backgroundColor.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
         )
     )
@@ -258,12 +259,11 @@ fun CreateLabelContent(
             },
             label = { Text(query.value) },
             colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = Color(
-                    randomColor.value.ifBlank {
-                        randomColor.value = getRandomColor()
-                        randomColor.value
-                    }.toLong(16)
-                ),
+                containerColor =
+                randomColor.value.ifBlank {
+                    randomColor.value = getRandomColor()
+                    randomColor.value
+                }.toColor(),
                 labelColor = if (Color(randomColor.value.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
             )
         )
