@@ -110,6 +110,7 @@ fun MyPageScreen(
         onSearchQueryChange = friendViewModel::updateSearchQuery,
         recentSyncTime = recentSyncTime,
         networkState = networkState,
+        initializeFriendViewModel = friendViewModel::initialize
     )
 }
 
@@ -127,6 +128,7 @@ fun MyPageScreenContent(
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
     networkState: State<Int>,
+    initializeFriendViewModel: (String) -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -161,6 +163,7 @@ fun MyPageScreenContent(
             onSearchQueryChange = onSearchQueryChange,
             snackBarHostState = snackBarHostState,
             networkState = networkState,
+            initializeFriendViewModel = initializeFriendViewModel,
         )
     }
 }
@@ -180,6 +183,7 @@ private fun MyPageContent(
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
+    initializeFriendViewModel: (String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -195,6 +199,8 @@ private fun MyPageContent(
                 val userPhotoUri = success.data.userPhotoUri
                 val userDisplayName = success.data.userDisplayName
                 val userUid = success.data.userUid
+
+                userUid?.let { initializeFriendViewModel(userUid) }
 
                 UserProfileContent(
                     uriState = userPhotoUri,
