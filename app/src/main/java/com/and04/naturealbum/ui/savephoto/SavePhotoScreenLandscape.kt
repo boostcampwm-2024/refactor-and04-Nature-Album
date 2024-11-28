@@ -78,7 +78,10 @@ fun SavePhotoScreenLandscape(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            LabelSelection(label = label, onClick = onLabelSelect)
+            LabelSelection(
+                label = label,
+                onClick = onLabelSelect
+            )
 
             Description(
                 description = rememberDescription,

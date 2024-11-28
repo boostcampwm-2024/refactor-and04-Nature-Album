@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.home
+package com.and04.naturealbum.ui
 
 import android.Manifest
 import android.app.Activity
@@ -9,19 +9,22 @@ import androidx.core.content.ContextCompat
 
 class PermissionHandler(
     private val context: Context,
-    private val activity: Activity,
     private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
     private var showPermissionExplainDialog: () -> Unit,
 ) {
+    private fun hasCameraHardware(): Boolean {
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+    }
 
-    fun onClickCamera() {
-        if (!hasCameraHardware()) return
+    fun checkPermissions(permissions: Permissions) {
+        if (permissions == Permissions.CAMERA && !hasCameraHardware()) return
 
-        val deniedPermissions = REQUESTED_PERMISSIONS.filter { permissions ->
+        val activity = context as? Activity ?: return
+        val deniedPermissions = permissions.permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
-                permissions
+                permission
             ) != PackageManager.PERMISSION_GRANTED
         }
         if (deniedPermissions.isEmpty()) {
@@ -33,17 +36,13 @@ class PermissionHandler(
             if (hasPreviouslyDeniedPermission) {
                 showPermissionExplainDialog()
             } else {
-                requestPermissions()
+                requestPermissions(permissions.permissions)
             }
         }
     }
 
-    private fun hasCameraHardware(): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-    }
-
-    fun requestPermissions() {
-        val deniedPermissions = REQUESTED_PERMISSIONS.filter { permission ->
+    fun requestPermissions(permissions: List<String>) {
+        val deniedPermissions = permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
                 permission
@@ -52,12 +51,19 @@ class PermissionHandler(
         onRequestPermission(deniedPermissions.toTypedArray())
     }
 
-    companion object {
-        private val REQUESTED_PERMISSIONS =
+    enum class Permissions(val permissions: List<String>) {
+        CAMERA(
             listOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
+        ),
+        MAP(
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+        ),
     }
 }
