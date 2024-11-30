@@ -7,8 +7,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.and04.naturealbum.BuildConfig
-import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
+import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -16,6 +16,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -30,7 +31,7 @@ interface AuthResponse {
 }
 
 class AuthenticationManager @Inject constructor(
-    private val fireBaseRepository: FireBaseRepository
+    private val fireBaseRepository: FireBaseRepository,
 ) {
     private val auth = Firebase.auth
 
@@ -127,6 +128,7 @@ class AuthenticationManager @Inject constructor(
                             )
                         if (success) {
                             Log.d("FirebaseSignIn", "User successfully created in Firestore")
+                            updateFcmToken(uid) // FCM Token 생성 및 저장
                             getUserToken { authResponse ->
                                 Log.d("FirebaseSignIn", "Token retrieved successfully")
                                 trySend(authResponse)
@@ -153,11 +155,31 @@ class AuthenticationManager @Inject constructor(
             }
     }
 
+    private fun updateFcmToken(uid: String) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                if (token != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val success = fireBaseRepository.saveFcmToken(uid, token)
+                        if (success) {
+                            Log.d("FCM", "FCM token updated successfully via Repository")
+                        } else {
+                            Log.e("FCM", "Failed to update FCM token via Repository")
+                        }
+                    }
+                } else {
+                    Log.e("FCM", "Failed to fetch FCM token: ${task.exception?.message}")
+                }
+            }
+        }
+    }
+
     private suspend fun createUserInFirestore(
         uid: String,
         displayName: String?,
         email: String,
-        photoUrl: String?
+        photoUrl: String?,
     ): Boolean {
         Log.d("Firestore", "Checking if user exists in Firestore: UID=$uid")
         return try {
@@ -174,7 +196,6 @@ class AuthenticationManager @Inject constructor(
             false
         }
     }
-
 
     private fun getUserToken(trySend: (AuthResponse) -> Unit) {
         Log.d("FirebaseSignIn", "Retrieving user token...")

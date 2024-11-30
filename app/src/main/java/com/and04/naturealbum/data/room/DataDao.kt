@@ -93,6 +93,19 @@ interface AlbumDao {
 
     @Query("SELECT * FROM album WHERE label_id = :labelId")
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
+
+    @Query(
+        """
+        UPDATE album
+        SET photo_detail_id = :photoDetailId
+        WHERE label_id = (
+            SELECT label_id
+            FROM photo_detail
+            WHERE id = :photoDetailId
+        )
+    """
+    )
+    suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int)
 }
 
 @Dao

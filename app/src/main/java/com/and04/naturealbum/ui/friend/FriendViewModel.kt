@@ -1,26 +1,28 @@
 package com.and04.naturealbum.ui.friend
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
-import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class FriendViewModel @Inject constructor(
     private val fireBaseRepository: FireBaseRepository,
 ) : ViewModel() {
-
-    private val _friendRequests = MutableStateFlow<List<FirebaseFriendRequest>>(emptyList())
-    val friendRequests: StateFlow<List<FirebaseFriendRequest>> = _friendRequests
 
     private val _receivedFriendRequests = MutableStateFlow<List<FirebaseFriendRequest>>(emptyList())
     val receivedFriendRequests: StateFlow<List<FirebaseFriendRequest>> = _receivedFriendRequests
@@ -28,70 +30,65 @@ class FriendViewModel @Inject constructor(
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
 
-    private val _allUsersWithStatus = MutableStateFlow<List<FirestoreUserWithStatus>>(emptyList())
-    val allUsersWithStatus: StateFlow<List<FirestoreUserWithStatus>> = _allUsersWithStatus
+    private val _searchQuery = MutableStateFlow("")
 
-    private val _operationStatus = MutableStateFlow<String>("")
-    val operationStatus: StateFlow<String> = _operationStatus
+    private val _searchResults = MutableStateFlow<Map<String, FirestoreUserWithStatus>>(emptyMap())
+    val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
-    fun fetchAllUsersInfo(uid: String) {
+    private val debouncePeriod = 100L
+    private var uid: String? = null
+
+    fun initialize(userUid: String) {
+        if (uid == userUid) return // 이미 로그인된 상태라면 중복 초기화 방지
+        uid = userUid
+        listenToFriends()
+        listenToReceivedFriendRequests()
+        startSearchQueryListener()
+    }
+
+    private fun startSearchQueryListener() {
         viewModelScope.launch {
-            try {
-                val users = fireBaseRepository.getAllUsersInfo(uid)
-                _allUsersWithStatus.value = users
-                _operationStatus.value = "모든 사용자 정보 가져오기 성공."
-
-                users.forEach { user ->
-                    Log.d(
-                        "FriendViewModel",
-                        "User: ${user.user.displayName}, Email: ${user.user.email}, Status: ${user.status}"
-                    )
+            _searchQuery
+                .debounce(debouncePeriod) // debouncePeriod 동안 입력 없을 때만 처리
+                .filter { query -> query.isNotBlank() } // 빈 쿼리 무시
+                .distinctUntilChanged() // 중복 값 방지
+                .collect { query ->
+                    uid?.let { currentUid ->
+                        fetchFilteredUsersAsFlow(currentUid, query)
+                    }
                 }
-            } catch (e: Exception) {
-                _operationStatus.value = "모든 사용자 정보를 가져오는 데 실패했습니다: ${e.message}"
-                Log.d("FriendViewModel", _operationStatus.value)
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    private fun fetchFilteredUsersAsFlow(currentUid: String, query: String) {
+        viewModelScope.launch {
+            fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                _searchResults.value = results
             }
         }
     }
 
-    fun fetchFriendRequests(uid: String) {
-        viewModelScope.launch {
-            try {
-                val requests = fireBaseRepository.getFriendRequests(uid)
-                _friendRequests.value = requests
-                _operationStatus.value = "친구 요청 목록을 성공적으로 가져왔습니다."
-                Log.d("FriendViewModel", "친구 요청 목록: ${_friendRequests.value}")
-            } catch (e: Exception) {
-                _operationStatus.value = "친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
-                Log.d("FriendViewModel", _operationStatus.value)
+    private fun listenToFriends() {
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.getFriendsAsFlow(currentUid).collect { friends ->
+                    _friends.value = friends
+                }
             }
         }
     }
 
-    fun fetchReceivedFriendRequests(uid: String) {
-        viewModelScope.launch {
-            try {
-                val requests = fireBaseRepository.getReceivedFriendRequests(uid)
-                _receivedFriendRequests.value = requests
-                _operationStatus.value = " 받은 친구 요청 목록을 성공적으로 가져왔습니다"
-                Log.d("FriendViewModel", "받은 친구 요청 목록: ${_receivedFriendRequests.value}")
-            } catch (e: Exception) {
-                _operationStatus.value = "받은 친구 요청 목록을 가져오는 데 실패했습니다: ${e.message}"
-                Log.d("FriendViewModel", _operationStatus.value)
-            }
-        }
-    }
-
-    fun fetchFriends(uid: String) {
-        viewModelScope.launch {
-            try {
-                val friends = fireBaseRepository.getFriends(uid)
-                _friends.value = friends
-                _operationStatus.value = "친구 목록을 성공적으로 가져왔습니다"
-                Log.d("FriendViewModel", "친구 목록: ${_friends.value}")
-            } catch (e: Exception) {
-                _operationStatus.value = "친구 목록을 가져오는 데 실패했습니다: ${e.message}"
-                Log.d("FriendViewModel", _operationStatus.value)
+    private fun listenToReceivedFriendRequests() {
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.getReceivedFriendRequestsAsFlow(currentUid)
+                    .collect { receivedFriendRequests ->
+                        _receivedFriendRequests.value = receivedFriendRequests
+                    }
             }
         }
     }
@@ -99,66 +96,26 @@ class FriendViewModel @Inject constructor(
     fun sendFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
             val success = fireBaseRepository.sendFriendRequest(uid, targetUid)
-            _operationStatus.value =
-                if (success) "친구 요청이 성공적으로 전송되었습니다." else "친구 요청 전송에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
+            if (success) {
+                // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
+                _searchResults.value = _searchResults.value.toMutableMap().apply {
+                    // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
+                    this[targetUid] =
+                        this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
+                }
+            }
         }
     }
 
     fun acceptFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
-            val success = fireBaseRepository.acceptFriendRequest(uid, targetUid)
-            _operationStatus.value =
-                if (success) "친구 요청을 수락했습니다." else "친구 요청 수락에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
+            fireBaseRepository.acceptFriendRequest(uid, targetUid)
         }
     }
 
     fun rejectFriendRequest(uid: String, targetUid: String) {
         viewModelScope.launch {
-            val success = fireBaseRepository.rejectFriendRequest(uid, targetUid)
-            _operationStatus.value =
-                if (success) "친구 요청을 거절했습니다." else "친구 요청 거절에 실패했습니다."
-            Log.d("FriendViewModel", _operationStatus.value)
-        }
-    }
-
-    fun setupTestData() {
-        viewModelScope.launch {
-            // 더미 유저 추가
-            listOf(
-                FirestoreUser(
-                    uid = "yujin",
-                    displayName = "YujinDisplay",
-                    email = "yujin@example.com",
-                    photoUrl = "https://example.com/yujin.jpg"
-                ),
-                FirestoreUser(
-                    uid = "and04",
-                    displayName = "And04Display",
-                    email = "and04@example.com",
-                    photoUrl = "https://example.com/and04.jpg"
-                ),
-                FirestoreUser(
-                    uid = "cat",
-                    displayName = "CatDisplay",
-                    email = "cat@example.com",
-                    photoUrl = "https://example.com/cat.jpg"
-                ),
-                FirestoreUser(
-                    uid = "jeong",
-                    displayName = "JeongDisplay",
-                    email = "jeong@example.com",
-                    photoUrl = "https://example.com/jeong.jpg"
-                )
-            ).forEach { user ->
-                fireBaseRepository.createUserIfNotExists(
-                    uid = user.uid,
-                    displayName = user.displayName,
-                    email = user.email,
-                    photoUrl = user.photoUrl
-                )
-            }
+            fireBaseRepository.rejectFriendRequest(uid, targetUid)
         }
     }
 }

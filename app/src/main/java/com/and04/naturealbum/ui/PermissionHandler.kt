@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -64,6 +65,13 @@ class PermissionHandler(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
+        ),
+        NOTIFICATION(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                emptyList()
+            }
         ),
     }
 }

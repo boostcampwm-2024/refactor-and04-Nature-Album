@@ -52,6 +52,8 @@ fun AlbumScreen(
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
+    viewModel.loadAlbums()
+
     AlbumScreen(
         uiState = uiState,
         onLabelClick = onLabelClick,

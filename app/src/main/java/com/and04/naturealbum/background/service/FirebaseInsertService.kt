@@ -2,7 +2,6 @@ package com.and04.naturealbum.background.service
 
 import android.app.Service
 import android.content.Intent
-import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -50,11 +49,8 @@ class FirebaseInsertService : Service() {
             } else {
                 intent.getParcelableExtra<Label>(SERVICE_LABEL)!!
             }
-            val location = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra(SERVICE_LOCATION, Location::class.java)
-            } else {
-                intent.getParcelableExtra<Location>(SERVICE_LOCATION)
-            }
+            val latitude = intent.getDoubleExtra(SERVICE_LOCATION_LATITUDE, 0.0)
+            val longitude = intent.getDoubleExtra(SERVICE_LOCATION_LONGITUDE, 0.0)
             val description = intent.getStringExtra(SERVICE_DESCRIPTION) as String
 
             val storageJob = scope.launch {
@@ -85,7 +81,12 @@ class FirebaseInsertService : Service() {
                         uri = uri.toUri()
                     )
 
-                if (label.id == NEW_LABEL) {
+                val serverLabels = fireBaseRepository.getLabels(uid)
+                val serverNoLabel = serverLabels.none{ serverLabel ->
+                    serverLabel.labelName == label.name
+                }
+
+                if (serverNoLabel) {
                     fireBaseRepository
                         .insertLabel(
                             uid = uid,
@@ -105,8 +106,8 @@ class FirebaseInsertService : Service() {
                         photoData = FirebasePhotoInfo(
                             uri = storageUri.toString(),
                             label = label.name,
-                            latitude = location?.latitude,
-                            longitude = location?.longitude,
+                            latitude = latitude,
+                            longitude = longitude,
                             description = description,
                             datetime = dateTime
                         )
@@ -137,7 +138,8 @@ class FirebaseInsertService : Service() {
         const val SERVICE_URI = "service_uri"
         const val SERVICE_FILENAME = "service_filename"
         const val SERVICE_LABEL = "service_label"
-        const val SERVICE_LOCATION = "service_location"
+        const val SERVICE_LOCATION_LATITUDE = "service_location_latitude"
+        const val SERVICE_LOCATION_LONGITUDE = "service_location_longitude"
         const val SERVICE_DESCRIPTION = "service_location"
         const val SERVICE_DATETIME = "service_datetime"
     }
