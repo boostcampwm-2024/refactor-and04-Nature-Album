@@ -61,7 +61,7 @@ class AlbumFolderViewModel @Inject constructor(
                             val label = roomRepository.getLabelById(photoDetail.labelId)
                             fireBaseRepository.deleteImageFile(
                                 uid = uid,
-                                label = label.name,
+                                label = label,
                                 fileName = photoDetail.fileName,
                             )
                         }

@@ -163,10 +163,17 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 val unSynchronizedLabelsToLocal = labels.filter { label ->
+                    Log.d("FFFF", "label : ${label}, allLocalLabels: ${allLocalLabels.size}")
                     allLocalLabels.none { localLabel ->
+                        Log.d(
+                            "FFFF",
+                            "localLabel: ${localLabel.labelName},  label:${label.labelName}"
+                        )
                         localLabel.labelName == label.labelName
                     }
                 }
+
+                Log.d("FFFF", "@@ : ${unSynchronizedLabelsToLocal}")
 
                 duplicationLabels.forEach { duplicationLabel ->
                     launch {
@@ -386,7 +393,7 @@ class SynchronizationWorker @AssistedInject constructor(
             val label = roomRepository.getLabelById(labelId)
             fireBaseRepository.deleteImageFile(
                 uid = uid,
-                label = label.name,
+                label = label,
                 fileName = photo.fileName,
             )
         }

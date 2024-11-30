@@ -1,6 +1,5 @@
 package com.and04.naturealbum.data.repository
 
-import android.util.Log
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
@@ -22,7 +21,7 @@ interface DataRepository {
     suspend fun getAllAlbum(): List<AlbumDto>
     suspend fun getSyncCheckAlbums(): List<SyncAlbumsDto>
     suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
-    suspend fun getAlbumByLabelId(labelId: Int): Album
+    suspend fun getAlbumByLabelId(labelId: Int): List<Album>
     suspend fun insertPhoto(photoDetail: PhotoDetail): Long
     suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun insertLabel(label: Label): Long
@@ -72,7 +71,7 @@ class DataRepositoryImpl @Inject constructor(
         return photoDetailDao.getAllPhotoDetailsUriByLabelId(labelId)
     }
 
-    override suspend fun getAlbumByLabelId(labelId: Int): Album {
+    override suspend fun getAlbumByLabelId(labelId: Int): List<Album> {
         return albumDao.getAlbumByLabelId(labelId)
     }
 
@@ -93,23 +92,20 @@ class DataRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteImage(photoDetail: PhotoDetail) {
-        val album = albumDao.getAlbumByLabelId(photoDetail.labelId)
+        val album = albumDao.getAlbumByLabelId(photoDetail.labelId).first()
         val isRepresentedImage = album.photoDetailId == photoDetail.id
         val nextRepresentedImage =
             photoDetailDao.getAllPhotoDetailsUriByLabelId(photoDetail.labelId)
                 .firstOrNull { it != photoDetail }
 
         if (isRepresentedImage && nextRepresentedImage != null) {
-            // 이미지를 삭제했을 때 해당 라벨 내 남아있는 이미지가 있는지
-            val updateAlbum =
+            albumDao.updateAlbum(
                 Album(
                     id = album.id,
                     labelId = photoDetail.labelId,
                     photoDetailId = nextRepresentedImage.id
                 )
-            albumDao.updateAlbum(updateAlbum)
-
-            Log.d("getAllAlbum", "${albumDao.getAllAlbum()}")
+            )
         }
         return photoDetailDao.deleteImage(photoDetail)
     }

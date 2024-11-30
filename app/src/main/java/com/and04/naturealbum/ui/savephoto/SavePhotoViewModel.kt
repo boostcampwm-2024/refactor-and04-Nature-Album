@@ -86,7 +86,7 @@ class SavePhotoViewModel @Inject constructor(
                 }
 
                 album.await().run {
-                    if (this == null) {
+                    if (isEmpty()) {
                         repository.insertPhotoInAlbum(
                             Album(
                                 labelId = labelId,
@@ -95,7 +95,7 @@ class SavePhotoViewModel @Inject constructor(
                         )
                     } else if (isRepresented) {
                         repository.updateAlbum(
-                            copy(
+                            first().copy(
                                 photoDetailId = photoDetailId.await().toInt()
                             )
                         )

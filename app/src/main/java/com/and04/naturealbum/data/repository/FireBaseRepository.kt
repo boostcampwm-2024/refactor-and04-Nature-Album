@@ -9,10 +9,12 @@ import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.FirestoreUser
-import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
-import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.EMPTY
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.UNKNOWN
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.Label
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -71,12 +73,13 @@ interface FireBaseRepository {
     suspend fun saveFcmToken(uid: String, token: String): Boolean
 
     //DELETE
-    suspend fun deleteImageFile(uid: String, label: String, fileName: String)
+    suspend fun deleteImageFile(uid: String, label: Label, fileName: String)
 }
 
 class FireBaseRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val fireStorage: FirebaseStorage,
+    private val albumDao: AlbumDao,
 ) : FireBaseRepository {
 
     override suspend fun createUserIfNotExists(
@@ -230,13 +233,22 @@ class FireBaseRepositoryImpl @Inject constructor(
         return task.storage.downloadUrl.await()
     }
 
-    override suspend fun deleteImageFile(uid: String, label: String, fileName: String) {
+    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
         try {
-            // 스토리지 삭제
-            fireStorage.getReference("$uid/$label/$fileName").delete().await()
-            //스토어 삭제
-            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName).delete()
-                .await()
+            fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+            val albums = albumDao.getAlbumByLabelId(label.id)
+            if (albums.isEmpty()) {
+                fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                    .delete()
+                    .await()
+                fireStore.collection(USER).document(uid).collection(LABEL).document(label.name)
+                    .delete()
+                    .await()
+            } else {
+                fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                    .delete()
+                    .await()
+            }
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
         }
@@ -403,7 +415,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     // 검색했을 경우
     override fun searchUsersAsFlow(
         uid: String,
-        query: String
+        query: String,
     ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
             val listener = fireStore.collection(USER)
