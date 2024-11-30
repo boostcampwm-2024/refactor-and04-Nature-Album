@@ -88,11 +88,8 @@ interface AlbumDao {
     )
     suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
 
-    @Query("SELECT * FROM album")
-    suspend fun getALLAlbum(): List<Album>
-
     @Query("SELECT * FROM album WHERE label_id = :labelId")
-    suspend fun getAlbumByLabelId(labelId: Int): List<Album>
+    suspend fun getAlbumByLabelId(labelId: Int): Album
 
     @Query(
         """

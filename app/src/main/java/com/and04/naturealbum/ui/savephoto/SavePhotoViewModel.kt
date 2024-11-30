@@ -59,7 +59,7 @@ class SavePhotoViewModel @Inject constructor(
         location: Location,
         description: String,
         isRepresented: Boolean,
-        time: LocalDateTime
+        time: LocalDateTime,
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
 
@@ -84,8 +84,9 @@ class SavePhotoViewModel @Inject constructor(
                         )
                     )
                 }
+
                 album.await().run {
-                    if (isEmpty()) {
+                    if (this == null) {
                         repository.insertPhotoInAlbum(
                             Album(
                                 labelId = labelId,
@@ -94,7 +95,7 @@ class SavePhotoViewModel @Inject constructor(
                         )
                     } else if (isRepresented) {
                         repository.updateAlbum(
-                            first().copy(
+                            copy(
                                 photoDetailId = photoDetailId.await().toInt()
                             )
                         )

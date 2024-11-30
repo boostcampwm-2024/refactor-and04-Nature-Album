@@ -284,7 +284,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
         val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
         if (isDeletedImage) {
-            deletServerPhoto(photo, labelId)
+            deleteServerPhoto(photo, labelId)
         } else {
             val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
             if (findAlbumData != null) {
@@ -380,7 +380,7 @@ class SynchronizationWorker @AssistedInject constructor(
         )
     }
 
-    private suspend fun deletServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
+    private suspend fun deleteServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
         val uid = UserManager.getUser()?.uid
         if (NetworkState.getNetWorkCode() != 0 && !uid.isNullOrEmpty()) {
             val label = roomRepository.getLabelById(labelId)
