@@ -35,6 +35,14 @@ class DataStoreManager(
         }
     }
 
+    suspend fun removeDeletedFileName(fileName: String) {
+        context.dataStore.edit { preferences ->
+            val currentFileNames = preferences[DELETED_FILE_NAMES_KEY] ?: emptySet()
+            if (currentFileNames.isNotEmpty())
+                preferences[DELETED_FILE_NAMES_KEY] = currentFileNames - fileName
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit { store ->
             store.clear()

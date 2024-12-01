@@ -42,7 +42,7 @@ fun PortraitTopAppBar(navigationIcon: @Composable () -> Unit = { }, onClick: () 
                     )
                 } else {
                     AsyncImage(
-                        model = UserManager.getUserProfile(),
+                        model = profile,
                         contentDescription = stringResource(R.string.top_bar_navigate_to_my_page),
                         modifier = Modifier.fillMaxSize()
                     )
@@ -68,9 +68,7 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
             textAlign = TextAlign.Start,
         )
         Box {
-            IconButton(
-                onClick = { onClick() },
-            ) {
+            IconButton(onClick = { onClick() }) {
                 val profile = UserManager.getUserProfile()
                 if (profile == null) {
                     Icon(
@@ -79,9 +77,9 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
                     )
                 } else {
                     AsyncImage(
-                        model = UserManager.getUserProfile(),
+                        model = profile,
                         contentDescription = stringResource(R.string.top_bar_navigate_to_my_page),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

@@ -383,6 +383,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 label = label,
                 fileName = photo.fileName,
             )
+            syncDataStore.removeDeletedFileName(photo.fileName)
         }
     }
 

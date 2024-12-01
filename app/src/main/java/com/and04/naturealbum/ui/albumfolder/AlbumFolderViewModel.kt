@@ -57,7 +57,7 @@ class AlbumFolderViewModel @Inject constructor(
 
                     launch(Dispatchers.IO) {
                         val uid = UserManager.getUser()?.uid
-                        if (NetworkState.getNetWorkCode() != 0 && !uid.isNullOrEmpty()) {
+                        if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
                             val label = roomRepository.getLabelById(photoDetail.labelId)
                             fireBaseRepository.deleteImageFile(
                                 uid = uid,
