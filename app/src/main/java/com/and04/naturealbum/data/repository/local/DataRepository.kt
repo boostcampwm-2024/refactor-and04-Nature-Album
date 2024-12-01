@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.repository
+package com.and04.naturealbum.data.repository.local
 
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
@@ -11,7 +11,7 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
 import javax.inject.Inject
 
-interface DataRepository {
+interface LocalDataRepository {
     suspend fun getLabels(): List<Label>
     suspend fun getLabelById(id: Int): Label
     suspend fun getIdByName(name: String): Int?
@@ -29,11 +29,11 @@ interface DataRepository {
     suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int)
 }
 
-class DataRepositoryImpl @Inject constructor(
+class LocalDataRepositoryImpl @Inject constructor(
     private val labelDao: LabelDao,
     private val albumDao: AlbumDao,
     private val photoDetailDao: PhotoDetailDao,
-) : DataRepository {
+) : LocalDataRepository {
     override suspend fun getLabels(): List<Label> {
         return labelDao.getAllLabel()
     }

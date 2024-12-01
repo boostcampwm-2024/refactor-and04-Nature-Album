@@ -1,8 +1,8 @@
 package com.and04.naturealbum.di
 
 import android.content.Context
-import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.DataRepositoryImpl
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepositoryImpl
 import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.AppDatabase
 import com.and04.naturealbum.data.room.LabelDao
@@ -48,5 +48,5 @@ object RoomModule {
         labelDao: LabelDao,
         albumDao: AlbumDao,
         photoDetailDao: PhotoDetailDao
-    ): DataRepository = DataRepositoryImpl(labelDao, albumDao, photoDetailDao)
+    ): LocalDataRepository = LocalDataRepositoryImpl(labelDao, albumDao, photoDetailDao)
 }

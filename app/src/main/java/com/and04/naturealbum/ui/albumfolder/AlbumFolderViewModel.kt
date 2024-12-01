@@ -2,7 +2,7 @@ package com.and04.naturealbum.ui.albumfolder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.DataRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumFolderViewModel @Inject constructor(
-    private val roomRepository: DataRepository,
+    private val roomRepository: LocalDataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumFolderData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumFolderData>> = _uiState

@@ -21,8 +21,8 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
-import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit
 class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val roomRepository: DataRepository,
+    private val roomRepository: LocalDataRepository,
     private val albumRepository: AlbumRepository,
     private val syncDataStore: DataStoreManager
 ) : CoroutineWorker(appContext, workerParams) {

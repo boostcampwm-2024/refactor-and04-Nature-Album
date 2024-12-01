@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.firebase.FriendRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
-    private val localRepository: DataRepository,
+    private val localRepository: LocalDataRepository,
     private val albumRepository: AlbumRepository,
     private val friendRepository: FriendRepository
 ) : ViewModel() {
