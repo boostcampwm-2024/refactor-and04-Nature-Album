@@ -140,7 +140,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 HashMap<String, Pair<Int, String>>()// key LabelName, value (label_id to labelName)
 
             val label = async {
-                val labels = fireBaseRepository.getLabels(uid)
+                val labels = fireBaseRepository.getLabelsToList(uid).getOrThrow()
                 val allLocalLabels = roomRepository.getSyncCheckAlbums()
 
                 val duplicationLabels = allLocalLabels.filter { label ->
@@ -182,7 +182,7 @@ class SynchronizationWorker @AssistedInject constructor(
             }
 
             val photoDetail = async {
-                val allServerPhotos = fireBaseRepository.getPhotos(uid)
+                val allServerPhotos = fireBaseRepository.getPhotosToList(uid).getOrThrow()
                 val allLocalPhotos = roomRepository.getSyncCheckPhotos()
 
                 val unSynchronizedPhotoDetailsToServer = allLocalPhotos.filter { photo ->

@@ -1,7 +1,6 @@
 package com.and04.naturealbum.data.repository.firebase
 
 import android.net.Uri
-import android.util.Log
 import com.and04.naturealbum.data.datasource.FirebaseDataSource
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
@@ -14,13 +13,11 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 interface FireBaseRepository {
-    //SELECT
-    suspend fun getLabels(uid: String): List<FirebaseLabelResponse>
-    suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse>
-    suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>>
+    suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>>
+    suspend fun getPhotosToList(uid: String): Result<List<FirebasePhotoInfoResponse>>
+    suspend fun getLabelsToMap(uids: List<String>): Map<String, List<FirebaseLabelResponse>>
     suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>>
 
-    //INSERT
     suspend fun saveImageFile(uid: String, label: String, fileName: String, uri: Uri): Uri
     suspend fun insertLabel(
         uid: String,
@@ -38,55 +35,61 @@ interface FireBaseRepository {
 class FireBaseRepositoryImpl @Inject constructor(
     private val firebaseDataSource: FirebaseDataSource
 ) : FireBaseRepository {
-    override suspend fun getLabels(uid: String): List<FirebaseLabelResponse> {
+    override suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>> {
         return firebaseDataSource
             .getUserLabels(uid)
-            .documents
-            .mapNotNull { document ->
-                document.toObject(FirebaseLabelResponse::class.java)?.copy(
-                    labelName = document.id
-                )
+            .mapCatching { querySnapshot ->
+                querySnapshot
+                    .documents
+                    .mapNotNull { document ->
+                        document.toObject(FirebaseLabelResponse::class.java)?.copy(
+                            labelName = document.id
+                        )
+                    }
             }
     }
 
-    override suspend fun getLabels(uids: List<String>): Map<String, List<FirebaseLabelResponse>> {
-        return try {
-            withContext(Dispatchers.IO) {
+    override suspend fun getLabelsToMap(uids: List<String>): Map<String, List<FirebaseLabelResponse>> {
+        return withContext(Dispatchers.IO) {
+            try {
                 val labels = uids.map { uid ->
                     async {
-                        getLabels(uid)
+                        getLabelsToList(uid).getOrThrow()
                     }
                 }.awaitAll()
                 uids.zip(labels).toMap()
+            } catch (e: Exception) {
+                emptyMap()
             }
-        } catch (e: Exception) {
-            emptyMap()
         }
     }
 
-    override suspend fun getPhotos(uid: String): List<FirebasePhotoInfoResponse> {
-        val photosQuerySet = firebaseDataSource.getUserPhotos(uid)
-
-        return photosQuerySet.documents.mapNotNull { document ->
-            document.toObject(FirebasePhotoInfoResponse::class.java)?.copy(
-                fileName = document.id
-            )
-        }
+    override suspend fun getPhotosToList(uid: String): Result<List<FirebasePhotoInfoResponse>> {
+        return firebaseDataSource
+            .getUserPhotos(uid)
+            .mapCatching { querySnapshot ->
+                querySnapshot
+                    .documents
+                    .mapNotNull { document ->
+                        document.toObject(FirebasePhotoInfoResponse::class.java)?.copy(
+                            fileName = document.id
+                        )
+                    }
+            }
     }
 
     override suspend fun getPhotos(uids: List<String>): Map<String, List<FirebasePhotoInfoResponse>> {
-        return try {
-            withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
+            try {
                 val photos = uids.map { uid ->
                     async {
-                        getPhotos(uid)
+                        getPhotosToList(uid).getOrThrow()
                     }
                 }.awaitAll()
                 uids.zip(photos).toMap()
+            } catch (e: Exception) {
+                emptyMap()
             }
-        } catch (e: Exception) {
-            Log.e("getPhotos", "Error fetching photos: ${e.message}")
-            emptyMap()
         }
     }
 
@@ -97,7 +100,7 @@ class FireBaseRepositoryImpl @Inject constructor(
         uri: Uri,
     ): Uri {
 
-        return firebaseDataSource.saveImage(uid, label, fileName, uri)
+        return firebaseDataSource.saveImage(uid, label, fileName, uri).getOrThrow()
     }
 
     override suspend fun insertLabel(

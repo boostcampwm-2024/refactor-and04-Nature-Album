@@ -42,7 +42,7 @@ class MapScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val photos = async { fireBaseRepository.getPhotos(friends) }
-                val labels = fireBaseRepository.getLabels(friends)
+                val labels = fireBaseRepository.getLabelsToMap(friends)
                 _friendsPhotos.emit(
                     photos.await().map { (uid, photos) ->
                         photos.toFriendPhotoItems(labels.getValue(uid))

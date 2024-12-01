@@ -26,9 +26,11 @@ class FirebaseDataSource @Inject constructor(
         label: String,
         fileName: String,
         uri: Uri,
-    ): Uri {
-        val task = fireStorage.getReference("$uid/$label/$fileName").putFile(uri).await()
-        return task.storage.downloadUrl.await()
+    ): Result<Uri> {
+        return runCatching {
+            val task = fireStorage.getReference("$uid/$label/$fileName").putFile(uri).await()
+            task.storage.downloadUrl.await()
+        }
     }
 
     suspend fun getUser(uid: String): DocumentSnapshot {
@@ -47,8 +49,10 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
-    suspend fun getUserLabels(uid: String): QuerySnapshot {
-        return fireStore.collection(USER).document(uid).collection(LABEL).get().await()
+    suspend fun getUserLabels(uid: String): Result<QuerySnapshot> {
+        return runCatching {
+            fireStore.collection(USER).document(uid).collection(LABEL).get().await()
+        }
     }
 
     suspend fun setUserLabel(
@@ -62,11 +66,13 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
-    suspend fun getUserPhotos(uid: String): QuerySnapshot {
-        return fireStore.collection(USER).document(uid)
-            .collection(PHOTOS)
-            .get()
-            .await()
+    suspend fun getUserPhotos(uid: String): Result<QuerySnapshot> {
+        return runCatching {
+            fireStore.collection(USER).document(uid)
+                .collection(PHOTOS)
+                .get()
+                .await()
+        }
     }
 
     suspend fun setUserPhoto(

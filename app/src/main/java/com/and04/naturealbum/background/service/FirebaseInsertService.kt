@@ -80,7 +80,7 @@ class FirebaseInsertService : Service() {
                         uri = uri.toUri()
                     )
 
-                val serverLabels = fireBaseRepository.getLabels(uid)
+                val serverLabels = fireBaseRepository.getLabelsToList(uid).getOrThrow()
                 val serverNoLabel = serverLabels.none{ serverLabel ->
                     serverLabel.labelName == label.name
                 }
