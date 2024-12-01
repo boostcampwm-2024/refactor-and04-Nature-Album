@@ -1,8 +1,8 @@
 package com.and04.naturealbum.di
 
 import com.and04.naturealbum.data.datasource.FirebaseDataSource
-import com.and04.naturealbum.data.repository.firebase.FireBaseRepository
-import com.and04.naturealbum.data.repository.firebase.FireBaseRepositoryImpl
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepositoryImpl
 import com.and04.naturealbum.data.repository.firebase.FriendRepository
 import com.and04.naturealbum.data.repository.firebase.UserRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -38,7 +38,7 @@ object FirebaseModule {
     @Singleton
     fun providerFireBaseRepository(
         firebaseDataSource: FirebaseDataSource
-    ): FireBaseRepository = FireBaseRepositoryImpl(firebaseDataSource)
+    ): AlbumRepository = AlbumRepositoryImpl(firebaseDataSource)
 
     @Provides
     @Singleton

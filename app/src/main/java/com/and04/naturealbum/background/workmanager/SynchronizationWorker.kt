@@ -22,7 +22,7 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.firebase.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
@@ -53,7 +53,7 @@ class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val roomRepository: DataRepository,
-    private val fireBaseRepository: FireBaseRepository,
+    private val albumRepository: AlbumRepository,
     private val syncDataStore: DataStoreManager
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -140,7 +140,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 HashMap<String, Pair<Int, String>>()// key LabelName, value (label_id to labelName)
 
             val label = async {
-                val labels = fireBaseRepository.getLabelsToList(uid).getOrThrow()
+                val labels = albumRepository.getLabelsToList(uid).getOrThrow()
                 val allLocalLabels = roomRepository.getSyncCheckAlbums()
 
                 val duplicationLabels = allLocalLabels.filter { label ->
@@ -182,7 +182,7 @@ class SynchronizationWorker @AssistedInject constructor(
             }
 
             val photoDetail = async {
-                val allServerPhotos = fireBaseRepository.getPhotosToList(uid).getOrThrow()
+                val allServerPhotos = albumRepository.getPhotosToList(uid).getOrThrow()
                 val allLocalPhotos = roomRepository.getSyncCheckPhotos()
 
                 val unSynchronizedPhotoDetailsToServer = allLocalPhotos.filter { photo ->
@@ -231,7 +231,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun insertLabelToServer(uid: String, label: SyncAlbumsDto) {
-        val storageUri = fireBaseRepository
+        val storageUri = albumRepository
             .saveImageFile(
                 uid = uid,
                 label = label.labelName,
@@ -239,7 +239,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 uri = label.photoDetailUri.toUri(),
             )
 
-        fireBaseRepository
+        albumRepository
             .insertLabel(
                 uid = uid,
                 labelName = label.labelName,
@@ -285,7 +285,7 @@ class SynchronizationWorker @AssistedInject constructor(
     private suspend fun insertPhotoDetail(uid: String, photo: SyncPhotoDetailsDto) {
         //TODO 유해성 검사
 
-        val storageUri = fireBaseRepository
+        val storageUri = albumRepository
             .saveImageFile(
                 uid = uid,
                 label = photo.labelName,
@@ -293,7 +293,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 uri = photo.photoDetailUri.toUri(),
             )
 
-        fireBaseRepository
+        albumRepository
             .insertPhotoInfo(
                 uid = uid,
                 fileName = photo.fileName,

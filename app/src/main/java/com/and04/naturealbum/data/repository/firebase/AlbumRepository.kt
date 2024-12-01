@@ -12,7 +12,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-interface FireBaseRepository {
+interface AlbumRepository {
     suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>>
     suspend fun getPhotosToList(uid: String): Result<List<FirebasePhotoInfoResponse>>
     suspend fun getLabelsToMap(uids: List<String>): Map<String, List<FirebaseLabelResponse>>
@@ -32,9 +32,9 @@ interface FireBaseRepository {
     ): Boolean
 }
 
-class FireBaseRepositoryImpl @Inject constructor(
+class AlbumRepositoryImpl @Inject constructor(
     private val firebaseDataSource: FirebaseDataSource
-) : FireBaseRepository {
+) : AlbumRepository {
     override suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>> {
         return firebaseDataSource
             .getUserLabels(uid)
