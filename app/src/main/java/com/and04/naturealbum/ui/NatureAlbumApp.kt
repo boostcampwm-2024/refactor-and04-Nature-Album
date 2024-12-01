@@ -54,11 +54,13 @@ fun NatureAlbumApp(
                 state.getNavBackStackEntry()
             }
             SavePhotoScreen(
+                locationHandler = state.locationHandler.value,
                 location = state.lastLocation.value,
                 model = state.imageUri.value,
                 fileName = state.fileName.value,
                 onBack = { state.takePicture(takePictureLauncher) },
                 onSave = { state.navigateSavePhotoToAlbum() },
+                onCancel = { state.navigateToHome() },
                 label = state.selectedLabel.value,
                 onLabelSelect = { state.navigateToSearchLabel() },
                 onNavigateToMyPage = { state.navigateToMyPage() },
