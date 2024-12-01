@@ -5,7 +5,6 @@ import android.location.Location
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -406,7 +405,6 @@ fun FriendDialogItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
     photos: State<List<PhotoItem>>,
@@ -425,7 +423,7 @@ fun PhotoGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         groupByLabel.forEach { (label, photos) ->
-            stickyHeader {
+            item {
                 val backgroundColor = label.color.toColor()
                 SuggestionChip(
                     onClick = {},
@@ -437,7 +435,6 @@ fun PhotoGrid(
                     ),
                 )
             }
-
             items(photos.windowed(columnCount, columnCount, true)) { row ->
                 Row(
                     modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)
