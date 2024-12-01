@@ -151,11 +151,6 @@ fun MapScreen(
         ImageMarker(context).apply {
             visibility = View.INVISIBLE
             mapView.addView(this)
-            viewTreeObserver.addOnGlobalLayoutListener({
-                if (isImageLoaded()) {
-                    marker.icon = OverlayImage.fromView(this@apply)
-                }
-            })
         }
     }
 
@@ -169,7 +164,9 @@ fun MapScreen(
     LaunchedEffect(pick) {
         mapView.getMapAsync { naverMap ->
             marker.map = pick?.let { pick ->
-                imageMarker.loadImage(pick.uri)
+                imageMarker.loadImage(pick.uri) {
+                    marker.icon = OverlayImage.fromView(imageMarker)
+                }
                 marker.position = pick.position
                 naverMap
             }
@@ -184,7 +181,6 @@ fun MapScreen(
         clusterManagers.drop(1).forEachIndexed { index, cluster ->
             cluster.setPhotoItems(friendsPhotos.value.getOrNull(index) ?: emptyList())
         }
-
     }
 
     // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
