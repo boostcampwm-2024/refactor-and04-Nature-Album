@@ -9,7 +9,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.UserRepository
 import com.and04.naturealbum.ui.MainActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -24,7 +24,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class FirebaseMessagingService : FirebaseMessagingService() {
     @Inject
-    lateinit var repository: FireBaseRepository
+    lateinit var userRepository: UserRepository
 
     // FCM 토큰이 갱신될 때 자동으로 호출
     override fun onNewToken(token: String) {
@@ -32,7 +32,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FCM", "Refresh token $token")
         val uid = Firebase.auth.currentUser?.uid ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            val success = repository.saveFcmToken(uid, token)
+            val success = userRepository.saveFcmToken(uid, token)
             if (success) {
                 Log.d("FCM", "FCM token successfully updated via Repository for user: $uid")
             } else {

@@ -22,7 +22,7 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.FireBaseRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label

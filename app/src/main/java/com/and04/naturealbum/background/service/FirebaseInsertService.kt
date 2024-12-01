@@ -8,11 +8,10 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetailDao
 import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth

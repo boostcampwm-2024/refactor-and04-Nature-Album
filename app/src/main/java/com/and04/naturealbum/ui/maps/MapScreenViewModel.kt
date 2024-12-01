@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.FriendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
     private val localRepository: DataRepository,
-    private val fireBaseRepository: FireBaseRepository
+    private val fireBaseRepository: FireBaseRepository,
+    private val friendRepository: FriendRepository
 ) : ViewModel() {
     private val _photos = MutableStateFlow<List<PhotoItem>>(emptyList())
     val photos: StateFlow<List<PhotoItem>> = _photos
@@ -54,7 +56,7 @@ class MapScreenViewModel @Inject constructor(
 
     fun fetchFriends(uid: String) {
         viewModelScope.launch {
-            fireBaseRepository.getFriendsAsFlow(uid).collect { friends ->
+            friendRepository.getFriendsAsFlow(uid).collect { friends ->
                 _friends.value = friends
             }
         }
