@@ -109,7 +109,6 @@ class FirebaseInsertService : Service() {
                             datetime = dateTime
                         )
                     )
-
                 stopService(intent)
             }
 

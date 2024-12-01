@@ -26,6 +26,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -236,6 +238,16 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
         try {
             fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+
+            val albums = albumDao.getAlbumByLabelId(label.id)
+            if (albums.isEmpty()) {
+                fireStore.collection(USER).document(uid).collection(LABEL).document(label.name)
+                    .delete()
+                    .await()
+            }
+            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                .delete()
+                .await()
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
         }
@@ -261,15 +273,17 @@ class FireBaseRepositoryImpl @Inject constructor(
         fileName: String,
         photoData: FirebasePhotoInfo,
     ): Boolean {
-        var requestSuccess = false
+        return FirebaseTaskLock.mutex.withLock {
+            var requestSuccess = false
+            Log.d("eeee", "uid: $uid, fileName: $fileName, photoData: $photoData")
+            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                .set(photoData)
+                .addOnSuccessListener {
+                    requestSuccess = true
+                }.await()
 
-        fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-            .set(photoData)
-            .addOnSuccessListener {
-                requestSuccess = true
-            }.await()
-
-        return requestSuccess
+            return@withLock requestSuccess
+        }
     }
 
     // 친구 요청 보냈을 경우
@@ -493,5 +507,9 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
         private const val EMAIL = "email"
         private const val QUERY_SUFFIX = "\uf8ff" // Firestore 쿼리에서 startsWith 구현을 위한 문자열 끝 범위 문자
+    }
+
+    object FirebaseTaskLock {
+        val mutex = Mutex()
     }
 }
