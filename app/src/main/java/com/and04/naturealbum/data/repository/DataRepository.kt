@@ -5,6 +5,7 @@ import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
@@ -28,6 +29,11 @@ interface DataRepository {
     suspend fun updateAlbum(album: Album)
     suspend fun deleteImage(photoDetail: PhotoDetail)
     suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int)
+    suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
+    suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    )
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -112,5 +118,16 @@ class DataRepositoryImpl @Inject constructor(
 
     override suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int) {
         return albumDao.updateAlbumPhotoDetailByAlbumId(photoDetailId)
+    }
+
+    override suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus {
+        return photoDetailDao.getHazardCheckResultByFileName(fileName)
+    }
+
+    override suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    ) {
+        return photoDetailDao.updateHazardCheckResultByFIleName(hazardAnalyzeStatus, fileName)
     }
 }

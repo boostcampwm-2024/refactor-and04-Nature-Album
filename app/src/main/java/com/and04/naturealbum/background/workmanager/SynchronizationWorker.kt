@@ -29,7 +29,6 @@ import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.data.room.PhotoDetailDao
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
@@ -61,7 +60,7 @@ class SynchronizationWorker @AssistedInject constructor(
     private val fireBaseRepository: FireBaseRepository,
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
-    private val photoDetailDao: PhotoDetailDao,
+    //private val photoDetailDao: PhotoDetailDao,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -297,7 +296,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun performHazardAnalysis(photo: SyncPhotoDetailsDto): HazardAnalyzeStatus {
-        val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResultByFileName(photo.fileName)
+        val hazardAnalyzeStatus = roomRepository.getHazardCheckResultByFileName(photo.fileName)
         if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return HazardAnalyzeStatus.FAIL
 
         val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, photo.photoDetailUri)
@@ -308,7 +307,7 @@ class SynchronizationWorker @AssistedInject constructor(
         } else {
             HazardAnalyzeStatus.PASS
         }
-        photoDetailDao.updateHazardCheckResultByFIleName(updatedStatus, photo.fileName)
+        roomRepository.updateHazardCheckResultByFIleName(updatedStatus, photo.fileName)
         return updatedStatus
     }
 
@@ -372,7 +371,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun deleteServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
-        val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResultByFileName(photo.fileName)
+        val hazardAnalyzeStatus = roomRepository.getHazardCheckResultByFileName(photo.fileName)
         if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
 
         val uid = UserManager.getUser()?.uid
