@@ -32,7 +32,6 @@ import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.ImageConvert
-import com.and04.naturealbum.utils.NetworkState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
@@ -163,17 +162,10 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 val unSynchronizedLabelsToLocal = labels.filter { label ->
-                    Log.d("FFFF", "label : ${label}, allLocalLabels: ${allLocalLabels.size}")
                     allLocalLabels.none { localLabel ->
-                        Log.d(
-                            "FFFF",
-                            "localLabel: ${localLabel.labelName},  label:${label.labelName}"
-                        )
                         localLabel.labelName == label.labelName
                     }
                 }
-
-                Log.d("FFFF", "@@ : ${unSynchronizedLabelsToLocal}")
 
                 duplicationLabels.forEach { duplicationLabel ->
                     launch {
@@ -188,9 +180,12 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 unSynchronizedLabelsToLocal.forEach { label ->
-                    launch {
-                        fileNameToLabelUid[label.labelName] =
-                            insertLabelToLocal(label) to label.fileName
+                    val labelId = roomRepository.getIdByName(label.labelName)
+                    if (labelId == null) {
+                        launch {
+                            fileNameToLabelUid[label.labelName] =
+                                insertLabelToLocal(label) to label.fileName
+                        }
                     }
                 }
             }
@@ -206,6 +201,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 unSynchronizedPhotoDetailsToServer.forEach { photo ->
+                    Log.d("unSynchronizedPhotoDetailsToServer", photo.fileName)
                     launch {
                         insertPhotoDetailToServer(uid, photo)
                     }
@@ -298,39 +294,27 @@ class SynchronizationWorker @AssistedInject constructor(
                 insertAlbum(labelId, photoDetailId)
             }
         }
-
-        //Todo check
-//        if (findAlbumData != null) {
-//            val labelId = findAlbumData.first
-//            val photoDetailId = insertPhotoDetailToLocal(photo, labelId, uri)
-//
-//            insertAlbum(labelId, photoDetailId)
-//        } else {
-//            val labelId =
-//                fileNameToLabelUid[photo.label]?.first ?: roomRepository.getIdByName(photo.label)!!
-//            insertPhotoDetailToLocal(photo, labelId, uri)
-//        }
     }
 
-    private suspend fun insertPhotoDetailToServer(uid: String, photo: SyncPhotoDetailsDto) {
-        // room에 저장된 유효성 검사 결과가 fail 이면 return
+    private suspend fun performHazardAnalysis(photo: SyncPhotoDetailsDto): HazardAnalyzeStatus {
         val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResultByFileName(photo.fileName)
-        if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
+        if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return HazardAnalyzeStatus.FAIL
 
         val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, photo.photoDetailUri)
         val hazardMapperResult = retrofitRepository.analyzeHazardWithGreenEye(imgEncoding)
-        if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
-            photoDetailDao.updateHazardCheckResultByFIleName(
-                HazardAnalyzeStatus.FAIL, photo.fileName,
-            )
-            Log.d("Hazard_Result", "fail")
-            return
+
+        val updatedStatus = if (hazardMapperResult == HazardAnalyzeStatus.FAIL) {
+            HazardAnalyzeStatus.FAIL
         } else {
-            photoDetailDao.updateHazardCheckResultByFIleName(
-                HazardAnalyzeStatus.PASS, photo.fileName,
-            )
-            Log.d("Hazard_Result", "pass")
+            HazardAnalyzeStatus.PASS
         }
+        photoDetailDao.updateHazardCheckResultByFIleName(updatedStatus, photo.fileName)
+        return updatedStatus
+    }
+
+    private suspend fun insertPhotoDetailToServer(uid: String, photo: SyncPhotoDetailsDto) {
+        val hazardAnalyzeStatus = performHazardAnalysis(photo)
+        if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
 
         val storageUri = fireBaseRepository
             .saveImageFile(
@@ -388,8 +372,11 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun deleteServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
+        val hazardAnalyzeStatus = photoDetailDao.getHazardCheckResultByFileName(photo.fileName)
+        if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
+
         val uid = UserManager.getUser()?.uid
-        if (NetworkState.getNetWorkCode() != 0 && !uid.isNullOrEmpty()) {
+        if (!uid.isNullOrEmpty()) {
             val label = roomRepository.getLabelById(labelId)
             fireBaseRepository.deleteImageFile(
                 uid = uid,

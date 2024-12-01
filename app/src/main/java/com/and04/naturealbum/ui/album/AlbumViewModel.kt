@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.album
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.AlbumDto
@@ -22,7 +21,6 @@ class AlbumViewModel @Inject constructor(
     fun loadAlbums() {
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
-            Log.d("getAllAlbum", "!!!:${repository.getAllAlbum()}")
             _uiState.emit(UiState.Success(data = repository.getAllAlbum()))
         }
     }

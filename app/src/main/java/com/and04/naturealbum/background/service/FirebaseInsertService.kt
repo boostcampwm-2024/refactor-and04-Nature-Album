@@ -12,7 +12,6 @@ import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetailDao
 import com.and04.naturealbum.utils.ImageConvert
 import com.google.firebase.auth.ktx.auth
@@ -63,14 +62,12 @@ class FirebaseInsertService : Service() {
                         HazardAnalyzeStatus.FAIL,
                         fileName
                     )
-                    Log.d("Hazard_Result", "fail")
                     return@launch
                 } else {
                     photoDetailDao.updateHazardCheckResultByFIleName(
                         HazardAnalyzeStatus.PASS,
                         fileName
                     )
-                    Log.d("Hazard_Result", "pass")
                 }
 
                 val storageUri = fireBaseRepository
@@ -82,7 +79,7 @@ class FirebaseInsertService : Service() {
                     )
 
                 val serverLabels = fireBaseRepository.getLabels(uid)
-                val serverNoLabel = serverLabels.none{ serverLabel ->
+                val serverNoLabel = serverLabels.none { serverLabel ->
                     serverLabel.labelName == label.name
                 }
 

@@ -236,19 +236,6 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
         try {
             fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
-            val albums = albumDao.getAlbumByLabelId(label.id)
-            if (albums.isEmpty()) {
-                fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-                    .delete()
-                    .await()
-                fireStore.collection(USER).document(uid).collection(LABEL).document(label.name)
-                    .delete()
-                    .await()
-            } else {
-                fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-                    .delete()
-                    .await()
-            }
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
         }
