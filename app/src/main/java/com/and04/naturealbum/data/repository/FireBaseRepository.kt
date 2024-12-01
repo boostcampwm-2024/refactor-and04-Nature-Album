@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -237,17 +238,32 @@ class FireBaseRepositoryImpl @Inject constructor(
 
     override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
         try {
-            fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+            FirebaseLock.deleteMutex.withLock {
+                coroutineScope {
+                    val deleteFileJob = async {
+                        fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+                    }
 
-            val albums = albumDao.getAlbumByLabelId(label.id)
-            if (albums.isEmpty()) {
-                fireStore.collection(USER).document(uid).collection(LABEL).document(label.name)
-                    .delete()
-                    .await()
+                    val checkAlbumsJob = async {
+                        val albums = albumDao.getAlbumByLabelId(label.id)
+                        if (albums.isEmpty()) {
+                            fireStore.collection(USER).document(uid).collection(LABEL)
+                                .document(label.name)
+                                .delete()
+                                .await()
+                        }
+                    }
+
+                    val deletePhotoJob = async {
+                        fireStore.collection(USER).document(uid).collection(PHOTOS)
+                            .document(fileName)
+                            .delete()
+                            .await()
+                    }
+
+                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                }
             }
-            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-                .delete()
-                .await()
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
         }
@@ -273,9 +289,8 @@ class FireBaseRepositoryImpl @Inject constructor(
         fileName: String,
         photoData: FirebasePhotoInfo,
     ): Boolean {
-        return FirebaseTaskLock.mutex.withLock {
+        return FirebaseLock.insertMutex.withLock {
             var requestSuccess = false
-            Log.d("eeee", "uid: $uid, fileName: $fileName, photoData: $photoData")
             fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
                 .set(photoData)
                 .addOnSuccessListener {
@@ -509,7 +524,8 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val QUERY_SUFFIX = "\uf8ff" // Firestore 쿼리에서 startsWith 구현을 위한 문자열 끝 범위 문자
     }
 
-    object FirebaseTaskLock {
-        val mutex = Mutex()
+    object FirebaseLock {
+        val insertMutex = Mutex()
+        val deleteMutex = Mutex()
     }
 }
