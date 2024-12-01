@@ -26,6 +26,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -71,6 +73,8 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import coil3.request.ImageRequest
+import coil3.request.placeholder
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.LoadingIcons
@@ -440,7 +444,10 @@ fun PhotoGrid(
                 ) {
                     row.forEach { photo ->
                         SubcomposeAsyncImage(
-                            model = photo.uri,
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(photo.uri)
+                                .placeholder(R.drawable.ic_image)
+                                .build(),
                             contentDescription = photo.label.name,
                             modifier = Modifier
                                 .wrapContentSize(Alignment.Center)
@@ -451,12 +458,21 @@ fun PhotoGrid(
                             contentScale = ContentScale.Crop,
                         ) {
                             val state by painter.state.collectAsState()
-                            if (state is AsyncImagePainter.State.Success) {
-                                SubcomposeAsyncImageContent()
-                            } else {
-                                RotatingImageLoading(
+                            when (state) {
+                                is AsyncImagePainter.State.Loading -> RotatingImageLoading(
                                     drawableRes = LoadingIcons.entries.random().id,
                                     stringRes = null,
+                                )
+
+                                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
+                                is AsyncImagePainter.State.Empty -> Icon(
+                                    imageVector = Icons.Outlined.Image,
+                                    contentDescription = stringResource(R.string.map_image_loading)
+                                )
+
+                                is AsyncImagePainter.State.Error -> Icon(
+                                    imageVector = Icons.Outlined.ImageNotSupported,
+                                    contentDescription = stringResource(R.string.map_image_load_fail)
                                 )
                             }
                         }

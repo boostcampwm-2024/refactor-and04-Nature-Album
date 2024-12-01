@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil3.load
-import coil3.request.allowHardware
 import coil3.request.error
 import coil3.request.placeholder
 import coil3.request.transformations
