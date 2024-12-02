@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -28,12 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.model.UiState
@@ -98,6 +102,29 @@ fun AlbumGrid(
     onLabelClick: (Int) -> Unit,
     columnCount: Int,
 ) {
+    if (albums.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = stringResource(R.string.nothing_album_txt))
+        }
+    } else {
+        AlbumGridList(
+            albums = albums,
+            onLabelClick = onLabelClick,
+            columnCount = columnCount,
+        )
+    }
+
+}
+
+@Composable
+fun AlbumGridList(
+    albums: List<AlbumDto>,
+    onLabelClick: (Int) -> Unit,
+    columnCount: Int,
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columnCount),
         modifier = Modifier.fillMaxWidth(),
@@ -115,6 +142,7 @@ fun AlbumGrid(
         }
     }
 }
+
 
 @Composable
 fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier = Modifier) {

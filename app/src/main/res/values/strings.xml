@@ -107,4 +107,7 @@
     <!-- component -->
     <string name="rotating_icon_button">rotating_image</string>
 
+    <!-- Album -->
+    <string name="nothing_album_txt">도감이 존재하지 않습니다.</string>
+
 </resources>
