@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.ClippingButtonWithFile
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetHomeTopBar
 
 @Composable
 fun HomeScreenLandscape(
@@ -31,7 +31,7 @@ fun HomeScreenLandscape(
     onNavigateToMap: () -> Unit,
 ) {
     Scaffold(
-        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+        topBar = { context.GetHomeTopBar { onNavigateToMyPage() } }
     ) { innerPadding ->
         MainBackground(Modifier.fillMaxSize())
         Row(

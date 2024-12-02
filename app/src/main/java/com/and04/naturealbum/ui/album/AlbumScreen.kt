@@ -42,7 +42,7 @@ import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -50,6 +50,7 @@ import com.and04.naturealbum.utils.toColor
 fun AlbumScreen(
     onLabelClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,6 +60,7 @@ fun AlbumScreen(
     AlbumScreen(
         uiState = uiState,
         onLabelClick = onLabelClick,
+        navigateToBackScreen = navigateToBackScreen,
         onNavigateToMyPage = onNavigateToMyPage
     )
 }
@@ -67,14 +69,21 @@ fun AlbumScreen(
 fun AlbumScreen(
     uiState: State<UiState<List<AlbumDto>>>,
     onLabelClick: (Int) -> Unit,
+    navigateToBackScreen: () -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
     when (val success = uiState.value) {
         is UiState.Success -> {
+            val context = LocalContext.current
             val albumList = success.data
 
             Scaffold(
-                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+                topBar = {
+                    context.GetTopBar(
+                        navigateToBackScreen = navigateToBackScreen,
+                        navigateToMyPage = onNavigateToMyPage,
+                    )
+                }
             ) { paddingValues ->
                 Column(
                     modifier = Modifier
@@ -84,7 +93,7 @@ fun AlbumScreen(
                     AlbumGrid(
                         albums = albumList,
                         onLabelClick = onLabelClick,
-                        columnCount = LocalContext.current.gridColumnCount(),
+                        columnCount = context.gridColumnCount(),
                     )
                 }
             }
@@ -196,8 +205,9 @@ fun AlbumScreenPreview() {
 
         AlbumScreen(
             uiState = uiState,
-            onLabelClick = {},
-            onNavigateToMyPage = {},
+            onLabelClick = { },
+            onNavigateToMyPage = { },
+            navigateToBackScreen = { },
         )
     }
 }

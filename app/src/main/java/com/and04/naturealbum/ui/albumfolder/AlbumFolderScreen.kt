@@ -65,7 +65,7 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -74,6 +74,7 @@ fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
@@ -136,6 +137,7 @@ fun AlbumFolderScreen(
         setLoading = setLoading,
         savePhotos = savePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
+        navigateToBackScreen = navigateToBackScreen,
         checkList = state.checkList,
     )
 
@@ -169,10 +171,16 @@ fun AlbumFolderScreen(
     setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     Scaffold(
-        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+        topBar = {
+            context.GetTopBar(
+                navigateToBackScreen = navigateToBackScreen,
+                navigateToMyPage = onNavigateToMyPage,
+            )
+        }
     ) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
@@ -400,6 +408,7 @@ private fun AlbumFolderScreenPreview() {
             setLoading = { _ -> },
             savePhotos = { },
             onNavigateToMyPage = { },
+            navigateToBackScreen = { },
             checkList = checkList,
         )
     }
