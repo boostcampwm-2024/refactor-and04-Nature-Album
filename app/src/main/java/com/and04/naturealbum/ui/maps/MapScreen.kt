@@ -100,19 +100,20 @@ fun MapScreen(
     userViewModel: MapScreenViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+
     val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     val friends = userViewModel.friends.collectAsStateWithLifecycle()
-    val openDialog = remember { mutableStateOf(false) }
 
     val myPhotos = userViewModel.photos.collectAsStateWithLifecycle()
     val friendsPhotos = userViewModel.friendsPhotos.collectAsStateWithLifecycle()
 
-    val context = LocalContext.current
-    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-
+    val openDialog = remember { mutableStateOf(false) }
     val marker = remember { Marker() }
-    var pick by remember { mutableStateOf<PhotoItem?>(null) }
-    val displayPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
+    val pick = remember { mutableStateOf<PhotoItem?>(null) }
+    val bottomSheetPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
+    val selectedFriends = remember { mutableStateOf(listOf<FirebaseFriend>()) }
 
     val clusterManagers: List<ClusterManager> = remember {
         ColorRange.entries.map { colorRange ->
@@ -120,8 +121,8 @@ fun MapScreen(
                 colorRange = colorRange,
                 onMarkerClick = { info ->
                     Overlay.OnClickListener {
-                        displayPhotos.value = info.tag as List<PhotoItem>
-                        pick = displayPhotos.value
+                        bottomSheetPhotos.value = info.tag as List<PhotoItem>
+                        pick.value = bottomSheetPhotos.value
                             .groupBy { photoItem -> photoItem.label }
                             .maxBy { (_, photoItems) -> photoItems.size }.value
                             .maxBy { photoItem -> photoItem.time }
@@ -130,7 +131,7 @@ fun MapScreen(
                 },
                 onClusterChange = { info ->
                     val changedCluster = info.tag as List<PhotoItem>
-                    if (changedCluster.contains(pick)) displayPhotos.value = changedCluster
+                    if (changedCluster.contains(pick.value)) bottomSheetPhotos.value = changedCluster
                 }
             )
         }
@@ -144,8 +145,8 @@ fun MapScreen(
                     cluster.setMap(naverMap)
                 }
                 naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
-                    displayPhotos.value = emptyList()
-                    pick = null
+                    bottomSheetPhotos.value = emptyList()
+                    pick.value = null
                 }
                 val uiSettings = naverMap.uiSettings
                 uiSettings.logoGravity = Gravity.TOP or Gravity.START
@@ -162,15 +163,15 @@ fun MapScreen(
     }
 
     BackHandler(
-        enabled = (pick != null)
+        enabled = (pick.value != null)
     ) {
-        pick = null
-        displayPhotos.value = emptyList()
+        pick.value = null
+        bottomSheetPhotos.value = emptyList()
     }
 
     LaunchedEffect(pick) {
         mapView.getMapAsync { naverMap ->
-            marker.map = pick?.let { pick ->
+            marker.map = pick.value?.let { pick ->
                 imageMarker.loadImage(pick.uri) {
                     marker.icon = OverlayImage.fromView(imageMarker)
                 }
@@ -258,44 +259,45 @@ fun MapScreen(
             }
 
             PartialBottomSheet(
-                isVisible = displayPhotos.value.isNotEmpty(),
+                isVisible = bottomSheetPhotos.value.isNotEmpty(),
                 modifier = modifier.padding(horizontal = 16.dp),
                 fullExpansionSize = 0.95f
             ) {
                 PhotoGrid(
-                    photos = displayPhotos,
+                    photos = bottomSheetPhotos,
                     modifier = modifier,
-                    onPhotoClick = { photo -> pick = photo }
+                    onPhotoClick = { photo -> pick.value = photo }
                 )
             }
         }
-
-        FriendDialog(
-            isOpen = openDialog,
-            friends = friends,
-            onDismiss = { openDialog.value = false },
-            onConfirm = { selectedFriends ->
-                userViewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
-                pick = null
-                displayPhotos.value = emptyList()
-                openDialog.value = false
-            }
-        )
+        if(openDialog.value) {
+            FriendDialog(
+                friends = friends,
+                selectedFriends = selectedFriends,
+                onDismiss = { openDialog.value = false },
+                onConfirm = { friends ->
+                    selectedFriends.value = friends
+                    userViewModel.fetchFriendsPhotos(friends.map { friend -> friend.user.uid })
+                    pick.value = null
+                    bottomSheetPhotos.value = emptyList()
+                    openDialog.value = false
+                }
+            )
+        }
     }
 }
 
 
 @Composable
 fun FriendDialog(
-    isOpen: State<Boolean> = remember { mutableStateOf(true) },
     friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
+    selectedFriends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
     onConfirm: (List<FirebaseFriend>) -> Unit = {}
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    var selectedFriends by remember { mutableStateOf<List<FirebaseFriend>>(emptyList()) }
-    if (isOpen.value) {
+    var checkedFriends by remember { mutableStateOf<List<FirebaseFriend>>(selectedFriends.value) }
         Dialog(
             onDismissRequest = { onDismiss() },
         ) {
@@ -332,12 +334,12 @@ fun FriendDialog(
                 ) {
                     items(friends.value) { friend ->
                         FriendDialogItem(friend = friend,
-                            isSelect = selectedFriends.contains(friend),
+                            isSelect = checkedFriends.contains(friend),
                             onSelect = {
-                                if (selectedFriends.contains(friend)) {
-                                    selectedFriends = selectedFriends.filter { it != friend }
-                                } else if (selectedFriends.size < USER_SELECT_MAX) {
-                                    selectedFriends = selectedFriends + friend
+                                if (checkedFriends.contains(friend)) {
+                                    checkedFriends = checkedFriends.filter { it != friend }
+                                } else if (checkedFriends.size < USER_SELECT_MAX) {
+                                    checkedFriends = checkedFriends + friend
                                 }
                             })
                         HorizontalDivider()
@@ -362,7 +364,7 @@ fun FriendDialog(
                     Spacer(modifier = Modifier.size(8.dp))
 
                     TextButton(
-                        onClick = { onConfirm(selectedFriends) }
+                        onClick = { onConfirm(checkedFriends) }
                     ) {
                         Text(
                             text = stringResource(R.string.map_friend_dialog_confirm_btn),
@@ -372,7 +374,7 @@ fun FriendDialog(
                 }
             }
         }
-    }
+
 }
 
 @Composable
