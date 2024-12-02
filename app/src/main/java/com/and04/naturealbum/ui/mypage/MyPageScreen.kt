@@ -20,14 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -75,6 +73,7 @@ import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.GetMyPageTopAppBar
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
@@ -146,18 +145,11 @@ fun MyPageScreenContent(
     startSync: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
-            PortraitTopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { navigateToHome() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
-                        )
-                    }
-                }
-            )
+            context.GetMyPageTopAppBar { navigateToHome() }
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
