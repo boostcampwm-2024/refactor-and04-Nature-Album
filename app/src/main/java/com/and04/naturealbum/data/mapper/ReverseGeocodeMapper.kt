@@ -13,11 +13,12 @@ object ReverseGeocodeMapper {
             return mapCoordsToRequestCoords(latitude, longitude)
         }
         val region = reverseGeocodeDto.results[0].region
+        val land = reverseGeocodeDto.results[0].land
         val address = buildString {
             append("${region?.area1?.name} ")
             append("${region?.area2?.name} ")
-            append("${region?.area3?.name} ")
-            append(region?.area4?.name)
+            append("${land?.name} ")
+            append("${land?.number1}")
         }
         return address
     }
