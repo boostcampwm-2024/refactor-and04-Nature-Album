@@ -34,6 +34,9 @@ interface DataRepository {
         hazardAnalyzeStatus: HazardAnalyzeStatus,
         fileName: String,
     )
+
+    suspend fun getAddressByPhotoDetailId(photoDetailId: Int): String
+    suspend fun updateAddressByPhotoDetailId(address: String, photoDetailId: Int)
 }
 
 class DataRepositoryImpl @Inject constructor(
@@ -129,5 +132,13 @@ class DataRepositoryImpl @Inject constructor(
         fileName: String,
     ) {
         return photoDetailDao.updateHazardCheckResultByFIleName(hazardAnalyzeStatus, fileName)
+    }
+
+    override suspend fun getAddressByPhotoDetailId(photoDetailId: Int): String {
+        return photoDetailDao.getAddress(id = photoDetailId)
+    }
+
+    override suspend fun updateAddressByPhotoDetailId(address: String, photoDetailId: Int) {
+        photoDetailDao.updateAddressById(address = address, id = photoDetailId)
     }
 }

@@ -128,8 +128,8 @@ interface PhotoDetailDao {
     @Query("SELECT hazard_check_result FROM photo_detail WHERE file_name = :fileName")
     suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
 
-    @Query("SELECT address FROM photo_detail WHERE file_name = :fileName")
-    suspend fun getAddress(fileName: String): String
+    @Query("SELECT address FROM photo_detail WHERE id = :id")
+    suspend fun getAddress(id: Int): String
 
     @Query("UPDATE photo_detail SET hazard_check_result = :hazardAnalyzeStatus WHERE file_name = :fileName")
     suspend fun updateHazardCheckResultByFIleName(
@@ -137,10 +137,10 @@ interface PhotoDetailDao {
         fileName: String,
     )
 
-    @Query("UPDATE photo_detail SET address = :address WHERE file_name = :fileName")
-    suspend fun updateAddressByFIleName(
+    @Query("UPDATE photo_detail SET address = :address WHERE id = :id")
+    suspend fun updateAddressById(
         address: String,
-        fileName: String,
+        id: Int,
     )
 
     @Delete

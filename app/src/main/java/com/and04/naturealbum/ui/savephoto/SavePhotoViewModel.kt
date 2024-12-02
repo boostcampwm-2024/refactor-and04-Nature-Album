@@ -17,6 +17,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.vertexai.type.content
 import com.google.firebase.vertexai.vertexAI
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,8 +74,10 @@ class SavePhotoViewModel @Inject constructor(
 
                 val album = async { dataRepository.getAlbumByLabelId(labelId) }
                 val address = async {
-                    val coords = "${location.longitude}%2C${location.latitude}"
-                    retrofitRepository.convertCoordsToAddress(coords)
+                    retrofitRepository.convertCoordsToAddress(
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
                 }
                 val photoDetailId = async {
                     dataRepository.insertPhoto(
@@ -89,6 +92,13 @@ class SavePhotoViewModel @Inject constructor(
                             datetime = time,
                             address = address.await()
                         )
+                    )
+                }
+
+                launch(Dispatchers.IO) {
+                    dataRepository.updateAddressByPhotoDetailId(
+                        address = address.await(),
+                        photoDetailId = photoDetailId.await().toInt()
                     )
                 }
 

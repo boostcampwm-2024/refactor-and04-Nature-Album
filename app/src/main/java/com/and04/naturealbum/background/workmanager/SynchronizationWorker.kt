@@ -343,20 +343,26 @@ class SynchronizationWorker @AssistedInject constructor(
         labelId: Int,
         uri: String,
     ): Int {
+        val latitude = photo.latitude ?: 0.0
+        val longitude = photo.longitude ?: 0.0
         return roomRepository.insertPhoto(
             PhotoDetail(
                 labelId = labelId,
                 photoUri = uri,
                 fileName = photo.fileName,
-                latitude = photo.latitude ?: 0.0, //FIXME 위치 NULL 해결 되면 삭제
-                longitude = photo.longitude ?: 0.0,
+                latitude = latitude, //FIXME 위치 NULL 해결 되면 삭제
+                longitude = longitude,
                 description = photo.description,
                 datetime = LocalDateTime.parse(
                     photo.datetime,
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME
                 ).atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.systemDefault())
                     .toLocalDateTime(),
-                hazardCheckResult = HazardAnalyzeStatus.PASS
+                hazardCheckResult = HazardAnalyzeStatus.PASS,
+                address = retrofitRepository.convertCoordsToAddress(
+                    latitude = latitude,
+                    longitude = longitude
+                )
             )
         ).toInt()
     }
