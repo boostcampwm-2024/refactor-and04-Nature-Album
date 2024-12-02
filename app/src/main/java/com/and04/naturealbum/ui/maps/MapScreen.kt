@@ -1,39 +1,25 @@
 package com.and04.naturealbum.ui.maps
 
+import android.graphics.PointF
 import android.location.Location
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
-import androidx.compose.material.icons.filled.GroupOff
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ImageNotSupported
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -41,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,27 +35,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -87,6 +67,7 @@ import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkViewModel
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
@@ -158,6 +139,8 @@ fun MapScreen(
         }
     }
 
+    val cameraPivot = remember { mutableStateOf(PointF(0.5f, 0.5f)) }
+
     val imageMarker = remember {
         ImageMarker(context).apply {
             visibility = View.INVISIBLE
@@ -171,10 +154,24 @@ fun MapScreen(
         pick.value = null
         bottomSheetPhotos.value = emptyList()
     }
+    LaunchedEffect(cameraPivot.value) {
+        mapView.getMapAsync { naverMap ->
+            pick.value?.let { pick ->
+                naverMap.moveCamera(
+                    CameraUpdate.scrollTo(pick.position).pivot(cameraPivot.value)
+                        .animate(CameraAnimation.Easing, 500)
+                )
+            }
+        }
+    }
 
-    LaunchedEffect(pick) {
+    LaunchedEffect(pick.value) {
         mapView.getMapAsync { naverMap ->
             marker.map = pick.value?.let { pick ->
+                naverMap.moveCamera(
+                    CameraUpdate.scrollTo(pick.position).pivot(cameraPivot.value)
+                        .animate(CameraAnimation.Easing, 500)
+                )
                 imageMarker.loadImage(pick.uri) {
                     marker.icon = OverlayImage.fromView(imageMarker)
                 }
@@ -230,11 +227,11 @@ fun MapScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             // AndroidView를 MapView로 바로 설정
             AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
-                mapView.getMapAsync { NaverMap ->
+                mapView.getMapAsync { naverMap ->
                     location?.let { position ->
                         val cameraUpdate =
                             CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
-                        NaverMap.moveCamera(cameraUpdate)
+                        naverMap.moveCamera(cameraUpdate)
                     }
                 }
             }
@@ -263,6 +260,9 @@ fun MapScreen(
 
             PartialBottomSheet(
                 isVisible = bottomSheetPhotos.value.isNotEmpty(),
+                onCollapsed = { isCollapsed ->
+                    cameraPivot.value = if (isCollapsed) PointF(0.5f, 0.5f) else PointF(0.5f, 0.3f)
+                },
                 modifier = modifier.padding(horizontal = 16.dp),
                 fullExpansionSize = 0.95f
             ) {
@@ -289,8 +289,6 @@ fun MapScreen(
         }
     }
 }
-
-
 
 
 @Composable
