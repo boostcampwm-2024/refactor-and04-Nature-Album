@@ -108,5 +108,7 @@
 
     <!-- component -->
     <string name="rotating_icon_button">rotating_image</string>
+    <string name="network_disconnect_icon">네트워크 연결 없음</string>
+    <string name="network_disconnect_check_network">네트워크 연결을 확인해 주세요</string>
 
 </resources>

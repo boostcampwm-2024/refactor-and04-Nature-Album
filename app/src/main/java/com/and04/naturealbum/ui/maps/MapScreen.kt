@@ -76,9 +76,12 @@ import coil3.request.placeholder
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.LoadingIcons
+import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.mypage.UserManager
+import com.and04.naturealbum.utils.NetworkState
+import com.and04.naturealbum.utils.NetworkViewModel
 import com.and04.naturealbum.utils.toColor
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
@@ -94,13 +97,15 @@ private const val USER_SELECT_MAX = 4
 fun MapScreen(
     location: Location? = null,
     modifier: Modifier = Modifier,
-    viewModel: MapScreenViewModel = hiltViewModel(),
+    userViewModel: MapScreenViewModel = hiltViewModel(),
+    networkViewModel: NetworkViewModel = hiltViewModel(),
 ) {
-    val friends = viewModel.friends.collectAsStateWithLifecycle()
+    val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
+    val friends = userViewModel.friends.collectAsStateWithLifecycle()
     val openDialog = remember { mutableStateOf(false) }
 
-    val myPhotos = viewModel.photos.collectAsStateWithLifecycle()
-    val friendsPhotos = viewModel.friendsPhotos.collectAsStateWithLifecycle()
+    val myPhotos = userViewModel.photos.collectAsStateWithLifecycle()
+    val friendsPhotos = userViewModel.friendsPhotos.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
@@ -214,65 +219,71 @@ fun MapScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // AndroidView를 MapView로 바로 설정
-        AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
-            mapView.getMapAsync { NaverMap ->
-                location?.let { position ->
-                    val cameraUpdate =
-                        CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
-                    NaverMap.moveCamera(cameraUpdate)
+    if (networkState.value == NetworkState.DISCONNECTED) {
+        NetworkDisconnectContent()
+    } else {
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // AndroidView를 MapView로 바로 설정
+            AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
+                mapView.getMapAsync { NaverMap ->
+                    location?.let { position ->
+                        val cameraUpdate =
+                            CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
+                        NaverMap.moveCamera(cameraUpdate)
+                    }
                 }
             }
-        }
 
-        if (UserManager.isSignIn()) {
-            IconButton(
-                onClick = {
-                    viewModel.fetchFriends(UserManager.getUser()!!.uid)
-                    openDialog.value = true
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .size(48.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+            if (UserManager.isSignIn()) {
+                IconButton(
+                    onClick = {
+                        userViewModel.fetchFriends(UserManager.getUser()!!.uid)
+                        openDialog.value = true
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(48.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Diversity3,
+                        contentDescription = stringResource(R.string.map_show_friend_map)
+                    )
+                }
+            }
+
+            PartialBottomSheet(
+                isVisible = displayPhotos.value.isNotEmpty(),
+                modifier = modifier.padding(horizontal = 16.dp),
+                fullExpansionSize = 0.95f
             ) {
-                Icon(
-                    imageVector = Icons.Default.Diversity3,
-                    contentDescription = stringResource(R.string.map_show_friend_map)
+                PhotoGrid(
+                    photos = displayPhotos,
+                    modifier = modifier,
+                    onPhotoClick = { photo -> pick = photo }
                 )
             }
         }
 
-        PartialBottomSheet(
-            isVisible = displayPhotos.value.isNotEmpty(),
-            modifier = modifier.padding(horizontal = 16.dp),
-            fullExpansionSize = 0.95f
-        ) {
-            PhotoGrid(
-                photos = displayPhotos,
-                modifier = modifier,
-                onPhotoClick = { photo -> pick = photo }
-            )
-        }
+        FriendDialog(
+            isOpen = openDialog,
+            friends = friends,
+            onDismiss = { openDialog.value = false },
+            onConfirm = { selectedFriends ->
+                userViewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
+                pick = null
+                displayPhotos.value = emptyList()
+                openDialog.value = false
+            }
+        )
     }
-
-    FriendDialog(
-        isOpen = openDialog,
-        friends = friends,
-        onDismiss = { openDialog.value = false },
-        onConfirm = { selectedFriends ->
-            viewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
-            pick = null
-            displayPhotos.value = emptyList()
-            openDialog.value = false
-        }
-    )
 }
+
 
 @Composable
 fun FriendDialog(
