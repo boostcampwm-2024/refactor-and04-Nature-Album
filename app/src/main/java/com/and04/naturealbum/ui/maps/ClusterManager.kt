@@ -27,7 +27,9 @@ class ClusterManager(
     private val cluster: Clusterer<PhotoKey>
 
     init {
-        cluster = Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
+        cluster = Clusterer.ComplexBuilder<PhotoKey>().thresholdStrategy { _ ->
+            30.0
+        }.tagMergeStrategy { cluster ->
             cluster.children.flatMap { node -> node.tag as List<*> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
