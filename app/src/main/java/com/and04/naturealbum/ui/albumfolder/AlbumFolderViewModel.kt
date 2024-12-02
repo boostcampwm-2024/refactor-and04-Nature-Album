@@ -16,6 +16,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,7 +55,7 @@ class AlbumFolderViewModel @Inject constructor(
                 photoDetails.forEach { photoDetail ->
                     roomRepository.deleteImage(photoDetail) // Room에서 삭제
                     syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
-
+                    deleteFile(photoDetail.fileName) //file에서 이미지 삭제
                     launch(Dispatchers.IO) {
                         val uid = UserManager.getUser()?.uid
                         if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
@@ -73,5 +74,16 @@ class AlbumFolderViewModel @Inject constructor(
                 _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
             }
         }
+    }
+
+    private fun deleteFile(fileName: String) {
+        val file = File("${filePath}${fileName}")
+        if (file.exists()) {
+            file.delete()
+        }
+    }
+
+    companion object {
+        val filePath = "/data/user/0/com.and04.naturealbum/files/"
     }
 }

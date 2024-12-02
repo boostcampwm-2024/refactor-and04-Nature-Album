@@ -62,7 +62,6 @@ class SavePhotoViewModel @Inject constructor(
         time: LocalDateTime,
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
-
         viewModelScope.launch {
             try {
                 val labelId =

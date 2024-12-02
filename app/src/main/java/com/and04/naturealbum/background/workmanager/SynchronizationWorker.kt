@@ -59,7 +59,6 @@ class SynchronizationWorker @AssistedInject constructor(
     private val fireBaseRepository: FireBaseRepository,
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
-    //private val photoDetailDao: PhotoDetailDao,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
