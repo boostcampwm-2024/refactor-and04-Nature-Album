@@ -106,4 +106,7 @@
     <string name="notification_channel_name">Nature Album</string>
     <string name="my_page_login_no_network_message">로그인 하려면 네트워크 연결해주세요</string>
 
+    <!-- component -->
+    <string name="rotating_icon_button">rotating_image</string>
+
 </resources>

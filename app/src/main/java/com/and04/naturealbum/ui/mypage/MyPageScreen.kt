@@ -51,9 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,13 +62,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
-import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.PermissionHandler
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
+import com.and04.naturealbum.ui.component.ProgressIndicator
+import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
@@ -101,6 +101,8 @@ fun MyPageScreen(
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
     val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
+    val progressState = myPageViewModel.progressState.collectAsStateWithLifecycle()
+    val syncWorking = myPageViewModel.syncWorking.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
@@ -115,7 +117,11 @@ fun MyPageScreen(
         onSearchQueryChange = friendViewModel::updateSearchQuery,
         recentSyncTime = recentSyncTime,
         networkState = networkState,
-        initializeFriendViewModel = friendViewModel::initialize
+        initializeFriendViewModel = friendViewModel::initialize,
+        progressState = progressState,
+        setProgressState = myPageViewModel::setProgressState,
+        syncWorking = syncWorking,
+        startSync = myPageViewModel::startSync
     )
 }
 
@@ -134,6 +140,10 @@ fun MyPageScreenContent(
     recentSyncTime: State<String>,
     networkState: State<Int>,
     initializeFriendViewModel: (String) -> Unit,
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -169,6 +179,10 @@ fun MyPageScreenContent(
             snackBarHostState = snackBarHostState,
             networkState = networkState,
             initializeFriendViewModel = initializeFriendViewModel,
+            progressState = progressState,
+            setProgressState = setProgressState,
+            syncWorking = syncWorking,
+            startSync = startSync
         )
     }
 }
@@ -190,6 +204,10 @@ private fun MyPageContent(
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
     initializeFriendViewModel: (String) -> Unit,
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {}
@@ -204,55 +222,70 @@ private fun MyPageContent(
             showPermissionExplainDialog = {})
     }
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(32.dp),
-    ) {
-        // TODO: STATE 전환 로직을 개선하여 로그아웃 및 상태 초기화 후 UI 갱신을 명확히 구현할 필요가 있음
+    Box(modifier = modifier) {
         when (val success = uiState.value) {
             is UiState.Success -> {
-                val userEmail = success.data.userEmail
-                val userPhotoUri = success.data.userPhotoUri
-                val userDisplayName = success.data.userDisplayName
-                val userUid = success.data.userUid
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                ) {
+                    val userEmail = success.data.userEmail
+                    val userPhotoUri = success.data.userPhotoUri
+                    val userDisplayName = success.data.userDisplayName
+                    val userUid = success.data.userUid
 
-                userUid?.let { initializeFriendViewModel(userUid) }
+                    userUid?.let { initializeFriendViewModel(userUid) }
 
-                SideEffect {
-                    permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
-                }
+                    SideEffect {
+                        permissionHandler.checkPermissions(PermissionHandler.Permissions.NOTIFICATION)
+                    }
 
-                UserProfileContent(
-                    uriState = userPhotoUri,
-                    emailState = userEmail,
-                    displayNameState = userDisplayName,
-                    snackBarHostState = snackBarHostState,
-                    recentSyncTime = recentSyncTime,
-                    networkState = networkState,
-                )
-
-                if (networkState.value == DISCONNECTED) {
-                    NoNetworkSocialContent()
-                } else {
-                    SocialContent(
-                        modifier = Modifier.weight(1f),
-                        userUidState = userUid,
-                        myFriendsState = myFriendsState,
-                        friendRequestsState = friendRequestsState,
-                        sendFriendRequest = sendFriendRequest,
-                        acceptFriendRequest = acceptFriendRequest,
-                        rejectFriendRequest = rejectFriendRequest,
-                        searchResults = searchResults,
-                        onSearchQueryChange = onSearchQueryChange,
+                    UserProfileContent(
+                        uriState = userPhotoUri,
+                        emailState = userEmail,
+                        displayNameState = userDisplayName,
+                        snackBarHostState = snackBarHostState,
+                        recentSyncTime = recentSyncTime,
+                        networkState = networkState,
+                        syncWorking = syncWorking,
+                        startSync = startSync
                     )
+
+                    if (networkState.value == DISCONNECTED) {
+                        NoNetworkSocialContent()
+                    } else {
+                        SocialContent(
+                            modifier = Modifier.weight(1f),
+                            userUidState = userUid,
+                            myFriendsState = myFriendsState,
+                            friendRequestsState = friendRequestsState,
+                            sendFriendRequest = sendFriendRequest,
+                            acceptFriendRequest = acceptFriendRequest,
+                            rejectFriendRequest = rejectFriendRequest,
+                            searchResults = searchResults,
+                            onSearchQueryChange = onSearchQueryChange,
+                        )
+                    }
                 }
             }
 
             else -> {
                 // 비회원일 때
-                UserProfileContent()
-                LoginContent { signInWithGoogle(context) }
+                Box {
+                    ProgressIndicator(progressState.value)
+                }
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                ) {
+                    UserProfileContent()
+                    LoginContent(
+                        progressState = progressState,
+                        setProgressState = setProgressState,
+                    ) { signInWithGoogle(context) }
+                }
             }
         }
     }
@@ -290,6 +323,8 @@ private fun UserProfileContent(
     snackBarHostState: SnackbarHostState? = null,
     recentSyncTime: State<String>? = null,
     networkState: State<Int>? = null,
+    syncWorking: State<Boolean>? = null,
+    startSync: () -> Unit = {}
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -322,7 +357,9 @@ private fun UserProfileContent(
         if (snackBarHostState != null && networkState?.value != DISCONNECTED) {
             SyncContent(
                 snackBarHostState = snackBarHostState,
-                recentSyncTime = recentSyncTime!!
+                recentSyncTime = recentSyncTime!!,
+                syncWorking = syncWorking!!,
+                startSync = startSync
             )
         }
     }
@@ -345,7 +382,11 @@ private fun UserProfileImage(uri: String?, modifier: Modifier) {
 }
 
 @Composable
-private fun LoginContent(loginHandle: () -> Unit) {
+private fun LoginContent(
+    progressState: State<Boolean>,
+    setProgressState: (Boolean) -> Unit,
+    loginHandle: () -> Unit,
+) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -366,6 +407,7 @@ private fun LoginContent(loginHandle: () -> Unit) {
                     ).show()
                 } else {
                     loginHandle()
+                    setProgressState(true)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -469,21 +511,26 @@ private fun MyPageCustomTab(
 @Composable
 private fun SyncContent(
     snackBarHostState: SnackbarHostState,
-    recentSyncTime: State<String>
+    recentSyncTime: State<String>,
+    syncWorking: State<Boolean>,
+    startSync: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     Row(
+        modifier = Modifier.padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(stringResource(R.string.my_page_sync))
         IconButton(
+            modifier = Modifier.size(24.dp),
             onClick = {
                 when (NetworkState.getNetWorkCode()) {
                     CONNECTED_WIFI -> {
                         SynchronizationWorker.runImmediately(context)
+                        startSync()
                     }
 
                     CONNECTED_DATA -> {
@@ -492,7 +539,8 @@ private fun SyncContent(
                             coroutineScope = coroutineScope,
                             snackBarHostState = snackBarHostState,
                             message = context.getString(R.string.my_page_snackbar_network_state_data_keep_going),
-                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button)
+                            actionLabel = context.getString(R.string.my_page_snackbar_confirm_button),
+                            onClickActionPerformed = startSync
                         )
                     }
 
@@ -508,7 +556,8 @@ private fun SyncContent(
                 }
             }
         ) {
-            Icon(
+            RotatingButton(
+                rotatingState = syncWorking.value,
                 imageVector = Icons.Default.Sync,
                 contentDescription = stringResource(R.string.my_page_sync_icon_content_description)
             )
@@ -526,7 +575,8 @@ private fun startSnackBar(
     coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
     message: String,
-    actionLabel: String?
+    actionLabel: String?,
+    onClickActionPerformed: () -> Unit = {},
 ) {
     coroutineScope.launch {
         val result = snackBarHostState.showSnackbar(
@@ -537,6 +587,7 @@ private fun startSnackBar(
 
         if (result == SnackbarResult.ActionPerformed) {
             SynchronizationWorker.runImmediately(context)
+            onClickActionPerformed()
         }
     }
 }
