@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,14 +24,24 @@ import com.and04.naturealbum.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortraitTopAppBar(navigationIcon: @Composable () -> Unit = { }, onClick: () -> Unit = { }) {
+fun PortraitTopAppBar(
+    navigateToBackScreen: () -> Unit,
+    navigateToMyPage: () -> Unit,
+) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.app_name))
         },
-        navigationIcon = navigationIcon,
+        navigationIcon = {
+            IconButton(onClick = { navigateToBackScreen() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
+                )
+            }
+        },
         actions = {
-            IconButton(onClick = { onClick() }) {
+            IconButton(onClick = { navigateToMyPage() }) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
@@ -65,5 +76,79 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopAppBar(
+    navigateToMyPage: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(stringResource(R.string.app_name))
+        },
+        actions = {
+            IconButton(onClick = { navigateToMyPage() }) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyPageTopAppBar(
+    navigateToBackScreen: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(stringResource(R.string.app_name))
+        },
+        navigationIcon = {
+            IconButton(onClick = { navigateToBackScreen() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+        )
+    )
+}
+
+@Composable
+fun LandscapeMyPageTopAppBar(
+    navigateToBackScreen: () -> Unit,
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 30.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box {
+            IconButton(
+                onClick = { navigateToBackScreen() },
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+                )
+            }
+        }
+
+        Text(
+            text = stringResource(R.string.app_name),
+            textAlign = TextAlign.Start,
+        )
     }
 }
