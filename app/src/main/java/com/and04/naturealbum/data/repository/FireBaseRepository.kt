@@ -7,12 +7,14 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.FirestoreUser
-import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
-import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
+import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.EMPTY
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.UNKNOWN
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.Label
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,9 +23,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -69,11 +74,15 @@ interface FireBaseRepository {
 
     //UPDATE
     suspend fun saveFcmToken(uid: String, token: String): Boolean
+
+    //DELETE
+    suspend fun deleteImageFile(uid: String, label: Label, fileName: String)
 }
 
 class FireBaseRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val fireStorage: FirebaseStorage,
+    private val albumDao: AlbumDao,
 ) : FireBaseRepository {
 
     override suspend fun createUserIfNotExists(
@@ -227,6 +236,39 @@ class FireBaseRepositoryImpl @Inject constructor(
         return task.storage.downloadUrl.await()
     }
 
+    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
+        try {
+            FirebaseLock.deleteMutex.withLock {
+                coroutineScope {
+                    val deleteFileJob = async {
+                        fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+                    }
+
+                    val checkAlbumsJob = async {
+                        val albums = albumDao.getAlbumByLabelId(label.id)
+                        if (albums.isEmpty()) {
+                            fireStore.collection(USER).document(uid).collection(LABEL)
+                                .document(label.name)
+                                .delete()
+                                .await()
+                        }
+                    }
+
+                    val deletePhotoJob = async {
+                        fireStore.collection(USER).document(uid).collection(PHOTOS)
+                            .document(fileName)
+                            .delete()
+                            .await()
+                    }
+
+                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
+        }
+    }
+
     override suspend fun insertLabel(
         uid: String,
         labelName: String,
@@ -247,15 +289,16 @@ class FireBaseRepositoryImpl @Inject constructor(
         fileName: String,
         photoData: FirebasePhotoInfo,
     ): Boolean {
-        var requestSuccess = false
+        return FirebaseLock.insertMutex.withLock {
+            var requestSuccess = false
+            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                .set(photoData)
+                .addOnSuccessListener {
+                    requestSuccess = true
+                }.await()
 
-        fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-            .set(photoData)
-            .addOnSuccessListener {
-                requestSuccess = true
-            }.await()
-
-        return requestSuccess
+            return@withLock requestSuccess
+        }
     }
 
     // 친구 요청 보냈을 경우
@@ -388,7 +431,7 @@ class FireBaseRepositoryImpl @Inject constructor(
     // 검색했을 경우
     override fun searchUsersAsFlow(
         uid: String,
-        query: String
+        query: String,
     ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
             val listener = fireStore.collection(USER)
@@ -479,5 +522,10 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
         private const val EMAIL = "email"
         private const val QUERY_SUFFIX = "\uf8ff" // Firestore 쿼리에서 startsWith 구현을 위한 문자열 끝 범위 문자
+    }
+
+    object FirebaseLock {
+        val insertMutex = Mutex()
+        val deleteMutex = Mutex()
     }
 }
