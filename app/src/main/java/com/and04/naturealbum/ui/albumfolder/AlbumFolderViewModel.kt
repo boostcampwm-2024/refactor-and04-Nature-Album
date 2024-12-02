@@ -68,6 +68,7 @@ class AlbumFolderViewModel @Inject constructor(
                     }
 
                     updatedPhotoDetails.remove(photoDetail)
+
                 }
                 _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
             }
