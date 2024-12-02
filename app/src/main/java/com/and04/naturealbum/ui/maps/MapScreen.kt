@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -329,7 +330,7 @@ fun FriendDialog(
 
                 LazyColumn(
                     modifier = modifier
-                        .weight(1f)
+                        .weight(weight = 1f, fill = false)
                         .padding(horizontal = 16.dp),
                 ) {
                     items(friends.value) { friend ->
