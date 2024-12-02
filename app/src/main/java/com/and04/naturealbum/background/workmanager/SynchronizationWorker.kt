@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
@@ -200,7 +199,6 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 unSynchronizedPhotoDetailsToServer.forEach { photo ->
-                    Log.d("unSynchronizedPhotoDetailsToServer", photo.fileName)
                     launch {
                         insertPhotoDetailToServer(uid, photo)
                     }
