@@ -8,6 +8,7 @@ import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LabelDao {
@@ -55,7 +56,7 @@ interface AlbumDao {
             
     """
     )
-    suspend fun getAllAlbum(): List<AlbumDto>
+    fun getAllAlbum(): Flow<List<AlbumDto>>
 
     @Query(
         """
