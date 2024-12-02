@@ -407,8 +407,12 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
-                        Log.e("searchUsersAsFlow", "Listen failed: ${e.message}")
                         trySend(emptyMap())
+                        return@addSnapshotListener
+                    }
+                    if (snapshot?.size() == 0) {
+                        trySend(emptyMap())
+                        close()
                         return@addSnapshotListener
                     }
 
@@ -459,13 +463,8 @@ class FireBaseRepositoryImpl @Inject constructor(
 
                                 trySend(userMap).isSuccess
                             } catch (ex: CancellationException) {
-                                Log.e(
-                                    "searchUsersAsFlow",
-                                    "Coroutine was cancelled: ${ex.message} - ${this.coroutineContext}"
-                                )
                                 this@launch.cancel()
                             } catch (ex: Exception) {
-                                Log.e("searchUsersAsFlow", "Error: ${ex.message}")
                                 this@launch.cancel()
                             }
                         }
