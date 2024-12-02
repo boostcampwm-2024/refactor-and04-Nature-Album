@@ -3,8 +3,10 @@ package com.and04.naturealbum.utils
 import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import com.and04.naturealbum.ui.component.HomeTopAppBar
+import com.and04.naturealbum.ui.component.LandscapeMyPageTopAppBar
 import com.and04.naturealbum.ui.component.LandscapeTopAppBar
+import com.and04.naturealbum.ui.component.MyPageTopAppBar
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
 
 const val COLUMN_COUNT_PORTRAIT = 2
@@ -20,14 +22,52 @@ fun Context.isLandscape(): Boolean {
 
 @Composable
 fun Context.gridColumnCount(): Int {
-    return if (LocalContext.current.isPortrait()) COLUMN_COUNT_PORTRAIT else COLUMN_COUNT_LANDSCAPE
+    return if (isPortrait()) COLUMN_COUNT_PORTRAIT else COLUMN_COUNT_LANDSCAPE
 }
 
 @Composable
-fun Context.GetTopbar(onNavigateToMyPage: () -> Unit) {
-    if (LocalContext.current.isPortrait()) {
-        PortraitTopAppBar { onNavigateToMyPage() }
+fun Context.GetTopBar(
+    navigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
+) {
+    if (isPortrait()) {
+        PortraitTopAppBar(
+            navigateToMyPage = navigateToMyPage,
+            navigateToBackScreen = navigateToBackScreen,
+        )
     } else {
-        LandscapeTopAppBar { onNavigateToMyPage() }
+        LandscapeTopAppBar(
+            onClick = navigateToMyPage
+        )
+    }
+}
+
+@Composable
+fun Context.GetHomeTopBar(
+    navigateToMyPage: () -> Unit,
+){
+    if (isPortrait()) {
+        HomeTopAppBar(
+            navigateToMyPage = navigateToMyPage,
+        )
+    } else {
+        LandscapeTopAppBar(
+            onClick = navigateToMyPage
+        )
+    }
+}
+
+@Composable
+fun Context.GetMyPageTopAppBar(
+    navigateToBackScreen: () -> Unit,
+){
+    if (isPortrait()) {
+        MyPageTopAppBar(
+            navigateToBackScreen = navigateToBackScreen,
+        )
+    } else {
+        LandscapeMyPageTopAppBar(
+            navigateToBackScreen = navigateToBackScreen
+        )
     }
 }
