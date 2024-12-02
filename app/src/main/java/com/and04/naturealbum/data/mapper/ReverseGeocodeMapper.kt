@@ -3,7 +3,7 @@ package com.and04.naturealbum.data.mapper
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
 
 object ReverseGeocodeMapper {
-    private const val SEPARATOR = "%2C"
+    private const val SEPARATOR = ", "
     fun mapCoordsToAddress(
         reverseGeocodeDto: ReverseGeocodeDto,
         latitude: Double,
@@ -24,6 +24,6 @@ object ReverseGeocodeMapper {
     }
 
     fun mapCoordsToRequestCoords(latitude: Double, longitude: Double): String {
-        return "${longitude}$SEPARATOR${latitude}"
+        return "${latitude}$SEPARATOR${longitude}"
     }
 }
