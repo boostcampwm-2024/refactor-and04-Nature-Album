@@ -49,7 +49,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val activity = context as? Activity ?: return
 
-    var permissionDialogState by remember { mutableStateOf(PermissionDialogState.None) }
+    var permissionDialogState by remember { mutableStateOf<PermissionDialogState?>(null) }
+    var permissionHandler by remember { mutableStateOf<PermissionHandler?>(null) }
 
     val locationSettingsLauncher =
         rememberLauncherForActivityResult(
@@ -59,7 +60,6 @@ fun HomeScreen(
                 takePicture()
             }
         }
-    var permissionsToRequestAgain by remember { mutableStateOf(listOf<String>()) }
 
     val requestCameraPermissionLauncher =
         rememberLauncherForActivityResult(
@@ -80,40 +80,62 @@ fun HomeScreen(
                     val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
                         ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
                     }
-                    permissionsToRequestAgain = deniedPermissions.toList()
                     permissionDialogState = if (hasPreviouslyDeniedPermission) {
-                        PermissionDialogState.Explain
+                        PermissionDialogState(
+                            onDismiss = { permissionDialogState = null },
+                            onConfirmation = {
+                                permissionHandler?.requestPermissions(
+                                    deniedPermissions.toList()
+                                )
+                            },
+                            dialogText = R.string.Home_Screen_permission_explain,
+                        )
                     } else {
-                        PermissionDialogState.GoToSettings
+                        PermissionDialogState(
+                            onDismiss = { permissionDialogState = null },
+                            onConfirmation = {
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                    context.startActivity(this)
+                                }
+                            },
+                            dialogText = R.string.Home_Screen_permission_go_to_settings
+                        )
                     }
                 }
             }
         }
 
 
-    val requestMapPermissionLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
-            when {
-                deniedPermissions.isEmpty() -> onNavigateToMap()
+    val requestMapPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
+        when {
+            deniedPermissions.isEmpty() -> onNavigateToMap()
 
-                else -> {
-                    val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
-                        ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
-                    }
-                    permissionsToRequestAgain = deniedPermissions.toList()
-                    if (hasPreviouslyDeniedPermission) {
-                        // TODO:  
-                        //permissionDialogState = PermissionDialogState.Explain
-                        onNavigateToMap()
-                    } else {
-                        onNavigateToMap()
-                    }
+            else -> {
+                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
+                    ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+                }
+                permissionDialogState = if (hasPreviouslyDeniedPermission) {
+                    PermissionDialogState(
+                        onDismiss = { permissionDialogState = null },
+                        onConfirmation = {
+                            permissionHandler?.requestPermissions(
+                                deniedPermissions.toList()
+                            )
+                        },
+                        dialogText = R.string.Home_Screen_permission_explain,
+                    )
+                } else {
+                    onNavigateToMap()
+                    null
                 }
             }
         }
+    }
+
 
     val cameraPermissionHandler = remember {
         PermissionHandler(
@@ -129,9 +151,6 @@ fun HomeScreen(
             onRequestPermission = { deniedPermissions ->
                 requestCameraPermissionLauncher.launch(deniedPermissions)
             },
-            showPermissionExplainDialog = {
-                permissionDialogState = PermissionDialogState.Explain
-            }
         )
     }
 
@@ -142,17 +161,23 @@ fun HomeScreen(
             onRequestPermission = { deniedPermissions ->
                 requestMapPermissionLauncher.launch(deniedPermissions)
             },
-            showPermissionExplainDialog = onNavigateToMap
         )
     }
 
-    val mapPermissionCheck =
-        { mapPermissionHandler.checkPermissions(PermissionHandler.Permissions.MAP) }
+    val cameraPermissionCheck = {
+        permissionHandler = cameraPermissionHandler
+        cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA)
+    }
+
+    val mapPermissionCheck = {
+        permissionHandler = mapPermissionHandler
+        mapPermissionHandler.checkPermissions(PermissionHandler.Permissions.MAP)
+    }
 
     if (context.isPortrait()) {
         HomeScreenPortrait(
             context = context,
-            onClickCamera = { cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA) },
+            onClickCamera = cameraPermissionCheck,
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = mapPermissionCheck,
@@ -160,25 +185,14 @@ fun HomeScreen(
     } else {
         HomeScreenLandscape(
             context = context,
-            onClickCamera = { cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA) },
+            onClickCamera = cameraPermissionCheck,
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
             onNavigateToMap = mapPermissionCheck,
         )
     }
-    PermissionDialogs(
-        permissionDialogState = permissionDialogState,
-        onDismiss = { permissionDialogState = PermissionDialogState.None },
-        onRequestPermission = {
-            cameraPermissionHandler.requestPermissions(permissionsToRequestAgain)
-        },
-        onGoToSettings = {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-                context.startActivity(this)
-            }
-        }
-    )
+
+    PermissionDialogs(permissionDialogState)
 }
 
 @Composable

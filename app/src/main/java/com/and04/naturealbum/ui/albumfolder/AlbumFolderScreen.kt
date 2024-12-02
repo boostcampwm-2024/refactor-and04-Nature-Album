@@ -114,7 +114,16 @@ fun AlbumFolderScreen(
                         WRITE_EXTERNAL_STORAGE
                     )
                 if (!hasPreviouslyDeniedPermission)
-                    state.permissionDialogState.value = PermissionDialogState.GoToSettings
+                    state.permissionDialogState.value = PermissionDialogState(
+                        onDismiss = { state.permissionDialogState.value = null },
+                        onConfirmation = {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                                context.startActivity(this)
+                            }
+                        },
+                        dialogText = R.string.album_folder_permission_go_to_settings
+                    )
             }
         }
 
@@ -154,16 +163,7 @@ fun AlbumFolderScreen(
         )
     }
 
-    PermissionDialogs(
-        permissionDialogState = state.permissionDialogState.value,
-        onDismiss = { state.permissionDialogState.value = PermissionDialogState.None },
-        onGoToSettings = {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-                context.startActivity(this)
-            }
-        }
-    )
+    PermissionDialogs(state.permissionDialogState.value)
 }
 
 @Composable

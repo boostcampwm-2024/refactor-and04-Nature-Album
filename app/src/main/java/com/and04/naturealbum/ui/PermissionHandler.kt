@@ -1,18 +1,16 @@
 package com.and04.naturealbum.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import java.security.Permissions
 
 class PermissionHandler(
     private val context: Context,
     private val allPermissionGranted: () -> Unit,
     private val onRequestPermission: (Array<String>) -> Unit,
-    private var showPermissionExplainDialog: () -> Unit,
 ) {
     private fun hasCameraHardware(): Boolean {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
@@ -21,7 +19,6 @@ class PermissionHandler(
     fun checkPermissions(permissions: Permissions) {
         if (permissions == Permissions.CAMERA && !hasCameraHardware()) return
 
-        val activity = context as? Activity ?: return
         val deniedPermissions = permissions.permissions.filter { permission ->
             ContextCompat.checkSelfPermission(
                 context,
@@ -31,14 +28,7 @@ class PermissionHandler(
         if (deniedPermissions.isEmpty()) {
             allPermissionGranted()
         } else {
-            val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
-            }
-            if (hasPreviouslyDeniedPermission) {
-                showPermissionExplainDialog()
-            } else {
-                requestPermissions(permissions.permissions)
-            }
+            requestPermissions(permissions.permissions)
         }
     }
 

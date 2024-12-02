@@ -143,7 +143,7 @@ fun MyPageScreenContent(
     progressState: State<Boolean>,
     setProgressState: (Boolean) -> Unit,
     syncWorking: State<Boolean>,
-    startSync: () -> Unit
+    startSync: () -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -207,19 +207,20 @@ private fun MyPageContent(
     progressState: State<Boolean>,
     setProgressState: (Boolean) -> Unit,
     syncWorking: State<Boolean>,
-    startSync: () -> Unit
+    startSync: () -> Unit,
 ) {
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {}
 
     val context = LocalContext.current
     val permissionHandler = remember {
-        PermissionHandler(context = context,
+        PermissionHandler(
+            context = context,
             allPermissionGranted = {},
             onRequestPermission = { deniedPermissions ->
                 requestPermissionLauncher.launch(deniedPermissions)
             },
-            showPermissionExplainDialog = {})
+        )
     }
 
     Box(modifier = modifier) {
@@ -324,7 +325,7 @@ private fun UserProfileContent(
     recentSyncTime: State<String>? = null,
     networkState: State<Int>? = null,
     syncWorking: State<Boolean>? = null,
-    startSync: () -> Unit = {}
+    startSync: () -> Unit = {},
 ) {
     val uri = uriState ?: ""
     val email = emailState ?: stringResource(R.string.my_page_default_user_email)
@@ -481,7 +482,7 @@ private fun MyPageCustomTab(
     index: Int,
     title: String,
     friendRequestsCount: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Tab(
         selected = tabState == index,
@@ -513,7 +514,7 @@ private fun SyncContent(
     snackBarHostState: SnackbarHostState,
     recentSyncTime: State<String>,
     syncWorking: State<Boolean>,
-    startSync: () -> Unit
+    startSync: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
