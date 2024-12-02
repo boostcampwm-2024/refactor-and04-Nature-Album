@@ -23,10 +23,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -131,7 +129,6 @@ class FireBaseRepositoryImpl @Inject constructor(
                 uids.zip(labels).toMap()
             }
         } catch (e: Exception) {
-            Log.e("getLabels", "Error fetching labels: ${e.message}")
             emptyMap()
         }
     }
@@ -158,7 +155,6 @@ class FireBaseRepositoryImpl @Inject constructor(
                 uids.zip(photos).toMap()
             }
         } catch (e: Exception) {
-            Log.e("getPhotos", "Error fetching photos: ${e.message}")
             emptyMap()
         }
     }
@@ -167,21 +163,17 @@ class FireBaseRepositoryImpl @Inject constructor(
         val listener = fireStore.collection(USER).document(uid).collection(FRIENDS)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.e("getFriendsAsFlow", "Listen failed: ${e.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
-                Log.d("getFriendsAsFlow", "Snapshot size: ${snapshot?.size() ?: 0}")
                 val friendList = snapshot?.documents?.mapNotNull { documentSnapshot ->
                     try {
                         documentSnapshot.toObject(FirebaseFriend::class.java)
                     } catch (e: Exception) {
-                        Log.e("getFriendsAsFlow", "Mapping failed: ${e.message}")
                         null
                     }
 
                 } ?: emptyList()
-                Log.d("getFriendsAsFlow", "Mapped friends: $friendList")
                 trySend(friendList) // 데이터가 변경되면 Flow로 보냄
             }
         awaitClose { listener.remove() } // Flow가 닫힐 때 리스너 제거
@@ -193,11 +185,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .document(uid)
                 .collection(FRIEND_REQUESTS).addSnapshotListener { snapshot, e ->
                     if (e != null) {
-                        Log.e("getReceivedFriendRequests", "Listen failed: ${e.message}")
                         trySend(emptyList())
                         return@addSnapshotListener
                     }
-                    Log.d("getReceivedFriendRequests", "Snapshot size: ${snapshot?.size() ?: 0}")
+
                     val receivedFriendRequestList =
                         snapshot?.documents?.mapNotNull { documentSnapshot ->
                             try {
@@ -209,14 +200,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                                     null
                                 }
                             } catch (e: Exception) {
-                                Log.e("getReceivedFriendRequests", "Mapping failed: ${e.message}")
                                 null
                             }
                         } ?: emptyList()
-                    Log.d(
-                        "getReceivedFriendRequests",
-                        "Mapped receivedFriendRequestList: $receivedFriendRequestList"
-                    )
+
                     trySend(receivedFriendRequestList)
                 }
             awaitClose { listener.remove() }
@@ -267,15 +254,10 @@ class FireBaseRepositoryImpl @Inject constructor(
     override suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
         val requestTime = LocalDateTime.now().toString()
 
-        // TODO: 요청자와 대상자의 사용자 정보 가져오기 -> NoSQL 구조 확정 후 구조 동일하면 Firebase.auth.currentUser를 사용하는 방향 고려
         val currentUserSnapshot = fireStore.collection(USER).document(uid).get().await()
         val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
 
         if (!currentUserSnapshot.exists() || !targetUserSnapshot.exists()) {
-            Log.e(
-                "sendFriendRequest",
-                "User data not found for uid: $uid or targetUid: $targetUid"
-            )
             return false
         }
 
@@ -315,13 +297,8 @@ class FireBaseRepositoryImpl @Inject constructor(
                     targetFriendRequest
                 )
             }.await()
-            Log.d(
-                "sendFriendRequest",
-                "Friend request successfully sent from $uid to $targetUid"
-            )
             true
         } catch (e: Exception) {
-            Log.e("sendFriendRequest", "Error sending friend request: ${e.message}", e)
             false
         }
     }
@@ -485,10 +462,8 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .document(uid)
                 .update("fcmToken", token)
                 .await()
-            Log.d("FireBaseRepository", "FCM token updated successfully for user: $uid")
             true
         } catch (e: Exception) {
-            Log.e("FireBaseRepository", "Failed to update FCM token: ${e.message}", e)
             false
         }
     }

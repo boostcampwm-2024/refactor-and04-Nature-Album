@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.friend
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
