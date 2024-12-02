@@ -8,6 +8,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -84,10 +85,8 @@ fun AlbumFolderScreen(
     val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
     val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
 
-    LaunchedEffect(uiState.value) {
-        if (uiState.value is UiState.Idle) {
-            albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-        }
+    if (uiState.value is UiState.Idle) {
+        albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     }
 
     val saveImagesWithLoading = {
@@ -133,7 +132,6 @@ fun AlbumFolderScreen(
         switchEditMode = switchEditMode,
         editMode = state.editMode,
         selectAll = state.selectAll,
-        setLoading = setLoading,
         savePhotos = savePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
         checkList = state.checkList,
@@ -166,7 +164,6 @@ fun AlbumFolderScreen(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
@@ -181,7 +178,6 @@ fun AlbumFolderScreen(
             switchEditMode = switchEditMode,
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = setLoading,
             savePhotos = savePhotos,
             checkList = checkList,
         )
@@ -196,19 +192,17 @@ private fun ItemContainer(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     when (val success = uiState.value) {
         is UiState.Loading, UiState.Idle -> {
-            setLoading(true)
+
         }
 
         is UiState.Success -> {
             val label = success.data.label
             val photoDetails = success.data.photoDetails
-            setLoading(false)
 
             Surface(
                 modifier = Modifier
@@ -397,7 +391,6 @@ private fun AlbumFolderScreenPreview() {
             switchEditMode = { _ -> },
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = { _ -> },
             savePhotos = { },
             onNavigateToMyPage = { },
             checkList = checkList,
