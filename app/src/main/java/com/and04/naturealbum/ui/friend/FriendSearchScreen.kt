@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.friend
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -125,13 +126,11 @@ fun RequestedList(
                 }
             }
         } else {
-            userWithStatusList.forEach { (uid, userWithStatus) ->
-                item(key = uid) {
-                    RequestedItem(
-                        userWithStatus = userWithStatus,
-                        sendFriendRequest = sendFriendRequest
-                    )
-                }
+            items(userWithStatusList.entries.toList(), key = { entry -> entry.key }) { entry ->
+                RequestedItem(
+                    userWithStatus = entry.value,
+                    sendFriendRequest = sendFriendRequest
+                )
             }
         }
     }
