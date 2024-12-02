@@ -135,6 +135,9 @@ fun MapScreen(
                 val uiSettings = naverMap.uiSettings
                 uiSettings.logoGravity = Gravity.TOP or Gravity.START
                 uiSettings.setLogoMargin(150, 25, 0, 0)
+                uiSettings.isCompassEnabled = false
+                uiSettings.isScaleBarEnabled = false
+                uiSettings.isZoomControlEnabled = false
             }
         }
     }
