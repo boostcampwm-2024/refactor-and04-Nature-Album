@@ -65,7 +65,6 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
-import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.PermissionHandler
 import com.and04.naturealbum.ui.component.PortraitTopAppBar
@@ -101,7 +100,6 @@ fun MyPageScreen(
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
-    val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
     val progressState = myPageViewModel.progressState.collectAsStateWithLifecycle()
     val syncWorking = myPageViewModel.syncWorking.collectAsStateWithLifecycle()
 
@@ -111,7 +109,6 @@ fun MyPageScreen(
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
-        searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
@@ -133,7 +130,6 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
@@ -173,7 +169,6 @@ fun MyPageScreenContent(
             signInWithGoogle = signInWithGoogle,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
-            searchResults = searchResults,
             snackBarHostState = snackBarHostState,
             networkState = networkState,
             initializeFriendViewModel = initializeFriendViewModel,
@@ -195,7 +190,6 @@ private fun MyPageContent(
     signInWithGoogle: (Context) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
@@ -259,7 +253,6 @@ private fun MyPageContent(
                             friendRequestsState = friendRequestsState,
                             acceptFriendRequest = acceptFriendRequest,
                             rejectFriendRequest = rejectFriendRequest,
-                            searchResults = searchResults,
                         )
                     }
                 }
@@ -422,13 +415,11 @@ private fun SocialContent(
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
 ) {
     val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
     val friendRequestsCount = friendRequests.size
-    val searchResultsList = searchResults.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
