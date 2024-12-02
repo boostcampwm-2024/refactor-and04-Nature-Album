@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -20,7 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.mypage.UserManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,12 +44,7 @@ fun PortraitTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = { navigateToMyPage() }) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
-            }
+            MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
@@ -79,14 +77,7 @@ fun LandscapeTopAppBar(
             textAlign = TextAlign.Start,
         )
         Box {
-            IconButton(
-                onClick = { navigateToMyPage() },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
-            }
+            MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
         }
     }
 }
@@ -101,12 +92,7 @@ fun HomeTopAppBar(
             Text(stringResource(R.string.app_name))
         },
         actions = {
-            IconButton(onClick = { navigateToMyPage() }) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
-            }
+            MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
@@ -127,14 +113,7 @@ fun LandscapeHomeTopAppBar(onClick: () -> Unit) {
             textAlign = TextAlign.Start,
         )
         Box {
-            IconButton(
-                onClick = { onClick() },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-                )
-            }
+            MyPageNavigationIconButton(navigateToMyPage = onClick)
         }
     }
 }
@@ -165,7 +144,7 @@ fun MyPageTopAppBar(
 @Composable
 fun LandscapeMyPageTopAppBar(
     navigateToBackScreen: () -> Unit,
-){
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,6 +165,22 @@ fun LandscapeMyPageTopAppBar(
         Text(
             text = stringResource(R.string.app_name),
             textAlign = TextAlign.Start,
+        )
+    }
+}
+
+@Composable
+fun MyPageNavigationIconButton(navigateToMyPage: () -> Unit) {
+    IconButton(onClick = { navigateToMyPage() }) {
+        UserManager.getUserProfile()?.let { uri ->
+            AsyncImage(
+                model = uri,
+                contentDescription = stringResource(R.string.top_bar_navigate_to_my_page),
+                modifier = Modifier.fillMaxSize()
+            )
+        } ?: Icon(
+            imageVector = Icons.Default.AccountCircle,
+            contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
         )
     }
 }
