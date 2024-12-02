@@ -36,7 +36,7 @@ class FriendViewModel @Inject constructor(
     val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
     private val debouncePeriod = 100L
-    var uid: String? = null
+    private var uid: String? = null
 
     private var currentSearchJob: Job? = null
 
@@ -54,8 +54,8 @@ class FriendViewModel @Inject constructor(
                 .debounce(debouncePeriod)
                 .distinctUntilChanged()
                 .collect { query ->
-                    uid?.let { currentUid ->
-                        fetchFilteredUsersAsFlow(currentUid, query)
+                    uid?.let {
+                        fetchFilteredUsersAsFlow(query)
                     }
                 }
         }
@@ -65,11 +65,13 @@ class FriendViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    private fun fetchFilteredUsersAsFlow(currentUid: String, query: String) {
-        currentSearchJob?.cancel()
-        currentSearchJob = viewModelScope.launch {
-            fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
-                _searchResults.value = results
+    private fun fetchFilteredUsersAsFlow(query: String) {
+        uid?.let { currentUid ->
+            currentSearchJob?.cancel()
+            currentSearchJob = viewModelScope.launch {
+                fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                    _searchResults.value = results
+                }
             }
         }
     }
@@ -95,29 +97,35 @@ class FriendViewModel @Inject constructor(
         }
     }
 
-    fun sendFriendRequest(uid: String, targetUid: String) {
-        viewModelScope.launch {
-            val success = fireBaseRepository.sendFriendRequest(uid, targetUid)
-            if (success) {
-                // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
-                _searchResults.value = _searchResults.value.toMutableMap().apply {
-                    // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
-                    this[targetUid] =
-                        this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
+    fun sendFriendRequest(targetUid: String) {
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                val success = fireBaseRepository.sendFriendRequest(currentUid, targetUid)
+                if (success) {
+                    // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
+                    _searchResults.value = _searchResults.value.toMutableMap().apply {
+                        // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
+                        this[targetUid] =
+                            this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
+                    }
                 }
             }
         }
     }
 
-    fun acceptFriendRequest(uid: String, targetUid: String) {
-        viewModelScope.launch {
-            fireBaseRepository.acceptFriendRequest(uid, targetUid)
+    fun acceptFriendRequest(targetUid: String) {
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.acceptFriendRequest(currentUid, targetUid)
+            }
         }
     }
 
-    fun rejectFriendRequest(uid: String, targetUid: String) {
-        viewModelScope.launch {
-            fireBaseRepository.rejectFriendRequest(uid, targetUid)
+    fun rejectFriendRequest(targetUid: String) {
+        uid?.let { currentUid ->
+            viewModelScope.launch {
+                fireBaseRepository.rejectFriendRequest(currentUid, targetUid)
+            }
         }
     }
 }

@@ -36,10 +36,8 @@ fun FriendSearchScreen(
     val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     var textFieldState by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val currentUid = friendViewModel.uid!!
 
     LaunchedEffect(Unit) {
-        textFieldState = ""
         friendViewModel.updateSearchQuery("")
     }
 
@@ -95,7 +93,6 @@ fun FriendSearchScreen(
             } else {
                 RequestedList(
                     userWithStatusList = userWithStatusList,
-                    currentUid = currentUid,
                     sendFriendRequest = friendViewModel::sendFriendRequest
                 )
             }
@@ -106,8 +103,7 @@ fun FriendSearchScreen(
 @Composable
 fun RequestedList(
     userWithStatusList: Map<String, FirestoreUserWithStatus>,
-    currentUid: String,
-    sendFriendRequest: (String, String) -> Unit,
+    sendFriendRequest: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -133,7 +129,6 @@ fun RequestedList(
                 item(key = uid) {
                     RequestedItem(
                         userWithStatus = userWithStatus,
-                        currentUid = currentUid,
                         sendFriendRequest = sendFriendRequest
                     )
                 }
@@ -145,8 +140,7 @@ fun RequestedList(
 @Composable
 fun RequestedItem(
     userWithStatus: FirestoreUserWithStatus,
-    currentUid: String,
-    sendFriendRequest: (String, String) -> Unit,
+    sendFriendRequest: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -181,7 +175,7 @@ fun RequestedItem(
             SuggestionChip(
                 onClick = {
                     if (userWithStatus.status == FriendStatus.NORMAL) {
-                        sendFriendRequest(currentUid, userWithStatus.user.uid)
+                        sendFriendRequest(userWithStatus.user.uid)
                     }
                 },
                 enabled = userWithStatus.status == FriendStatus.NORMAL,

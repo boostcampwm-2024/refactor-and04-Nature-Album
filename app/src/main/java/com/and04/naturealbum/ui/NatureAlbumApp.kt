@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -8,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
@@ -53,7 +51,7 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
-            val viewmodel = remember(backStackEntry) {
+            val savePhotoBackStackEntry = remember(backStackEntry) {
                 state.getNavBackStackEntry(NavigateDestination.SavePhoto.route)
             }
             SavePhotoScreen(
@@ -65,12 +63,12 @@ fun NatureAlbumApp(
                 label = state.selectedLabel.value,
                 onLabelSelect = { state.navigateToSearchLabel() },
                 onNavigateToMyPage = { state.navigateToMyPage() },
-                viewModel = hiltViewModel(viewmodel),
+                viewModel = hiltViewModel(savePhotoBackStackEntry),
             )
         }
 
         composable(NavigateDestination.SearchLabel.route) { backStackEntry ->
-            val viewmodel = remember(backStackEntry) {
+            val savePhotoBackStackEntryForSearchLabel = remember(backStackEntry) {
                 state.getNavBackStackEntry(NavigateDestination.SavePhoto.route)
             }
 
@@ -79,7 +77,7 @@ fun NatureAlbumApp(
                     state.selectedLabel.value = label
                     state.popupBackStack()
                 },
-                savePhotoViewModel = hiltViewModel(viewmodel),
+                savePhotoViewModel = hiltViewModel(savePhotoBackStackEntryForSearchLabel),
             )
         }
 
@@ -120,13 +118,13 @@ fun NatureAlbumApp(
             MapScreen(state.lastLocation.value)
         }
         composable(NavigateDestination.FriendSearch.route) { backStackEntry ->
-            val viewmodel = remember(backStackEntry) {
+            val backStackEntryForMyPage = remember(backStackEntry) {
                 state.getNavBackStackEntry(NavigateDestination.MyPage.route)
             }
             FriendSearchScreen(
                 onBack = { state.popupBackStack() },
-                friendViewModel = hiltViewModel(viewmodel),
-                networkViewModel = hiltViewModel(viewmodel),
+                friendViewModel = hiltViewModel(backStackEntryForMyPage),
+                networkViewModel = hiltViewModel(backStackEntryForMyPage),
             )
         }
     }

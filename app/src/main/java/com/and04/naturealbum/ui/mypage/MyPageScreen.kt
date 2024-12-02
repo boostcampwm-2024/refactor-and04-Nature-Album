@@ -130,8 +130,8 @@ fun MyPageScreenContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
     recentSyncTime: State<String>,
     networkState: State<Int>,
     initializeFriendViewModel: (String) -> Unit,
@@ -188,8 +188,8 @@ private fun MyPageContent(
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
@@ -248,7 +248,6 @@ private fun MyPageContent(
                         SocialContent(
                             navigateToFriendSearchScreen = navigateToFriendSearchScreen,
                             modifier = Modifier.weight(1f),
-                            userUidState = userUid,
                             myFriendsState = myFriendsState,
                             friendRequestsState = friendRequestsState,
                             acceptFriendRequest = acceptFriendRequest,
@@ -410,13 +409,11 @@ private fun LoginContent(
 private fun SocialContent(
     navigateToFriendSearchScreen: () -> Unit,
     modifier: Modifier,
-    userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
 ) {
-    val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
     val friendRequestsCount = friendRequests.size
@@ -450,7 +447,6 @@ private fun SocialContent(
                 myAlarms = friendRequests,
                 acceptFriendRequest = acceptFriendRequest,
                 rejectFriendRequest = rejectFriendRequest,
-                currentUid = currentUid
             )
         }
     }
