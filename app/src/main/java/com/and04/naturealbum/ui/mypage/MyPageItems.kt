@@ -33,8 +33,26 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 @Composable
 fun MyPageSocialList(myFriends: List<FirebaseFriend>) {
     LazyColumn {
-        items(items = myFriends, key = { myFriend -> myFriend.user.email }) { myFriend ->
-            MyPageSocialItem(myFriend)
+        if (myFriends.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.my_page_no_friend_message),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        } else {
+            items(items = myFriends, key = { myFriend -> myFriend.user.email }) { myFriend ->
+                MyPageSocialItem(myFriend)
+            }
         }
     }
 }
