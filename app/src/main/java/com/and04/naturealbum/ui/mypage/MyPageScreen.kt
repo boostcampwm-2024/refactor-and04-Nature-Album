@@ -90,6 +90,7 @@ private const val SOCIAL_ALARM_TAB_INDEX = 2
 @Composable
 fun MyPageScreen(
     navigateToHome: () -> Unit,
+    navigateToFriendSearchScreen: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
     friendViewModel: FriendViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
@@ -106,15 +107,14 @@ fun MyPageScreen(
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
+        navigateToFriendSearchScreen = navigateToFriendSearchScreen,
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
         searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
-        sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
-        onSearchQueryChange = friendViewModel::updateSearchQuery,
         recentSyncTime = recentSyncTime,
         networkState = networkState,
         initializeFriendViewModel = friendViewModel::initialize,
@@ -128,13 +128,12 @@ fun MyPageScreen(
 @Composable
 fun MyPageScreenContent(
     navigateToHome: () -> Unit,
+    navigateToFriendSearchScreen: () -> Unit,
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
     searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
-    sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     recentSyncTime: State<String>,
@@ -162,6 +161,7 @@ fun MyPageScreenContent(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         MyPageContent(
+            navigateToFriendSearchScreen = navigateToFriendSearchScreen,
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
@@ -171,11 +171,9 @@ fun MyPageScreenContent(
             friendRequestsState = friendRequestsState,
             recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
-            sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
             searchResults = searchResults,
-            onSearchQueryChange = onSearchQueryChange,
             snackBarHostState = snackBarHostState,
             networkState = networkState,
             initializeFriendViewModel = initializeFriendViewModel,
@@ -187,19 +185,17 @@ fun MyPageScreenContent(
     }
 }
 
-
 @Composable
 private fun MyPageContent(
+    navigateToFriendSearchScreen: () -> Unit,
     modifier: Modifier,
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
@@ -256,15 +252,14 @@ private fun MyPageContent(
                         NoNetworkSocialContent()
                     } else {
                         SocialContent(
+                            navigateToFriendSearchScreen = navigateToFriendSearchScreen,
                             modifier = Modifier.weight(1f),
                             userUidState = userUid,
                             myFriendsState = myFriendsState,
                             friendRequestsState = friendRequestsState,
-                            sendFriendRequest = sendFriendRequest,
                             acceptFriendRequest = acceptFriendRequest,
                             rejectFriendRequest = rejectFriendRequest,
                             searchResults = searchResults,
-                            onSearchQueryChange = onSearchQueryChange,
                         )
                     }
                 }
@@ -313,7 +308,6 @@ private fun NoNetworkSocialContent() {
         )
     }
 }
-
 
 @Composable
 private fun UserProfileContent(
@@ -421,15 +415,14 @@ private fun LoginContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SocialContent(
+    navigateToFriendSearchScreen: () -> Unit,
     modifier: Modifier,
     userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    sendFriendRequest: (String, String) -> Unit,
     acceptFriendRequest: (String, String) -> Unit,
     rejectFriendRequest: (String, String) -> Unit,
     searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
 ) {
     val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
@@ -458,12 +451,9 @@ private fun SocialContent(
 
         when (tabState) {
             SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
-                userWithStatusList = searchResultsList,
-                currentUid = currentUid,
-                sendFriendRequest = sendFriendRequest,
-                onSearchQueryChange = onSearchQueryChange
-            )
+            SOCIAL_SEARCH_TAB_INDEX -> {
+                navigateToFriendSearchScreen()
+            }
 
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
                 myAlarms = friendRequests,

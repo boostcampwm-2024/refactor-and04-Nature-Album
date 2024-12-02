@@ -9,12 +9,12 @@ import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,7 +36,9 @@ class FriendViewModel @Inject constructor(
     val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
     private val debouncePeriod = 100L
-    private var uid: String? = null
+    var uid: String? = null
+
+    private var currentSearchJob: Job? = null
 
     fun initialize(userUid: String) {
         if (uid == userUid) return // 이미 로그인된 상태라면 중복 초기화 방지
@@ -49,9 +51,8 @@ class FriendViewModel @Inject constructor(
     private fun startSearchQueryListener() {
         viewModelScope.launch {
             _searchQuery
-                .debounce(debouncePeriod) // debouncePeriod 동안 입력 없을 때만 처리
-                .filter { query -> query.isNotBlank() } // 빈 쿼리 무시
-                .distinctUntilChanged() // 중복 값 방지
+                .debounce(debouncePeriod)
+                .distinctUntilChanged()
                 .collect { query ->
                     uid?.let { currentUid ->
                         fetchFilteredUsersAsFlow(currentUid, query)
@@ -64,10 +65,16 @@ class FriendViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
+
     private fun fetchFilteredUsersAsFlow(currentUid: String, query: String) {
-        viewModelScope.launch {
-            fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
-                _searchResults.value = results
+        currentSearchJob?.cancel()
+        currentSearchJob = viewModelScope.launch {
+            if (query.isBlank()) {
+                _searchResults.value = emptyMap()
+            } else {
+                fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                    _searchResults.value = results
+                }
             }
         }
     }

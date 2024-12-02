@@ -107,4 +107,8 @@
     <!-- component -->
     <string name="rotating_icon_button">rotating_image</string>
 
+    <!-- FriendSearchScreen -->
+    <string name="friend_search_screen_title">친구 검색</string>
+    <string name="freind_search_screen_no_result">검색 결과 없음</string>
+
 </resources>

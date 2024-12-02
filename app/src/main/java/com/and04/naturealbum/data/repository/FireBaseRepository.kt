@@ -21,8 +21,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -391,6 +393,12 @@ class FireBaseRepositoryImpl @Inject constructor(
         query: String
     ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
+            if (query.isBlank()) {
+                trySend(emptyMap())
+                close()
+                return@callbackFlow
+            }
+
             val listener = fireStore.collection(USER)
                 .whereGreaterThanOrEqualTo(EMAIL, query)
                 .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
