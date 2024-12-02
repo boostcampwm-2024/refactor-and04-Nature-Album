@@ -47,7 +47,7 @@ class MapScreenViewModel @Inject constructor(
                     }
                 )
             } catch (e: Exception) {
-                Log.e("FriendViewModel", e.toString())
+                Log.e("MapScreenViewModel", e.toString())
             }
         }
     }
