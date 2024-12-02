@@ -27,7 +27,7 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
 
 @Database(
     entities = [Label::class, Album::class, PhotoDetail::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 
