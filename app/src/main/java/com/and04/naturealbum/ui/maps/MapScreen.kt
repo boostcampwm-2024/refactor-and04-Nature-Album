@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui.maps
 
-import android.annotation.SuppressLint
 import android.location.Location
 import android.view.Gravity
 import android.view.View
@@ -91,7 +90,6 @@ import com.naver.maps.map.overlay.OverlayImage
 
 private const val USER_SELECT_MAX = 4
 
-@SuppressLint("NewApi")
 @Composable
 fun MapScreen(
     location: Location? = null,
@@ -269,6 +267,8 @@ fun MapScreen(
         onDismiss = { openDialog.value = false },
         onConfirm = { selectedFriends ->
             viewModel.fetchFriendsPhotos(selectedFriends.map { friend -> friend.user.uid })
+            pick = null
+            displayPhotos.value = emptyList()
             openDialog.value = false
         }
     )
