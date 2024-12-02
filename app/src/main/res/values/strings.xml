@@ -59,7 +59,9 @@
     <string name="map_marker_loading">Loading map markers...</string>
     <string name="map_show_friend_map">친구 지도 보기</string>
     <string name="map_friend_dialog_title">친구 지도 같이 보기</string>
-    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 4명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 %d명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_no_friend">마이페이지에서 친구추가를 해보세요</string>
+    <string name="map_friend_dialog_no_friend_icon">친구 리스트가 비어있어요</string>
     <string name="map_friend_dialog_cancel_btn">취소</string>
     <string name="map_friend_dialog_confirm_btn">적용</string>
     <string name="map_image_loading">사진 로딩중</string>

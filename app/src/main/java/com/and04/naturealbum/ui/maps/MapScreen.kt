@@ -4,6 +4,7 @@ import android.location.Location
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
+import androidx.compose.material.icons.filled.GroupOff
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Card
@@ -92,8 +94,6 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 
-private const val USER_SELECT_MAX = 4
-
 @Composable
 fun MapScreen(
     location: Location? = null,
@@ -117,6 +117,7 @@ fun MapScreen(
     val selectedFriends = remember { mutableStateOf(listOf<FirebaseFriend>()) }
 
     val clusterManagers: List<ClusterManager> = remember {
+        // 클러스터 매니저 5개 미리 생성
         ColorRange.entries.map { colorRange ->
             ClusterManager(
                 colorRange = colorRange,
@@ -132,7 +133,8 @@ fun MapScreen(
                 },
                 onClusterChange = { info ->
                     val changedCluster = info.tag as List<PhotoItem>
-                    if (changedCluster.contains(pick.value)) bottomSheetPhotos.value = changedCluster
+                    if (changedCluster.contains(pick.value)) bottomSheetPhotos.value =
+                        changedCluster
                 }
             )
         }
@@ -271,7 +273,7 @@ fun MapScreen(
                 )
             }
         }
-        if(openDialog.value) {
+        if (openDialog.value) {
             FriendDialog(
                 friends = friends,
                 selectedFriends = selectedFriends,
@@ -289,135 +291,7 @@ fun MapScreen(
 }
 
 
-@Composable
-fun FriendDialog(
-    friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
-    selectedFriends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit = {},
-    onConfirm: (List<FirebaseFriend>) -> Unit = {}
-) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    var checkedFriends by remember { mutableStateOf<List<FirebaseFriend>>(selectedFriends.value) }
-        Dialog(
-            onDismissRequest = { onDismiss() },
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .sizeIn(maxHeight = screenHeight * 0.7f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.map_friend_dialog_title),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        text = stringResource(R.string.map_friend_dialog_body),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
 
-                LazyColumn(
-                    modifier = modifier
-                        .weight(weight = 1f, fill = false)
-                        .padding(horizontal = 16.dp),
-                ) {
-                    items(friends.value) { friend ->
-                        FriendDialogItem(friend = friend,
-                            isSelect = checkedFriends.contains(friend),
-                            onSelect = {
-                                if (checkedFriends.contains(friend)) {
-                                    checkedFriends = checkedFriends.filter { it != friend }
-                                } else if (checkedFriends.size < USER_SELECT_MAX) {
-                                    checkedFriends = checkedFriends + friend
-                                }
-                            })
-                        HorizontalDivider()
-                    }
-                }
-
-                Row(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = { onDismiss() }
-                    ) {
-                        Text(
-                            text = stringResource(R.string.map_friend_dialog_cancel_btn),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.size(8.dp))
-
-                    TextButton(
-                        onClick = { onConfirm(checkedFriends) }
-                    ) {
-                        Text(
-                            text = stringResource(R.string.map_friend_dialog_confirm_btn),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                }
-            }
-        }
-
-}
-
-@Composable
-fun FriendDialogItem(
-    friend: FirebaseFriend,
-    isSelect: Boolean,
-    modifier: Modifier = Modifier,
-    onSelect: () -> Unit = {}
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            modifier = modifier
-                .size(40.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop,
-            model = friend.user.photoUrl,
-            contentDescription = friend.user.displayName
-        )
-        Text(
-            modifier = modifier.weight(1f),
-            text = friend.user.displayName,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Checkbox(
-            checked = isSelect,
-            colors = CheckboxDefaults.colors().copy(
-                uncheckedBoxColor = MaterialTheme.colorScheme.primary,
-                uncheckedBorderColor = MaterialTheme.colorScheme.primary,
-            ),
-            onCheckedChange = { onSelect() }
-        )
-    }
-}
 
 @Composable
 fun PhotoGrid(
