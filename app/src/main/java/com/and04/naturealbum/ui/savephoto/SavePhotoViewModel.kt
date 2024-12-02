@@ -13,6 +13,7 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.utils.NetworkState
 import com.google.firebase.Firebase
 import com.google.firebase.vertexai.type.content
 import com.google.firebase.vertexai.vertexAI
@@ -74,10 +75,14 @@ class SavePhotoViewModel @Inject constructor(
 
                 val album = async { dataRepository.getAlbumByLabelId(labelId) }
                 val address = async {
-                    retrofitRepository.convertCoordsToAddress(
-                        latitude = location.latitude,
-                        longitude = location.longitude
-                    )
+                    if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED) {
+                        retrofitRepository.convertCoordsToAddress(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
+                    } else {
+                        "${location.latitude}, ${location.longitude}"
+                    }
                 }
                 val photoDetailId = async {
                     dataRepository.insertPhoto(
