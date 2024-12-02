@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.friend
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
@@ -65,16 +66,11 @@ class FriendViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-
     private fun fetchFilteredUsersAsFlow(currentUid: String, query: String) {
         currentSearchJob?.cancel()
         currentSearchJob = viewModelScope.launch {
-            if (query.isBlank()) {
-                _searchResults.value = emptyMap()
-            } else {
-                fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
-                    _searchResults.value = results
-                }
+            fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                _searchResults.value = results
             }
         }
     }

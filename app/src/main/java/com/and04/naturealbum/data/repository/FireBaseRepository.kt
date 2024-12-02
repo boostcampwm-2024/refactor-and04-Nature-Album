@@ -18,8 +18,10 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +32,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 interface FireBaseRepository {
 
@@ -398,7 +401,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                 close()
                 return@callbackFlow
             }
-
+            val jobList = mutableListOf<Job>()
             val listener = fireStore.collection(USER)
                 .whereGreaterThanOrEqualTo(EMAIL, query)
                 .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
@@ -412,7 +415,7 @@ class FireBaseRepositoryImpl @Inject constructor(
                     val userMap = mutableMapOf<String, FirestoreUserWithStatus>()
 
                     snapshot?.documents?.forEach { userDoc ->
-                        launch {
+                        val job = launch {
                             if (userDoc.id == uid) return@launch
 
                             val user = userDoc.toObject(FirestoreUser::class.java) ?: return@launch
@@ -448,21 +451,33 @@ class FireBaseRepositoryImpl @Inject constructor(
 
                                     else -> FriendStatus.NORMAL
                                 }
+
+                                userMap[userDoc.id] = FirestoreUserWithStatus(
+                                    user = user,
+                                    status = friendStatus
+                                )
+
+                                trySend(userMap).isSuccess
+                            } catch (ex: CancellationException) {
+                                Log.e(
+                                    "searchUsersAsFlow",
+                                    "Coroutine was cancelled: ${ex.message} - ${this.coroutineContext}"
+                                )
+                                this@launch.cancel()
                             } catch (ex: Exception) {
                                 Log.e("searchUsersAsFlow", "Error: ${ex.message}")
+                                this@launch.cancel()
                             }
-
-                            userMap[userDoc.id] = FirestoreUserWithStatus(
-                                user = user,
-                                status = friendStatus
-                            )
-
-                            trySend(userMap).isSuccess
                         }
+                        jobList.add(job)
                     }
                 }
 
-            awaitClose { listener.remove() }
+            awaitClose {
+                listener.remove()
+                jobList.forEach { job: Job -> job.cancel() }
+                jobList.clear()
+            }
         }
 
     override suspend fun saveFcmToken(uid: String, token: String): Boolean {
