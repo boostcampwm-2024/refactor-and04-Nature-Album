@@ -126,6 +126,7 @@ fun NatureAlbumApp(
             FriendSearchScreen(
                 onBack = { state.popupBackStack() },
                 friendViewModel = hiltViewModel(viewmodel),
+                networkViewModel = hiltViewModel(viewmodel),
             )
         }
     }

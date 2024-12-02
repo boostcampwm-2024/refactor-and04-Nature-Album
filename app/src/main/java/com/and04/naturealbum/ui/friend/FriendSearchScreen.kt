@@ -21,14 +21,19 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.ui.mypage.NoNetworkSocialContent
+import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import com.and04.naturealbum.utils.NetworkViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendSearchScreen(
     onBack: () -> Unit,
     friendViewModel: FriendViewModel,
+    networkViewModel: NetworkViewModel,
 ) {
     val userWithStatusList by friendViewModel.searchResults.collectAsStateWithLifecycle()
+    val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     var textFieldState by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
     val currentUid = friendViewModel.uid!!
@@ -85,11 +90,15 @@ fun FriendSearchScreen(
             ) {
             }
 
-            RequestedList(
-                userWithStatusList = userWithStatusList,
-                currentUid = currentUid,
-                sendFriendRequest = friendViewModel::sendFriendRequest
-            )
+            if (networkState.value == DISCONNECTED) {
+                NoNetworkSocialContent()
+            } else {
+                RequestedList(
+                    userWithStatusList = userWithStatusList,
+                    currentUid = currentUid,
+                    sendFriendRequest = friendViewModel::sendFriendRequest
+                )
+            }
         }
     }
 }

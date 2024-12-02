@@ -280,7 +280,7 @@ private fun MyPageContent(
 }
 
 @Composable
-private fun NoNetworkSocialContent() {
+fun NoNetworkSocialContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
