@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
+import android.util.Log
 import androidx.annotation.IntRange
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -24,6 +25,7 @@ class ClusterManager(
     private val onMarkerClick: (MarkerInfo) -> Overlay.OnClickListener,
     private val onClusterChange: (MarkerInfo) -> Unit
 ) {
+    private var uid: String = ""
     private val cluster: Clusterer<PhotoKey>
 
     init {
@@ -68,8 +70,13 @@ class ClusterManager(
         marker.onClickListener = onMarkerClick(info)
     }
 
-    fun setPhotoItems(photoItems: List<PhotoItem>) {
-        cluster.clear()
+    fun setPhotoItems(uid: String, photoItems: List<PhotoItem>) {
+        if (this.uid != uid) {
+            Log.e("ClusterManager", "$uid clear")
+            cluster.clear()
+            this.uid = uid
+        }
+        Log.e("ClusterManager", "setPhotoItems: $uid")
         cluster.addAll(photoItems.associate { photoItem ->
             PhotoKey(
                 photoItem

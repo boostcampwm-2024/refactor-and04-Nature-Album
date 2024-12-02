@@ -39,12 +39,7 @@ fun NatureAlbumApp(
                 locationHandler = state.locationHandler.value,
                 takePicture = { state.takePicture(takePictureLauncher) },
                 onNavigateToAlbum = { state.navigateToAlbum() },
-                onNavigateToMap = {
-                    state.locationHandler.value.getLocation { location ->
-                        state.lastLocation.value = location
-                    }
-                    state.navigateToMap()
-                },
+                onNavigateToMap = { state.navigateToMap() },
                 onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
@@ -111,7 +106,7 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen(state.lastLocation.value)
+            MapScreen()
         }
     }
 }

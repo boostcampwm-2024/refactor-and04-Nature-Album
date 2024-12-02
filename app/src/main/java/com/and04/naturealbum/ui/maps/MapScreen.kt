@@ -1,7 +1,6 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
-import android.location.Location
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
@@ -66,7 +65,7 @@ import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkViewModel
 import com.and04.naturealbum.utils.toColor
-import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
@@ -77,7 +76,6 @@ import com.naver.maps.map.overlay.OverlayImage
 
 @Composable
 fun MapScreen(
-    location: Location? = null,
     modifier: Modifier = Modifier,
     userViewModel: MapScreenViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
@@ -88,8 +86,7 @@ fun MapScreen(
     val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     val friends = userViewModel.friends.collectAsStateWithLifecycle()
 
-    val myPhotos = userViewModel.photos.collectAsStateWithLifecycle()
-    val friendsPhotos = userViewModel.friendsPhotos.collectAsStateWithLifecycle()
+    val photosByUid = userViewModel.photosByUid.collectAsStateWithLifecycle()
 
     val openDialog = remember { mutableStateOf(false) }
     val marker = remember { Marker() }
@@ -128,6 +125,7 @@ fun MapScreen(
                 clusterManagers.forEach { cluster ->
                     cluster.setMap(naverMap)
                 }
+                naverMap.maxZoom = 18.0
                 naverMap.onMapClickListener = NaverMap.OnMapClickListener { _, _ ->
                     bottomSheetPhotos.value = emptyList()
                     pick.value = null
@@ -184,13 +182,31 @@ fun MapScreen(
         }
     }
 
-    LaunchedEffect(myPhotos.value) {
-        clusterManagers[0].setPhotoItems(myPhotos.value)
-    }
+    LaunchedEffect(photosByUid.value) {
+        clusterManagers.forEachIndexed { index, cluster ->
+            cluster.setPhotoItems(
+                photosByUid.value.keys.elementAtOrNull(index) ?: "",
+                photosByUid.value.values.elementAtOrNull(index) ?: emptyList()
+            )
+        }
 
-    LaunchedEffect(friendsPhotos.value) {
-        clusterManagers.drop(1).forEachIndexed { index, cluster ->
-            cluster.setPhotoItems(friendsPhotos.value.getOrNull(index) ?: emptyList())
+        pick.value = null
+        bottomSheetPhotos.value = emptyList()
+
+        val totalPhotos = photosByUid.value.values.flatten()
+        if (totalPhotos.isNotEmpty()) {
+            val bound = LatLngBounds.Builder().apply {
+                photosByUid.value.values.forEach { photoItems ->
+                    photoItems.forEach { photoItem ->
+                        include(photoItem.position)
+                    }
+                }
+            }.build()
+            mapView.getMapAsync { naverMap ->
+                naverMap.moveCamera(
+                    CameraUpdate.fitBounds(bound, 300).animate(CameraAnimation.Easing, 500)
+                )
+            }
         }
     }
 
@@ -229,15 +245,7 @@ fun MapScreen(
 
         Box(modifier = Modifier.fillMaxSize()) {
             // AndroidView를 MapView로 바로 설정
-            AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize()) {
-                mapView.getMapAsync { naverMap ->
-                    location?.let { position ->
-                        val cameraUpdate =
-                            CameraUpdate.scrollTo(LatLng(position.latitude, position.longitude))
-                        naverMap.moveCamera(cameraUpdate)
-                    }
-                }
-            }
+            AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize())
 
             if (UserManager.isSignIn()) {
                 IconButton(
@@ -276,20 +284,18 @@ fun MapScreen(
                 )
             }
         }
-        if (openDialog.value) {
-            FriendDialog(
-                friends = friends,
-                selectedFriends = selectedFriends,
-                onDismiss = { openDialog.value = false },
-                onConfirm = { friends ->
-                    selectedFriends.value = friends
-                    userViewModel.fetchFriendsPhotos(friends.map { friend -> friend.user.uid })
-                    pick.value = null
-                    bottomSheetPhotos.value = emptyList()
-                    openDialog.value = false
-                }
-            )
-        }
+        FriendDialog(
+            isOpen = openDialog,
+            friends = friends,
+            selectedFriends = selectedFriends,
+            onDismiss = { openDialog.value = false },
+            onConfirm = { friends ->
+                selectedFriends.value = friends
+                userViewModel.fetchFriendsPhotos(friends.map { friend -> friend.user.uid })
+                openDialog.value = false
+            }
+        )
+
     }
 }
 

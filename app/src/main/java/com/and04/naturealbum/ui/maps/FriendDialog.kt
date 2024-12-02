@@ -51,6 +51,7 @@ import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
 @Composable
 fun FriendDialog(
+    isOpen: State<Boolean> = remember { mutableStateOf(true) },
     friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
     selectedFriends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
     userSelectMax: Int = 4,
@@ -60,97 +61,99 @@ fun FriendDialog(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     var checkedFriends by remember { mutableStateOf<List<FirebaseFriend>>(selectedFriends.value) }
-    Dialog(
-        onDismissRequest = { onDismiss() },
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .sizeIn(maxHeight = screenHeight * 0.7f),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(16.dp),
+    if (isOpen.value) {
+        Dialog(
+            onDismissRequest = { onDismiss() },
         ) {
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .sizeIn(maxHeight = screenHeight * 0.7f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                shape = RoundedCornerShape(16.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.map_friend_dialog_title),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = stringResource(R.string.map_friend_dialog_body, userSelectMax),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            if (friends.value.isNotEmpty()) {
-                LazyColumn(
-                    modifier = modifier
-                        .weight(weight = 1f, fill = false)
-                        .padding(horizontal = 16.dp),
-                ) {
-                    items(friends.value) { friend ->
-                        FriendDialogItem(friend = friend,
-                            isSelect = checkedFriends.contains(friend),
-                            onSelect = {
-                                if (checkedFriends.contains(friend)) {
-                                    checkedFriends = checkedFriends.filter { it != friend }
-                                } else if (checkedFriends.size < userSelectMax) {
-                                    checkedFriends = checkedFriends + friend
-                                }
-                            })
-                        HorizontalDivider()
-                    }
-                }
-            } else {
                 Column(
-                    modifier = modifier
-                        .height(150.dp)
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Image(
-                        imageVector = Icons.Default.GroupOff,
-                        contentDescription = stringResource(R.string.map_friend_dialog_no_friend_icon),
-                        modifier = Modifier
-                            .size(48.dp)
-                            .padding(bottom = 16.dp)
+                    Text(
+                        text = stringResource(R.string.map_friend_dialog_title),
+                        style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        text = stringResource(R.string.map_friend_dialog_no_friend),
+                        text = stringResource(R.string.map_friend_dialog_body, userSelectMax),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            }
 
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = { onDismiss() }) {
-                    Text(
-                        text = stringResource(R.string.map_friend_dialog_cancel_btn),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                if (friends.value.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = modifier
+                            .weight(weight = 1f, fill = false)
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        items(friends.value) { friend ->
+                            FriendDialogItem(friend = friend,
+                                isSelect = checkedFriends.contains(friend),
+                                onSelect = {
+                                    if (checkedFriends.contains(friend)) {
+                                        checkedFriends = checkedFriends.filter { it != friend }
+                                    } else if (checkedFriends.size < userSelectMax) {
+                                        checkedFriends = checkedFriends + friend
+                                    }
+                                })
+                            HorizontalDivider()
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = modifier
+                            .height(150.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Image(
+                            imageVector = Icons.Default.GroupOff,
+                            contentDescription = stringResource(R.string.map_friend_dialog_no_friend_icon),
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(bottom = 16.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_no_friend),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.size(8.dp))
+                Row(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = { onDismiss() }) {
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_cancel_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
 
-                TextButton(onClick = { onConfirm(checkedFriends) }) {
-                    Text(
-                        text = stringResource(R.string.map_friend_dialog_confirm_btn),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+
+                    TextButton(onClick = { onConfirm(checkedFriends) }) {
+                        Text(
+                            text = stringResource(R.string.map_friend_dialog_confirm_btn),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
         }

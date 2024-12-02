@@ -18,21 +18,19 @@ class MapScreenViewModel @Inject constructor(
     private val localRepository: DataRepository,
     private val fireBaseRepository: FireBaseRepository
 ) : ViewModel() {
-    private val _photos = MutableStateFlow<List<PhotoItem>>(emptyList())
-    val photos: StateFlow<List<PhotoItem>> = _photos
+    private var myPhotos = listOf<PhotoItem>()
+    private val _photosByUid = MutableStateFlow<Map<String,List<PhotoItem>>>(emptyMap())
+    val photosByUid: StateFlow<Map<String,List<PhotoItem>>> = _photosByUid
 
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
-
-    private val _friendsPhotos = MutableStateFlow<List<List<PhotoItem>>>(emptyList())
-    val friendsPhotos: StateFlow<List<List<PhotoItem>>> = _friendsPhotos
 
     init {
         viewModelScope.launch {
             val fetchPhotos = async { localRepository.getAllPhotoDetail() }
             val fetchLabels = localRepository.getLabels()
-
-            _photos.emit(fetchPhotos.await().toPhotoItems(fetchLabels))
+            myPhotos = fetchPhotos.await().toPhotoItems(fetchLabels)
+            _photosByUid.emit(mapOf("" to myPhotos))
         }
     }
 
@@ -41,8 +39,9 @@ class MapScreenViewModel @Inject constructor(
             try {
                 val photos = async { fireBaseRepository.getPhotos(friends) }
                 val labels = fireBaseRepository.getLabels(friends)
-                _friendsPhotos.emit(
-                    photos.await().map { (uid, photos) ->
+                _photosByUid.emit(
+                    mapOf("" to myPhotos) +
+                    photos.await().mapValues { (uid, photos) ->
                         photos.toFriendPhotoItems(labels.getValue(uid))
                     }
                 )
