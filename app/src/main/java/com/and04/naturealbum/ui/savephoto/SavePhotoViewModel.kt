@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.DataRepository
+import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
@@ -25,7 +26,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
-    private val repository: DataRepository,
+    private val dataRepository: DataRepository,
+    private val retrofitRepository: RetrofitRepository,
 ) : ViewModel() {
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
@@ -66,12 +68,16 @@ class SavePhotoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val labelId =
-                    if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
+                    if (label.id == NEW_LABEL) dataRepository.insertLabel(label).toInt()
                     else label.id
 
-                val album = async { repository.getAlbumByLabelId(labelId) }
+                val album = async { dataRepository.getAlbumByLabelId(labelId) }
+                val address = async {
+                    val coords = "${location.longitude}%2C${location.latitude}"
+                    retrofitRepository.convertCoordsToAddress(coords)
+                }
                 val photoDetailId = async {
-                    repository.insertPhoto(
+                    dataRepository.insertPhoto(
                         PhotoDetail(
                             labelId = labelId,
                             photoUri = uri,
@@ -81,20 +87,21 @@ class SavePhotoViewModel @Inject constructor(
                             description = description,
                             hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED,
                             datetime = time,
+                            address = address.await()
                         )
                     )
                 }
 
                 album.await().run {
                     if (isEmpty()) {
-                        repository.insertPhotoInAlbum(
+                        dataRepository.insertPhotoInAlbum(
                             Album(
                                 labelId = labelId,
                                 photoDetailId = photoDetailId.await().toInt()
                             )
                         )
                     } else if (isRepresented) {
-                        repository.updateAlbum(
+                        dataRepository.updateAlbum(
                             first().copy(
                                 photoDetailId = photoDetailId.await().toInt()
                             )

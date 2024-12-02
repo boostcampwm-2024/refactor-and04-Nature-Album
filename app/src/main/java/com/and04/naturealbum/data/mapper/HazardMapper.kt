@@ -9,9 +9,9 @@ object HazardMapper {
 
         val mostHeightScore = result.confidence
         val porn = result.result?.porn?.confidence
-        val sexy = result.result?.sexy?.confidence
+        val adult = result.result?.adult?.confidence
 
-        return if (mostHeightScore == porn || mostHeightScore == sexy) {
+        return if (mostHeightScore == porn || mostHeightScore == adult) {
             HazardAnalyzeStatus.FAIL
         } else {
             HazardAnalyzeStatus.PASS
