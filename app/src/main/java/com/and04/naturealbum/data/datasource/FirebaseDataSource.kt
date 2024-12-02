@@ -88,11 +88,11 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
-    suspend fun getUserFriends(uid: String): CollectionReference {
+    fun getUserFriends(uid: String): CollectionReference {
         return fireStore.collection(USER).document(uid).collection(FRIENDS)
     }
 
-    suspend fun getReceivedFriendRequests(uid: String): CollectionReference {
+    fun getReceivedFriendRequests(uid: String): CollectionReference {
         return fireStore.collection(USER).document(uid).collection(FRIEND_REQUESTS)
     }
 
@@ -174,7 +174,7 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
-    suspend fun searchUsers(query: String): Query {
+    fun searchUsers(query: String): Query {
         return fireStore.collection(USER)
             .whereGreaterThanOrEqualTo(EMAIL, query)
             .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
