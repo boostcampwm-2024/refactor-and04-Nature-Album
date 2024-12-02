@@ -8,7 +8,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -195,85 +194,77 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
-    when (val success = uiState.value) {
-        is UiState.Loading, UiState.Idle -> {
+    if (uiState.value is UiState.Success) {
+        val success = (uiState.value as UiState.Success)
+        val label = success.data.label
+        val photoDetails = success.data.photoDetails
 
-        }
-
-        is UiState.Success -> {
-            val label = success.data.label
-            val photoDetails = success.data.photoDetails
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPaddingValues)
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPaddingValues)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AlbumLabel(
-                        modifier = Modifier
-                            .background(
-                                color = label.backgroundColor.toColor(),
-                                shape = CircleShape
-                            )
-                            .fillMaxWidth(0.9f),
-                        text = label.name,
-                        backgroundColor = label.backgroundColor.toColor(),
-                    )
-
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(24.dp),
-                            horizontalArrangement = Arrangement.spacedBy(28.dp),
-                            verticalItemSpacing = 16.dp
-                        ) {
-                            items(
-                                items = photoDetails,
-                                key = { item -> item.id }
-                            ) { photoDetail ->
-                                PhotoDetailItem(
-                                    photoDetail = photoDetail,
-                                    onPhotoClick = onPhotoClick,
-                                    switchEditMode = switchEditMode,
-                                    editMode = editMode,
-                                    selectAll = selectAll.value,
-                                    checkList = checkList,
-                                )
-                            }
-                        }
-
-                        ButtonWithAnimation(
-                            selectAll = { isAllSelected: Boolean ->
-                                selectAll.value = isAllSelected
-                                if (isAllSelected)
-                                    checkList.value = photoDetails.toSet() // TODO
-                                else checkList.value = emptySet() // TODO
-                            },
-                            savePhotos = savePhotos,
-                            editMode = editMode,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomEnd)
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(
+                            color = label.backgroundColor.toColor(),
+                            shape = CircleShape
                         )
+                        .fillMaxWidth(0.9f),
+                    text = label.name,
+                    backgroundColor = label.backgroundColor.toColor(),
+                )
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp),
+                        verticalItemSpacing = 16.dp
+                    ) {
+                        items(
+                            items = photoDetails,
+                            key = { item -> item.id }
+                        ) { photoDetail ->
+                            PhotoDetailItem(
+                                photoDetail = photoDetail,
+                                onPhotoClick = onPhotoClick,
+                                switchEditMode = switchEditMode,
+                                editMode = editMode,
+                                selectAll = selectAll.value,
+                                checkList = checkList,
+                            )
+                        }
                     }
+
+                    ButtonWithAnimation(
+                        selectAll = { isAllSelected: Boolean ->
+                            selectAll.value = isAllSelected
+                            if (isAllSelected)
+                                checkList.value = photoDetails.toSet() // TODO
+                            else checkList.value = emptySet() // TODO
+                        },
+                        savePhotos = savePhotos,
+                        editMode = editMode,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomEnd)
+                    )
                 }
             }
-
-            BackHandler(enabled = editMode.value) {
-                if (editMode.value)
-                    editMode.value = false
-                checkList.value = setOf()
-            }
         }
 
-        is UiState.Error -> { /* TODO ERROR */
+        BackHandler(enabled = editMode.value) {
+            if (editMode.value)
+                editMode.value = false
+            checkList.value = setOf()
         }
     }
 }
