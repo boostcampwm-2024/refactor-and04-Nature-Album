@@ -3,20 +3,25 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,9 +53,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -383,28 +391,51 @@ private fun LoginContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         val context = LocalContext.current
+
         Text(
             text = stringResource(R.string.my_page_login_txt),
             textAlign = TextAlign.Left
         )
 
-        Button(
-            onClick = {
-                if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.my_page_login_no_network_message),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    loginHandle()
-                    setProgressState(true)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = Color.Gray,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(R.string.my_page_login_no_network_message),
+                                Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    } else {
+                        loginHandle()
+                        setProgressState(true)
+                    }
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(30)
         ) {
-            Text(text = stringResource(R.string.my_page_google_login_btn))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_google_login),
+                    contentDescription = null,
+                )
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                Text(text = stringResource(R.string.my_page_google_login_btn))
+            }
         }
     }
 }

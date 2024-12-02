@@ -67,7 +67,7 @@
     <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>
     <string name="my_page_user_profile_image">My Page User Profile Image</string>
     <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
-    <string name="my_page_google_login_btn">구글</string>
+    <string name="my_page_google_login_btn">구글 계정으로 로그인</string>
     <string name="my_page_login_txt">로그인</string>
     <string name="my_page_social_list">친구 목록</string>
     <string name="my_page_social_search">친구 검색</string>
