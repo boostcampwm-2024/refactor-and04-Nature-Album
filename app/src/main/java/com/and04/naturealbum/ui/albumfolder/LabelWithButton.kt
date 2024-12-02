@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.room.Label
 
 @Composable
 fun ButtonWithAnimation(
