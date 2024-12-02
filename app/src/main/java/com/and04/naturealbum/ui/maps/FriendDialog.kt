@@ -1,7 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
-import android.app.Dialog
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -109,7 +109,7 @@ fun FriendDialog(
                     }
                 }
             } else {
-                Column (
+                Column(
                     modifier = modifier
                         .height(150.dp)
                         .fillMaxWidth()
@@ -137,9 +137,7 @@ fun FriendDialog(
                     .padding(24.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(
-                    onClick = { onDismiss() }
-                ) {
+                TextButton(onClick = { onDismiss() }) {
                     Text(
                         text = stringResource(R.string.map_friend_dialog_cancel_btn),
                         style = MaterialTheme.typography.labelLarge,
@@ -148,9 +146,7 @@ fun FriendDialog(
 
                 Spacer(modifier = Modifier.size(8.dp))
 
-                TextButton(
-                    onClick = { onConfirm(checkedFriends) }
-                ) {
+                TextButton(onClick = { onConfirm(checkedFriends) }) {
                     Text(
                         text = stringResource(R.string.map_friend_dialog_confirm_btn),
                         style = MaterialTheme.typography.labelLarge,
@@ -173,7 +169,8 @@ fun FriendDialogItem(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable(onClick = onSelect),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -193,12 +190,12 @@ fun FriendDialogItem(
             style = MaterialTheme.typography.bodyLarge
         )
         Checkbox(
-            checked = isSelect,
-            colors = CheckboxDefaults.colors().copy(
-                uncheckedBoxColor = MaterialTheme.colorScheme.primary,
-                uncheckedBorderColor = MaterialTheme.colorScheme.primary,
-            ),
-            onCheckedChange = { onSelect() }
+            enabled = false, checked = isSelect, colors = CheckboxDefaults.colors().copy(
+                disabledCheckedBoxColor = MaterialTheme.colorScheme.primary,
+                disabledUncheckedBoxColor = MaterialTheme.colorScheme.primary,
+                disabledUncheckedBorderColor = MaterialTheme.colorScheme.primary,
+                disabledBorderColor = MaterialTheme.colorScheme.primary,
+            ), onCheckedChange = null
         )
     }
 }
@@ -222,8 +219,15 @@ fun EmptyDialogPreView() {
 @Preview
 @Composable
 fun MinimumDialogPreView() {
-    val friends = remember { mutableStateOf<List<FirebaseFriend>>(listOf(FirebaseFriend(
-        FirestoreUser(displayName = "test")))) }
+    val friends = remember {
+        mutableStateOf<List<FirebaseFriend>>(
+            listOf(
+                FirebaseFriend(
+                    FirestoreUser(displayName = "test")
+                )
+            )
+        )
+    }
     val selectedFriends = remember { mutableStateOf<List<FirebaseFriend>>(emptyList()) }
 
     NatureAlbumTheme {
@@ -239,9 +243,20 @@ fun MinimumDialogPreView() {
 @Preview
 @Composable
 fun FullDialogPreView() {
-    val friends = remember { mutableStateOf<List<FirebaseFriend>>(List(10){(FirebaseFriend(
-        FirestoreUser(displayName = "test${it+1}")))}) }
-    val selectedFriends = remember { mutableStateOf<List<FirebaseFriend>>(emptyList()) }
+    val friends = remember {
+        mutableStateOf<List<FirebaseFriend>>(List(10) {
+            (FirebaseFriend(
+                FirestoreUser(uid = "$it", displayName = "test${it + 1}")
+            ))
+        })
+    }
+    val selectedFriends = remember {
+        mutableStateOf<List<FirebaseFriend>>(setOf(2, 4).map {
+            (FirebaseFriend(
+                FirestoreUser(uid = "$it", displayName = "test${it + 1}")
+            ))
+        })
+    }
 
     NatureAlbumTheme {
         Box(modifier = Modifier.fillMaxSize()) {
