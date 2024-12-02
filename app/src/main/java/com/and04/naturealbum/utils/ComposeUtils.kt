@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import com.and04.naturealbum.ui.component.HomeTopAppBar
+import com.and04.naturealbum.ui.component.LandscapeHomeTopAppBar
 import com.and04.naturealbum.ui.component.LandscapeMyPageTopAppBar
 import com.and04.naturealbum.ui.component.LandscapeTopAppBar
 import com.and04.naturealbum.ui.component.MyPageTopAppBar
@@ -37,7 +38,8 @@ fun Context.GetTopBar(
         )
     } else {
         LandscapeTopAppBar(
-            onClick = navigateToMyPage
+            navigateToMyPage = navigateToMyPage,
+            navigateToBackScreen = navigateToBackScreen,
         )
     }
 }
@@ -51,7 +53,7 @@ fun Context.GetHomeTopBar(
             navigateToMyPage = navigateToMyPage,
         )
     } else {
-        LandscapeTopAppBar(
+        LandscapeHomeTopAppBar(
             onClick = navigateToMyPage
         )
     }

@@ -55,20 +55,32 @@ fun PortraitTopAppBar(
 }
 
 @Composable
-fun LandscapeTopAppBar(onClick: () -> Unit) {
+fun LandscapeTopAppBar(
+    navigateToBackScreen: () -> Unit,
+    navigateToMyPage: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        IconButton(
+            onClick = { navigateToBackScreen() },
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+            )
+        }
+
         Text(
             text = stringResource(R.string.app_name),
             textAlign = TextAlign.Start,
         )
         Box {
             IconButton(
-                onClick = { onClick() },
+                onClick = { navigateToMyPage() },
             ) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
@@ -100,6 +112,31 @@ fun HomeTopAppBar(
             containerColor = Color.Transparent,
         )
     )
+}
+
+@Composable
+fun LandscapeHomeTopAppBar(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 30.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.app_name),
+            textAlign = TextAlign.Start,
+        )
+        Box {
+            IconButton(
+                onClick = { onClick() },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
