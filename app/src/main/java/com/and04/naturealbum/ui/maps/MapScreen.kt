@@ -389,7 +389,7 @@ fun FriendDialogItem(
         )
         Text(
             modifier = modifier.weight(1f),
-            text = friend.user.email,
+            text = friend.user.displayName,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyLarge
