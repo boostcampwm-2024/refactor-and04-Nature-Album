@@ -106,37 +106,6 @@ fun HomeScreen(
             }
         }
 
-
-    val requestMapPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val deniedPermissions = permissions.filter { permission -> !permission.value }.keys
-        when {
-            deniedPermissions.isEmpty() -> onNavigateToMap()
-
-            else -> {
-                val hasPreviouslyDeniedPermission = deniedPermissions.any { permission ->
-                    ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
-                }
-                permissionDialogState = if (hasPreviouslyDeniedPermission) {
-                    PermissionDialogState(
-                        onDismiss = { permissionDialogState = null },
-                        onConfirmation = {
-                            permissionHandler?.requestPermissions(
-                                deniedPermissions.toList()
-                            )
-                        },
-                        dialogText = R.string.Home_Screen_permission_explain,
-                    )
-                } else {
-                    onNavigateToMap()
-                    null
-                }
-            }
-        }
-    }
-
-
     val cameraPermissionHandler = remember {
         PermissionHandler(
             context = context,
@@ -154,24 +123,9 @@ fun HomeScreen(
         )
     }
 
-    val mapPermissionHandler = remember {
-        PermissionHandler(
-            context = context,
-            allPermissionGranted = onNavigateToMap,
-            onRequestPermission = { deniedPermissions ->
-                requestMapPermissionLauncher.launch(deniedPermissions)
-            },
-        )
-    }
-
     val cameraPermissionCheck = {
         permissionHandler = cameraPermissionHandler
         cameraPermissionHandler.checkPermissions(PermissionHandler.Permissions.CAMERA)
-    }
-
-    val mapPermissionCheck = {
-        permissionHandler = mapPermissionHandler
-        mapPermissionHandler.checkPermissions(PermissionHandler.Permissions.MAP)
     }
 
     if (context.isPortrait()) {
@@ -180,7 +134,7 @@ fun HomeScreen(
             onClickCamera = cameraPermissionCheck,
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
-            onNavigateToMap = mapPermissionCheck,
+            onNavigateToMap = onNavigateToMap,
         )
     } else {
         HomeScreenLandscape(
@@ -188,7 +142,7 @@ fun HomeScreen(
             onClickCamera = cameraPermissionCheck,
             onNavigateToAlbum = onNavigateToAlbum,
             onNavigateToMyPage = onNavigateToMyPage,
-            onNavigateToMap = mapPermissionCheck,
+            onNavigateToMap = onNavigateToMap,
         )
     }
 
