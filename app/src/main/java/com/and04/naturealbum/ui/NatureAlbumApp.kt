@@ -121,7 +121,7 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen()
+            MapScreen(navigateToHome = { state.popupBackStack() })
         }
         composable(NavigateDestination.FriendSearch.route) { backStackEntry ->
             val backStackEntryForMyPage = remember(backStackEntry) {
