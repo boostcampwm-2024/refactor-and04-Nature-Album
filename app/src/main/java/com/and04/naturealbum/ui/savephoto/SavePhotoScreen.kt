@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.savephoto
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
@@ -9,6 +10,8 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -63,11 +66,13 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.ui.component.BackgroundImage
+import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.isPortrait
@@ -79,11 +84,13 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun SavePhotoScreen(
+    locationHandler: LocationHandler,
     location: Location?,
     model: Uri,
     fileName: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
+    onCancel: () -> Unit,
     onLabelSelect: () -> Unit,
     description: String = "",
     label: Label? = null,
@@ -91,12 +98,11 @@ fun SavePhotoScreen(
     viewModel: SavePhotoViewModel,
 ) {
     val context = LocalContext.current
-
     val photoSaveState = viewModel.photoSaveState.collectAsStateWithLifecycle()
-
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val rememberDescription = rememberSaveable { mutableStateOf(description) }
     val isRepresented = rememberSaveable { mutableStateOf(false) }
+    val newLocation = rememberSaveable { mutableStateOf(location) }
 
     //TODO 시연용
 //    if (uiState.value is UiState.Idle && NetworkState.getNetWorkCode() != DISCONNECTED) {
@@ -104,10 +110,32 @@ fun SavePhotoScreen(
 //        viewModel.getGeneratedContent(bitmap)
 //    }
 
+    if (newLocation.value == null) {
+        val locationSettingsLauncher =
+            rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartIntentSenderForResult()
+            ) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    locationHandler.getLocation { location ->
+                        newLocation.value = location
+                    }
+                } else {
+                    onCancel()
+                }
+            }
+
+        locationHandler.checkLocationSettings(
+            takePicture = {},
+            showGPSActivationDialog = { intentSenderRequest ->
+                locationSettingsLauncher.launch(intentSenderRequest)
+            }
+        )
+    }
+
     SavePhotoScreen(
         model = model,
         fileName = fileName,
-        location = location,
+        location = newLocation,
         photoSaveState = photoSaveState,
         rememberDescription = rememberDescription,
         onDescriptionChange = { newDescription ->
@@ -131,7 +159,7 @@ fun SavePhotoScreen(
 fun SavePhotoScreen(
     model: Uri,
     fileName: String,
-    location: Location?,
+    location: State<Location?>,
     rememberDescription: State<String>,
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
@@ -143,43 +171,56 @@ fun SavePhotoScreen(
     savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit,
     label: Label?,
 ) {
+    val context = LocalContext.current
+
     Scaffold(
-        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
+        topBar = {
+            context.GetTopBar(
+                navigateToMyPage = onNavigateToMyPage,
+                navigateToBackScreen = onBack,
+            )
+        },
     ) { innerPadding ->
         BackgroundImage()
 
-        if (LocalContext.current.isPortrait()) {
-            SavePhotoScreenPortrait(
-                innerPadding = innerPadding,
-                model = model,
-                fileName = fileName,
-                label = label,
-                location = location,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = onDescriptionChange,
-                isRepresented = isRepresented,
-                onRepresentedChange = onRepresentedChange,
-                photoSaveState = photoSaveState,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = savePhoto,
-            )
+        if (location.value == null) {
+            Box(modifier = Modifier.padding(innerPadding)) {
+                ProgressIndicator(location.value == null)
+            }
         } else {
-            SavePhotoScreenLandscape(
-                innerPadding = innerPadding,
-                model = model,
-                fileName = fileName,
-                label = label,
-                location = location,
-                rememberDescription = rememberDescription,
-                onDescriptionChange = onDescriptionChange,
-                isRepresented = isRepresented,
-                onRepresentedChange = onRepresentedChange,
-                photoSaveState = photoSaveState,
-                onLabelSelect = onLabelSelect,
-                onBack = onBack,
-                savePhoto = savePhoto,
-            )
+            if (context.isPortrait()) {
+                SavePhotoScreenPortrait(
+                    innerPadding = innerPadding,
+                    model = model,
+                    fileName = fileName,
+                    label = label,
+                    location = location.value!!,
+                    rememberDescription = rememberDescription,
+                    onDescriptionChange = onDescriptionChange,
+                    isRepresented = isRepresented,
+                    onRepresentedChange = onRepresentedChange,
+                    photoSaveState = photoSaveState,
+                    onLabelSelect = onLabelSelect,
+                    onBack = onBack,
+                    savePhoto = savePhoto,
+                )
+            } else {
+                SavePhotoScreenLandscape(
+                    innerPadding = innerPadding,
+                    model = model,
+                    fileName = fileName,
+                    label = label,
+                    location = location.value!!,
+                    rememberDescription = rememberDescription,
+                    onDescriptionChange = onDescriptionChange,
+                    isRepresented = isRepresented,
+                    onRepresentedChange = onRepresentedChange,
+                    photoSaveState = photoSaveState,
+                    onLabelSelect = onLabelSelect,
+                    onBack = onBack,
+                    savePhoto = savePhoto,
+                )
+            }
         }
     }
 
@@ -348,7 +389,7 @@ fun insertFirebaseService(
     label: Label,
     location: Location,
     description: String,
-    time: LocalDateTime
+    time: LocalDateTime,
 ) {
     if (Firebase.auth.currentUser == null || NetworkState.getNetWorkCode() == DISCONNECTED) return
     val newTime = time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -373,10 +414,11 @@ private fun ScreenPreview() {
         val uiState = rememberSaveable { mutableStateOf(UiState.Success(Unit)) }
         val rememberDescription = rememberSaveable { mutableStateOf("") }
         val isRepresented = rememberSaveable { mutableStateOf(false) }
+        val location = rememberSaveable { mutableStateOf(null) }
 
         SavePhotoScreen(
             model = "".toUri(),
-            location = null,
+            location = location,
             fileName = "fileName.jpg",
             rememberDescription = rememberDescription,
             onDescriptionChange = { },

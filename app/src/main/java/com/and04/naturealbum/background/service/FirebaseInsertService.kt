@@ -62,14 +62,12 @@ class FirebaseInsertService : Service() {
                         HazardAnalyzeStatus.FAIL,
                         fileName
                     )
-                    Log.d("Hazard_Result", "fail")
                     return@launch
                 } else {
                     photoDetailDao.updateHazardCheckResultByFIleName(
                         HazardAnalyzeStatus.PASS,
                         fileName
                     )
-                    Log.d("Hazard_Result", "pass")
                 }
 
                 val storageUri = albumRepository
@@ -111,7 +109,6 @@ class FirebaseInsertService : Service() {
                             datetime = dateTime
                         )
                     )
-
                 stopService(intent)
             }
 

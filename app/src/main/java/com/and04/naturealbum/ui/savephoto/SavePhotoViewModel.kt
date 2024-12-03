@@ -59,10 +59,9 @@ class SavePhotoViewModel @Inject constructor(
         location: Location,
         description: String,
         isRepresented: Boolean,
-        time: LocalDateTime
+        time: LocalDateTime,
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
-
         viewModelScope.launch {
             try {
                 val labelId =
@@ -84,6 +83,7 @@ class SavePhotoViewModel @Inject constructor(
                         )
                     )
                 }
+
                 album.await().run {
                     if (isEmpty()) {
                         repository.insertPhotoInAlbum(

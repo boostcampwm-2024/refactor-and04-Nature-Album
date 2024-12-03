@@ -31,7 +31,7 @@ object FirebaseModule {
     @Singleton
     fun providerFirebaseDataSource(
         fireStore: FirebaseFirestore,
-        fireStorage: FirebaseStorage
+        fireStorage: FirebaseStorage,
     ): FirebaseDataSource = FirebaseDataSource(fireStore, fireStorage)
 
     @Provides

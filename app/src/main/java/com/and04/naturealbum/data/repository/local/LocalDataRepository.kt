@@ -5,6 +5,7 @@ import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
@@ -26,7 +27,13 @@ interface LocalDataRepository {
     suspend fun insertPhotoInAlbum(album: Album): Long
     suspend fun insertLabel(label: Label): Long
     suspend fun updateAlbum(album: Album)
+    suspend fun deleteImage(photoDetail: PhotoDetail)
     suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int)
+    suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
+    suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    )
 }
 
 class LocalDataRepositoryImpl @Inject constructor(
@@ -90,7 +97,37 @@ class LocalDataRepositoryImpl @Inject constructor(
         return albumDao.updateAlbum(album)
     }
 
+    override suspend fun deleteImage(photoDetail: PhotoDetail) {
+        val album = albumDao.getAlbumByLabelId(photoDetail.labelId).first()
+        val isRepresentedImage = album.photoDetailId == photoDetail.id
+        val nextRepresentedImage =
+            photoDetailDao.getAllPhotoDetailsUriByLabelId(photoDetail.labelId)
+                .firstOrNull { it != photoDetail }
+
+        if (isRepresentedImage && nextRepresentedImage != null) {
+            albumDao.updateAlbum(
+                Album(
+                    id = album.id,
+                    labelId = photoDetail.labelId,
+                    photoDetailId = nextRepresentedImage.id
+                )
+            )
+        }
+        return photoDetailDao.deleteImage(photoDetail)
+    }
+
     override suspend fun updateAlbumPhotoDetailByAlbumId(photoDetailId: Int) {
         return albumDao.updateAlbumPhotoDetailByAlbumId(photoDetailId)
+    }
+
+    override suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus {
+        return photoDetailDao.getHazardCheckResultByFileName(fileName)
+    }
+
+    override suspend fun updateHazardCheckResultByFIleName(
+        hazardAnalyzeStatus: HazardAnalyzeStatus,
+        fileName: String,
+    ) {
+        return photoDetailDao.updateHazardCheckResultByFIleName(hazardAnalyzeStatus, fileName)
     }
 }
