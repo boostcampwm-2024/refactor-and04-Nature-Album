@@ -124,7 +124,7 @@ class AlbumRepositoryImpl @Inject constructor(
                                 false -> delay(500)
                             }
                         }
-                    }
+                    } == true
                     when (isFileExist) {
                         true -> {
                             val deleteFileJob =
