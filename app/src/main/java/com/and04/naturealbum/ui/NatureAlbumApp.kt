@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
+import com.and04.naturealbum.service.FirebaseMessagingService.Companion.MY_PAGE_URI
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
@@ -29,6 +30,7 @@ fun NatureAlbumApp(
     startDestination: String? = null,
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
+
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -42,6 +44,7 @@ fun NatureAlbumApp(
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
     ) {
+
         composable(NavigateDestination.Home.route) {
             HomeScreen(
                 locationHandler = state.locationHandler.value,
@@ -122,7 +125,7 @@ fun NatureAlbumApp(
         composable(
             route = NavigateDestination.MyPage.route,
             deepLinks = listOf(navDeepLink {
-                uriPattern = "naturealbum://${NavigateDestination.MyPage.route}"
+                uriPattern = MY_PAGE_URI
             })
         ) {
             MyPageScreen(
@@ -134,6 +137,7 @@ fun NatureAlbumApp(
         composable(NavigateDestination.Map.route) {
             MapScreen(state.lastLocation.value)
         }
+
         composable(NavigateDestination.FriendSearch.route) { backStackEntry ->
             val backStackEntryForMyPage = remember(backStackEntry) {
                 state.getNavBackStackEntry(NavigateDestination.MyPage.route)
@@ -146,7 +150,8 @@ fun NatureAlbumApp(
         }
     }
 
-    if (startDestination == "naturealbum://my_page") {
+
+    if (startDestination == MY_PAGE_URI) {
         state.navigateToMyPage()
     }
 }

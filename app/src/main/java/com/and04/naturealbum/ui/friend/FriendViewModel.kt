@@ -1,7 +1,5 @@
 package com.and04.naturealbum.ui.friend
 
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
@@ -46,7 +44,7 @@ class FriendViewModel @Inject constructor(
     private var currentSearchJob: Job? = null
 
     fun initialize(userUid: String) {
-        if (uid == userUid) return // 이미 로그인된 상태라면 중복 초기화 방지
+        if (uid == userUid) return
         uid = userUid
         listenToFriends()
         listenToReceivedFriendRequests()
@@ -111,9 +109,7 @@ class FriendViewModel @Inject constructor(
             viewModelScope.launch {
                 val success = fireBaseRepository.sendFriendRequest(currentUid, targetUid)
                 if (success) {
-                    // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
                     _searchResults.value = _searchResults.value.toMutableMap().apply {
-                        // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
                         this[targetUid] =
                             this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
                     }
