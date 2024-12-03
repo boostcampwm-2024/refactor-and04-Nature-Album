@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -23,16 +24,14 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 fun NatureAlbumApp(
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
-    val takePictureLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            state.handleLauncher(result)
-        }
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        state.handleLauncher(result)
+    }
 
     NavHost(
-        navController = state.navController,
-        startDestination = NavigateDestination.Home.route
+        navController = state.navController, startDestination = NavigateDestination.Home.route
     ) {
         composable(NavigateDestination.Home.route) {
             HomeScreen(
@@ -90,10 +89,13 @@ fun NatureAlbumApp(
         composable("${NavigateDestination.AlbumFolder.route}/{labelId}") { backStackEntry ->
             val labelId = backStackEntry.arguments?.getString("labelId")?.toInt()!!
 
-            AlbumFolderScreen(
-                selectedAlbumLabel = labelId,
+            AlbumFolderScreen(selectedAlbumLabel = labelId,
                 onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                onNavigateToAlbum = {
+                    Log.d("FFFF", "123123")
+                    state.navigateToAlbum(removeBackStack = true)
+                }
             )
         }
 
