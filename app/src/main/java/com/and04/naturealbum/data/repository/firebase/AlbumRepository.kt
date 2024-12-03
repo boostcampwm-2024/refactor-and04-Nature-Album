@@ -8,15 +8,16 @@ import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.AlbumDao
 import com.and04.naturealbum.data.room.Label
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 interface AlbumRepository {
@@ -38,7 +39,7 @@ interface AlbumRepository {
         photoData: FirebasePhotoInfo,
     ): Boolean
 
-    suspend fun deleteImageFile(uid: String, label: Label, fileName: String)
+    suspend fun deleteImageFile(uid: String, label: Label, fileName: String): Boolean
 }
 
 class AlbumRepositoryImpl @Inject constructor(
@@ -112,32 +113,75 @@ class AlbumRepositoryImpl @Inject constructor(
         return firebaseDataSource.saveImage(uid, label, fileName, uri).getOrThrow()
     }
 
-    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
-        try {
+    /*    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
+            try {
+                FirebaseLock.deleteMutex.withLock {
+                    coroutineScope {
+                        val deleteFileJob = async {
+                            firebaseDataSource.deleteImage(uid, label, fileName)
+                        }
+
+                        val checkAlbumsJob = async {
+                            val albums = localRepository.getAlbumByLabelId(label.id)
+                            if (albums.isEmpty()) {
+                                firebaseDataSource.deleteUserLabel(uid, label)
+                            }
+                        }
+
+                        val deletePhotoJob = async {
+                            firebaseDataSource.deleteUserPhoto(uid, fileName)
+                        }
+
+                        awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
+            }
+        }*/
+    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String): Boolean {
+        return try {
             FirebaseLock.deleteMutex.withLock {
                 coroutineScope {
-                    val deleteFileJob = async {
-                        firebaseDataSource.deleteImage(uid, label, fileName)
-                    }
-
-                    val checkAlbumsJob = async {
-                        val albums = localRepository.getAlbumByLabelId(label.id)
-                        if (albums.isEmpty()) {
-                            firebaseDataSource.deleteUserLabel(uid, label)
+                    val isFileExist = withTimeoutOrNull(2_000) {
+                        while (true) {
+                            when (firebaseDataSource.checkFileExist(uid, label.name, fileName)) {
+                                true -> return@withTimeoutOrNull true
+                                false -> delay(500)
+                            }
                         }
                     }
+                    when (isFileExist) {
+                        true -> {
+                            val deleteFileJob =
+                                async { firebaseDataSource.deleteImage(uid, label, fileName) }
 
-                    val deletePhotoJob = async {
-                        firebaseDataSource.deleteUserPhoto(uid, fileName)
+                            val checkAlbumsJob = async {
+                                val albums = localRepository.getAlbumByLabelId(label.id)
+                                if (albums.isEmpty()) {
+                                    firebaseDataSource.deleteUserLabel(uid, label)
+                                }
+                            }
+
+                            val deletePhotoJob =
+                                async { firebaseDataSource.deleteUserPhoto(uid, fileName) }
+
+                            awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                            true
+                        }
+
+                        else -> {
+                            false
+                        }
                     }
-
-                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
                 }
             }
         } catch (e: Exception) {
             Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
+            false
         }
     }
+
 
     override suspend fun insertLabel(
         uid: String,

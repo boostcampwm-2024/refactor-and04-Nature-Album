@@ -380,12 +380,12 @@ class SynchronizationWorker @AssistedInject constructor(
         val uid = UserManager.getUser()?.uid
         if (!uid.isNullOrEmpty()) {
             val label = roomRepository.getLabelById(labelId)
-            albumRepository.deleteImageFile(
+            val result = albumRepository.deleteImageFile(
                 uid = uid,
                 label = label,
                 fileName = photo.fileName,
             )
-            syncDataStore.removeDeletedFileName(photo.fileName)
+            if (result) syncDataStore.removeDeletedFileName(photo.fileName)
         }
     }
 
