@@ -138,12 +138,14 @@ private fun SearchContent(
             onSelected = onSelected,
         )
 
-        CreateLabelContent(
-            query = query,
-            labelsState = labelsState,
-            randomColor = randomColor,
-            onSelected = onSelected,
-        )
+        if (query.value.isNotEmpty()) {
+            CreateLabelContent(
+                query = query,
+                labelsState = labelsState,
+                randomColor = randomColor,
+                onSelected = onSelected,
+            )
+        }
 
 //        TODO 추후 시연할 때 주석 해제
 //        GeminiLabelContent(
