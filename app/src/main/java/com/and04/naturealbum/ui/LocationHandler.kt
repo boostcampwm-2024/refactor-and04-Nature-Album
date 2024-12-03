@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -35,14 +36,21 @@ class LocationHandler(
     fun checkLocationSettings(
         showGPSActivationDialog: (IntentSenderRequest) -> Unit,
         takePicture: () -> Unit,
+        airPlaneModeMessage: () -> Unit
     ) {
         client.checkLocationSettings(builder.build())
             .addOnSuccessListener {
                 takePicture()
             }
             .addOnFailureListener { exception ->
-                if (exception is ResolvableApiException) {
-                    resolveLocationSettings(exception, showGPSActivationDialog)
+                when (exception) {
+                    is ResolvableApiException -> {
+                        resolveLocationSettings(exception, showGPSActivationDialog)
+                    }
+
+                    is ApiException -> {
+                        airPlaneModeMessage()
+                    }
                 }
             }
     }
