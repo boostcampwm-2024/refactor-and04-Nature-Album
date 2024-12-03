@@ -67,12 +67,10 @@ class AlbumFolderViewModel @Inject constructor(
                             )
                         }
                     }
-
                     updatedPhotoDetails.remove(photoDetail)
-
                 }
                 if (updatedPhotoDetails.isEmpty()) {
-                    //_uiState.emit(UiState.Error("empty"))
+                    _uiState.emit(UiState.Error("empty"))
                 } else {
                     _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
                 }

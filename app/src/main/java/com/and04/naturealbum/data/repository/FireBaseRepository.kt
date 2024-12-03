@@ -24,6 +24,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -240,28 +242,41 @@ class FireBaseRepositoryImpl @Inject constructor(
         try {
             FirebaseLock.deleteMutex.withLock {
                 coroutineScope {
-                    val deleteFileJob = async {
-                        fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+                    val isFileExist = withTimeoutOrNull(2_000) {
+                        while (true) {
+                            try {
+                                fireStorage.getReference("$uid/${label.name}/$fileName").metadata.await()
+                                return@withTimeoutOrNull true
+                            } catch (e: Exception) {
+                                delay(500)
+                            }
+                        }
                     }
+                    if (isFileExist == true) {
+                        val deleteFileJob = async {
+                            fireStorage.getReference("$uid/${label.name}/$fileName").delete()
+                                .await()
+                        }
 
-                    val checkAlbumsJob = async {
-                        val albums = albumDao.getAlbumByLabelId(label.id)
-                        if (albums.isEmpty()) {
-                            fireStore.collection(USER).document(uid).collection(LABEL)
-                                .document(label.name)
+                        val checkAlbumsJob = async {
+                            val albums = albumDao.getAlbumByLabelId(label.id)
+                            if (albums.isEmpty()) {
+                                fireStore.collection(USER).document(uid).collection(LABEL)
+                                    .document(label.name)
+                                    .delete()
+                                    .await()
+                            }
+                        }
+
+                        val deletePhotoJob = async {
+                            fireStore.collection(USER).document(uid).collection(PHOTOS)
+                                .document(fileName)
                                 .delete()
                                 .await()
                         }
-                    }
 
-                    val deletePhotoJob = async {
-                        fireStore.collection(USER).document(uid).collection(PHOTOS)
-                            .document(fileName)
-                            .delete()
-                            .await()
+                        awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
                     }
-
-                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
                 }
             }
         } catch (e: Exception) {
