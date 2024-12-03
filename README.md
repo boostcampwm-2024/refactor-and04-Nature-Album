@@ -24,6 +24,68 @@
 - 🤼 친구의 생물 지도 보기 : 로그인 하여 친구 추가한 친구들의 생물 지도 함께 보기
 
 ---
+## 상세 기능 (GIF)
+<details>
+<summary>도감 등록</summary>
+<div>
+  
+|카메라 권한|촬영 & AI 라벨링|
+|:---:|:---:|
+|![permigif](https://github.com/user-attachments/assets/fc55df84-efea-47c3-9647-b2f10c959f26)|![aigif](https://github.com/user-attachments/assets/c121c79a-6e66-4e44-95f7-d5d593b913e4)|
+
+</div>
+</details>
+
+
+<details>
+<summary>도감 보기</summary>
+<div>
+  
+|도감 상세보기|도감 이미지 앨범에 저장|도감 이미지 삭제|
+|:---:|:---:|:---:|
+|![도감 상세보기](https://github.com/user-attachments/assets/90936815-39ac-4d46-94af-3750b341b689)|![앨범에 저장](https://github.com/user-attachments/assets/4a7e4da9-6430-45ec-8382-916c204c6422)|![도감 삭제](https://github.com/user-attachments/assets/1c17ac07-33c7-4532-b094-9b209b764361)|
+
+</div>
+</details>
+
+<details>
+<summary>지도</summary>
+<div>
+  
+|내 지도 보기|친구 지도 보기|네트워크 연결 확인|
+|:---:|:---:|:---:|
+|![내 지도 보기](https://github.com/user-attachments/assets/b3ecf90c-7074-4efa-b088-96fd5b36f6da)|![친구 지도 보기](https://github.com/user-attachments/assets/3ee94f22-c420-4434-a7b3-74b1b881bf2c)|![네트워크 연결 확인](https://github.com/user-attachments/assets/76fc1329-e8b0-450a-91fe-9f19c6d1f0dd)|
+
+</div>
+</details>
+
+<details>
+<summary>마이페이지 로그인 및 네트워크 연결 처리</summary>
+<div>
+  
+|로그인|네트워크 마이페이지|동기화|
+|:---:|:---:|:---:|
+|![로그인](https://github.com/user-attachments/assets/05163740-b303-44d7-a317-79b7c47793ad)|![네트워크 마이페이지](https://github.com/user-attachments/assets/98a818fc-141f-485d-ae65-10befbf2d9c0)|![동기화](https://github.com/user-attachments/assets/3a37288e-9834-4f98-942f-111981f52a23)|
+
+</div>
+</details>
+
+<details>
+<summary>마이페이지 친구 기능</summary>
+<div>
+  
+|친구 목록| 친구 검색과 네트워크 대응 | 
+|:---:|:---:|
+| ![1  친구 목록](https://github.com/user-attachments/assets/a243238b-84c9-454d-9b73-1afe70eafe62) | ![2  친구 검색 네트워크 포함](https://github.com/user-attachments/assets/501fb48d-05e1-44ae-9256-72419a8b786f) |  
+| 친구 요청 거절과 수락 | foreground 친구 요청 알림|
+|![3-4  친구 요청 거절과 수락](https://github.com/user-attachments/assets/e6cfd780-aeb3-4731-9d3e-a71ef83e5422) | ![3-1  친구 요청 포그라운드](https://github.com/user-attachments/assets/1b7f34de-de9b-42a1-adb3-395fc9082b47)|
+ | background 친구 요청 알림 | 앱 종료 상태일 때 친구 요청 알림 |
+ | ![3-2  친구 요청 백그라운드](https://github.com/user-attachments/assets/f41f5745-abba-455c-8a93-3eb9ad2642a9) | ![3-3  친구 요청 앱 종료](https://github.com/user-attachments/assets/8587294b-8003-44f2-bb23-bf78ffb6b6d1) | |
+
+</div>
+</details>
+
+---
 
 ## 💫 서비스 구조
 
@@ -56,7 +118,9 @@
 
 ## 📔 문서
 
-[Wiki 바로가기](https://github.com/boostcampwm-2024/and04-Nature-Album/wiki)
+[Wiki 바로가기](https://github.com/boostcampwm-2024/and04-Nature-Album/wiki)   
+
+<img src="https://github.com/user-attachments/assets/2d1fa247-6d4f-43c5-9a9a-baa94b13a03d"/>
 
 
 ---
