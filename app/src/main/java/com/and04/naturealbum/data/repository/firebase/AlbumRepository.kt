@@ -113,32 +113,6 @@ class AlbumRepositoryImpl @Inject constructor(
         return firebaseDataSource.saveImage(uid, label, fileName, uri).getOrThrow()
     }
 
-    /*    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
-            try {
-                FirebaseLock.deleteMutex.withLock {
-                    coroutineScope {
-                        val deleteFileJob = async {
-                            firebaseDataSource.deleteImage(uid, label, fileName)
-                        }
-
-                        val checkAlbumsJob = async {
-                            val albums = localRepository.getAlbumByLabelId(label.id)
-                            if (albums.isEmpty()) {
-                                firebaseDataSource.deleteUserLabel(uid, label)
-                            }
-                        }
-
-                        val deletePhotoJob = async {
-                            firebaseDataSource.deleteUserPhoto(uid, fileName)
-                        }
-
-                        awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
-            }
-        }*/
     override suspend fun deleteImageFile(uid: String, label: Label, fileName: String): Boolean {
         return try {
             FirebaseLock.deleteMutex.withLock {
