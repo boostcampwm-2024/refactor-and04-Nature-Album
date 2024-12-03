@@ -82,7 +82,9 @@ fun AlbumFolderScreen(
     val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
 
     val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
-    val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
+    val switchEditMode = { isEditModeEnabled: Boolean ->
+        state.editMode.value = isEditModeEnabled
+    }
 
     LaunchedEffect(uiState.value) {
         if (uiState.value is UiState.Idle) {
@@ -126,6 +128,11 @@ fun AlbumFolderScreen(
         }
     }
 
+    val deletePhotos: () -> Unit = {
+        albumFolderViewModel.deletePhotos(state.checkList.value)
+        switchEditMode(false)
+    }
+
     AlbumFolderScreen(
         context = context,
         uiState = uiState,
@@ -135,6 +142,7 @@ fun AlbumFolderScreen(
         selectAll = state.selectAll,
         setLoading = setLoading,
         savePhotos = savePhotos,
+        deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
         checkList = state.checkList,
     )
@@ -168,6 +176,7 @@ fun AlbumFolderScreen(
     selectAll: MutableState<Boolean>,
     setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
+    deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
@@ -183,6 +192,7 @@ fun AlbumFolderScreen(
             selectAll = selectAll,
             setLoading = setLoading,
             savePhotos = savePhotos,
+            deletePhotos = deletePhotos,
             checkList = checkList,
         )
     }
@@ -198,6 +208,7 @@ private fun ItemContainer(
     selectAll: MutableState<Boolean>,
     setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
+    deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     when (val success = uiState.value) {
@@ -263,6 +274,7 @@ private fun ItemContainer(
                                 else checkList.value = emptySet() // TODO
                             },
                             savePhotos = savePhotos,
+                            deletePhotos = deletePhotos,
                             editMode = editMode,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -399,6 +411,7 @@ private fun AlbumFolderScreenPreview() {
             selectAll = selectAll,
             setLoading = { _ -> },
             savePhotos = { },
+            deletePhotos = {},
             onNavigateToMyPage = { },
             checkList = checkList,
         )
