@@ -92,6 +92,8 @@
     <string name="my_page_no_network_social_content_message">친구 기능은 네트워크가 연결되어야 사용할 수 있습니다.</string>
     <string name="my_page_no_network_social_content_icon_description">네트워크가 없어서 나오는 아이콘 표시</string>
     <string name="my_page_permission_alarm_explain">친구 요청을 알림으로 받기 위해 필요한 권한 요청입니다. 친구 요청이 올 때 알림을 원하신다면 허용해주세요.</string>
+    <string name="my_page_no_friend_requests_message">받은 친구 요청이 없습니다.</string>
+    <string name="my_page_no_friend_message">친구가 없습니다.\n친구 검색해서 추가해주세요.</string>
 
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
@@ -108,5 +110,9 @@
 
     <!-- component -->
     <string name="rotating_icon_button">rotating_image</string>
+
+    <!-- FriendSearchScreen -->
+    <string name="friend_search_screen_title">친구 검색</string>
+    <string name="freind_search_screen_no_result">검색 결과 없음</string>
 
 </resources>
