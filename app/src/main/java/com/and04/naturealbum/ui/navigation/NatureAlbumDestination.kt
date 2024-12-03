@@ -29,4 +29,7 @@ sealed class NavigateDestination(val route: String) : Destination {
 
     @Serializable
     data object PhotoInfo : NavigateDestination("photo_info")
+
+    @Serializable
+    data object FriendSearch : NavigateDestination("friend_search")
 }

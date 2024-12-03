@@ -82,7 +82,9 @@ fun AlbumFolderScreen(
     val uiState = albumFolderViewModel.uiState.collectAsStateWithLifecycle()
 
     val setLoading = { isImgDownLoading: Boolean -> state.imgDownLoading.value = isImgDownLoading }
-    val switchEditMode = { isEditModeEnabled: Boolean -> state.editMode.value = isEditModeEnabled }
+    val switchEditMode = { isEditModeEnabled: Boolean ->
+        state.editMode.value = isEditModeEnabled
+    }
 
     if (uiState.value is UiState.Idle) {
         albumFolderViewModel.loadFolderData(selectedAlbumLabel)
@@ -124,6 +126,11 @@ fun AlbumFolderScreen(
         }
     }
 
+    val deletePhotos: () -> Unit = {
+        albumFolderViewModel.deletePhotos(state.checkList.value)
+        switchEditMode(false)
+    }
+
     AlbumFolderScreen(
         context = context,
         uiState = uiState,
@@ -132,6 +139,7 @@ fun AlbumFolderScreen(
         editMode = state.editMode,
         selectAll = state.selectAll,
         savePhotos = savePhotos,
+        deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
         checkList = state.checkList,
     )
@@ -164,6 +172,7 @@ fun AlbumFolderScreen(
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
     savePhotos: () -> Unit,
+    deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
@@ -178,6 +187,7 @@ fun AlbumFolderScreen(
             editMode = editMode,
             selectAll = selectAll,
             savePhotos = savePhotos,
+            deletePhotos = deletePhotos,
             checkList = checkList,
         )
     }
@@ -192,6 +202,7 @@ private fun ItemContainer(
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
     savePhotos: () -> Unit,
+    deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     if (uiState.value is UiState.Success) {
@@ -242,6 +253,21 @@ private fun ItemContainer(
                                 checkList = checkList,
                             )
                         }
+
+                        ButtonWithAnimation(
+                            selectAll = { isAllSelected: Boolean ->
+                                selectAll.value = isAllSelected
+                                if (isAllSelected)
+                                    checkList.value = photoDetails.toSet()
+                                else checkList.value = emptySet()
+                            },
+                            savePhotos = savePhotos,
+                            deletePhotos = deletePhotos,
+                            editMode = editMode,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomEnd)
+                        )
                     }
 
                     ButtonWithAnimation(
@@ -383,6 +409,7 @@ private fun AlbumFolderScreenPreview() {
             editMode = editMode,
             selectAll = selectAll,
             savePhotos = { },
+            deletePhotos = {},
             onNavigateToMyPage = { },
             checkList = checkList,
         )

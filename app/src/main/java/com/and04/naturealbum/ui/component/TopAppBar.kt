@@ -56,13 +56,12 @@ fun LandscapeTopAppBar(onClick: () -> Unit) {
             textAlign = TextAlign.Start,
         )
         Box {
-            IconButton(
-                onClick = { onClick() },
-            ) {
+            IconButton(onClick = { onClick() }) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
                 )
+
             }
         }
     }

@@ -2,8 +2,8 @@ package com.and04.naturealbum.di
 
 import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.FireBaseRepositoryImpl
+import com.and04.naturealbum.data.room.AlbumDao
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -29,6 +29,7 @@ object FirebaseModule {
     @Singleton
     fun providerFireBaseRepository(
         fireStore: FirebaseFirestore,
-        fireStorage: FirebaseStorage
-    ): FireBaseRepository = FireBaseRepositoryImpl(fireStore, fireStorage)
+        fireStorage: FirebaseStorage,
+        albumDao: AlbumDao,
+    ): FireBaseRepository = FireBaseRepositoryImpl(fireStore, fireStorage, albumDao)
 }

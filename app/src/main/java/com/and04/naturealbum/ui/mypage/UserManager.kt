@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.mypage
 
+import android.net.Uri
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -11,5 +12,9 @@ object UserManager {
 
     fun getUser(): FirebaseUser? {
         return auth.currentUser
+    }
+
+    fun getUserProfile(): Uri? {
+        return auth.currentUser?.photoUrl
     }
 }
