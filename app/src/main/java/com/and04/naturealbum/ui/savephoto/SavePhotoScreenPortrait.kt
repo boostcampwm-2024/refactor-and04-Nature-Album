@@ -35,7 +35,7 @@ fun SavePhotoScreenPortrait(
     model: Uri,
     fileName: String,
     label: Label?,
-    location: Location?,
+    location: Location,
     rememberDescription: State<String>,
     onDescriptionChange: (String) -> Unit,
     isRepresented: State<Boolean>,
@@ -102,7 +102,7 @@ fun SavePhotoScreenPortrait(
                         model.toString(),
                         fileName,
                         label!!,
-                        location!!, // TODO : Null 처리 필요
+                        location,
                         rememberDescription.value,
                         isRepresented.value,
                         time

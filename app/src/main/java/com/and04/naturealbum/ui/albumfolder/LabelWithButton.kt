@@ -32,6 +32,7 @@ import com.and04.naturealbum.R
 fun ButtonWithAnimation(
     selectAll: (Boolean) -> Unit,
     savePhotos: () -> Unit,
+    deletePhotos: () -> Unit,
     editMode: State<Boolean>,
     modifier: Modifier,
 ) {
@@ -60,6 +61,11 @@ fun ButtonWithAnimation(
                     onClick = { savePhotos() }
                 ) {
                     Text(stringResource(R.string.album_folder_screen_save_button))
+                }
+                Button(
+                    onClick = { deletePhotos() }
+                ) {
+                    Text(stringResource(R.string.album_folder_screen_delete_button))
                 }
             }
         }

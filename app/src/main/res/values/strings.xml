@@ -41,6 +41,7 @@
 
     <!--Album Folder -->
     <string name="album_folder_screen_save_button">선택한 사진 저장</string>
+    <string name="album_folder_screen_delete_button">선택한 사진 삭제</string>
     <string name="album_folder_screen_select_all">전체선택</string>
     <string name="album_folder_screen_item_select_icon_description">아이템 선택 아이콘</string>
     <string name="album_folder_screen_item_image_description">아이템 이미지</string>
@@ -52,6 +53,7 @@
     <string name="home_navigate_to_album">나의 도감</string>
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
+    <string name="home_need_wifi_or_off_airplane_mode">비행기 모드를 해제 또는 WIFI를 연결해주세요.</string>
 
     <!-- component -->
     <string name="component_navigation_image_button">네비게이션 이미지 버튼</string>
@@ -91,6 +93,8 @@
     <string name="my_page_no_network_social_content_message">친구 기능은 네트워크가 연결되어야 사용할 수 있습니다.</string>
     <string name="my_page_no_network_social_content_icon_description">네트워크가 없어서 나오는 아이콘 표시</string>
     <string name="my_page_permission_alarm_explain">친구 요청을 알림으로 받기 위해 필요한 권한 요청입니다. 친구 요청이 올 때 알림을 원하신다면 허용해주세요.</string>
+    <string name="my_page_no_friend_requests_message">받은 친구 요청이 없습니다.</string>
+    <string name="my_page_no_friend_message">친구가 없습니다.\n친구 검색해서 추가해주세요.</string>
 
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
@@ -110,5 +114,9 @@
 
     <!-- Album -->
     <string name="nothing_album_txt">도감이 존재하지 않습니다.</string>
+
+    <!-- FriendSearchScreen -->
+    <string name="friend_search_screen_title">친구 검색</string>
+    <string name="freind_search_screen_no_result">검색 결과 없음</string>
 
 </resources>

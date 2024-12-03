@@ -7,27 +7,35 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.dto.FirestoreUser
-import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
-import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
+import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.EMPTY
 import com.and04.naturealbum.data.dto.FirestoreUser.Companion.UNKNOWN
+import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
+import com.and04.naturealbum.data.dto.FriendStatus
+import com.and04.naturealbum.data.room.AlbumDao
+import com.and04.naturealbum.data.room.Label
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 interface FireBaseRepository {
 
@@ -69,11 +77,15 @@ interface FireBaseRepository {
 
     //UPDATE
     suspend fun saveFcmToken(uid: String, token: String): Boolean
+
+    //DELETE
+    suspend fun deleteImageFile(uid: String, label: Label, fileName: String)
 }
 
 class FireBaseRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val fireStorage: FirebaseStorage,
+    private val albumDao: AlbumDao,
 ) : FireBaseRepository {
 
     override suspend fun createUserIfNotExists(
@@ -126,7 +138,6 @@ class FireBaseRepositoryImpl @Inject constructor(
                 uids.zip(labels).toMap()
             }
         } catch (e: Exception) {
-            Log.e("getLabels", "Error fetching labels: ${e.message}")
             emptyMap()
         }
     }
@@ -153,7 +164,6 @@ class FireBaseRepositoryImpl @Inject constructor(
                 uids.zip(photos).toMap()
             }
         } catch (e: Exception) {
-            Log.e("getPhotos", "Error fetching photos: ${e.message}")
             emptyMap()
         }
     }
@@ -162,21 +172,17 @@ class FireBaseRepositoryImpl @Inject constructor(
         val listener = fireStore.collection(USER).document(uid).collection(FRIENDS)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.e("getFriendsAsFlow", "Listen failed: ${e.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
-                Log.d("getFriendsAsFlow", "Snapshot size: ${snapshot?.size() ?: 0}")
                 val friendList = snapshot?.documents?.mapNotNull { documentSnapshot ->
                     try {
                         documentSnapshot.toObject(FirebaseFriend::class.java)
                     } catch (e: Exception) {
-                        Log.e("getFriendsAsFlow", "Mapping failed: ${e.message}")
                         null
                     }
 
                 } ?: emptyList()
-                Log.d("getFriendsAsFlow", "Mapped friends: $friendList")
                 trySend(friendList) // 데이터가 변경되면 Flow로 보냄
             }
         awaitClose { listener.remove() } // Flow가 닫힐 때 리스너 제거
@@ -188,11 +194,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .document(uid)
                 .collection(FRIEND_REQUESTS).addSnapshotListener { snapshot, e ->
                     if (e != null) {
-                        Log.e("getReceivedFriendRequests", "Listen failed: ${e.message}")
                         trySend(emptyList())
                         return@addSnapshotListener
                     }
-                    Log.d("getReceivedFriendRequests", "Snapshot size: ${snapshot?.size() ?: 0}")
+
                     val receivedFriendRequestList =
                         snapshot?.documents?.mapNotNull { documentSnapshot ->
                             try {
@@ -204,14 +209,10 @@ class FireBaseRepositoryImpl @Inject constructor(
                                     null
                                 }
                             } catch (e: Exception) {
-                                Log.e("getReceivedFriendRequests", "Mapping failed: ${e.message}")
                                 null
                             }
                         } ?: emptyList()
-                    Log.d(
-                        "getReceivedFriendRequests",
-                        "Mapped receivedFriendRequestList: $receivedFriendRequestList"
-                    )
+
                     trySend(receivedFriendRequestList)
                 }
             awaitClose { listener.remove() }
@@ -225,6 +226,39 @@ class FireBaseRepositoryImpl @Inject constructor(
     ): Uri {
         val task = fireStorage.getReference("$uid/$label/$fileName").putFile(uri).await()
         return task.storage.downloadUrl.await()
+    }
+
+    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) {
+        try {
+            FirebaseLock.deleteMutex.withLock {
+                coroutineScope {
+                    val deleteFileJob = async {
+                        fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
+                    }
+
+                    val checkAlbumsJob = async {
+                        val albums = albumDao.getAlbumByLabelId(label.id)
+                        if (albums.isEmpty()) {
+                            fireStore.collection(USER).document(uid).collection(LABEL)
+                                .document(label.name)
+                                .delete()
+                                .await()
+                        }
+                    }
+
+                    val deletePhotoJob = async {
+                        fireStore.collection(USER).document(uid).collection(PHOTOS)
+                            .document(fileName)
+                            .delete()
+                            .await()
+                    }
+
+                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FireBaseRepository", "deleteImageFile Error: ${e.message}")
+        }
     }
 
     override suspend fun insertLabel(
@@ -247,30 +281,26 @@ class FireBaseRepositoryImpl @Inject constructor(
         fileName: String,
         photoData: FirebasePhotoInfo,
     ): Boolean {
-        var requestSuccess = false
+        return FirebaseLock.insertMutex.withLock {
+            var requestSuccess = false
+            fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
+                .set(photoData)
+                .addOnSuccessListener {
+                    requestSuccess = true
+                }.await()
 
-        fireStore.collection(USER).document(uid).collection(PHOTOS).document(fileName)
-            .set(photoData)
-            .addOnSuccessListener {
-                requestSuccess = true
-            }.await()
-
-        return requestSuccess
+            return@withLock requestSuccess
+        }
     }
 
     // 친구 요청 보냈을 경우
     override suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
         val requestTime = LocalDateTime.now().toString()
 
-        // TODO: 요청자와 대상자의 사용자 정보 가져오기 -> NoSQL 구조 확정 후 구조 동일하면 Firebase.auth.currentUser를 사용하는 방향 고려
         val currentUserSnapshot = fireStore.collection(USER).document(uid).get().await()
         val targetUserSnapshot = fireStore.collection(USER).document(targetUid).get().await()
 
         if (!currentUserSnapshot.exists() || !targetUserSnapshot.exists()) {
-            Log.e(
-                "sendFriendRequest",
-                "User data not found for uid: $uid or targetUid: $targetUid"
-            )
             return false
         }
 
@@ -310,13 +340,8 @@ class FireBaseRepositoryImpl @Inject constructor(
                     targetFriendRequest
                 )
             }.await()
-            Log.d(
-                "sendFriendRequest",
-                "Friend request successfully sent from $uid to $targetUid"
-            )
             true
         } catch (e: Exception) {
-            Log.e("sendFriendRequest", "Error sending friend request: ${e.message}", e)
             false
         }
     }
@@ -388,23 +413,33 @@ class FireBaseRepositoryImpl @Inject constructor(
     // 검색했을 경우
     override fun searchUsersAsFlow(
         uid: String,
-        query: String
+        query: String,
     ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
+            if (query.isBlank()) {
+                trySend(emptyMap())
+                close()
+                return@callbackFlow
+            }
+            val jobList = mutableListOf<Job>()
             val listener = fireStore.collection(USER)
                 .whereGreaterThanOrEqualTo(EMAIL, query)
                 .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
-                        Log.e("searchUsersAsFlow", "Listen failed: ${e.message}")
                         trySend(emptyMap())
+                        return@addSnapshotListener
+                    }
+                    if (snapshot?.size() == 0) {
+                        trySend(emptyMap())
+                        close()
                         return@addSnapshotListener
                     }
 
                     val userMap = mutableMapOf<String, FirestoreUserWithStatus>()
 
                     snapshot?.documents?.forEach { userDoc ->
-                        launch {
+                        val job = launch {
                             if (userDoc.id == uid) return@launch
 
                             val user = userDoc.toObject(FirestoreUser::class.java) ?: return@launch
@@ -440,21 +475,28 @@ class FireBaseRepositoryImpl @Inject constructor(
 
                                     else -> FriendStatus.NORMAL
                                 }
+
+                                userMap[userDoc.id] = FirestoreUserWithStatus(
+                                    user = user,
+                                    status = friendStatus
+                                )
+
+                                trySend(userMap).isSuccess
+                            } catch (ex: CancellationException) {
+                                this@launch.cancel()
                             } catch (ex: Exception) {
-                                Log.e("searchUsersAsFlow", "Error: ${ex.message}")
+                                this@launch.cancel()
                             }
-
-                            userMap[userDoc.id] = FirestoreUserWithStatus(
-                                user = user,
-                                status = friendStatus
-                            )
-
-                            trySend(userMap).isSuccess
                         }
+                        jobList.add(job)
                     }
                 }
 
-            awaitClose { listener.remove() }
+            awaitClose {
+                listener.remove()
+                jobList.forEach { job: Job -> job.cancel() }
+                jobList.clear()
+            }
         }
 
     override suspend fun saveFcmToken(uid: String, token: String): Boolean {
@@ -463,10 +505,8 @@ class FireBaseRepositoryImpl @Inject constructor(
                 .document(uid)
                 .update("fcmToken", token)
                 .await()
-            Log.d("FireBaseRepository", "FCM token updated successfully for user: $uid")
             true
         } catch (e: Exception) {
-            Log.e("FireBaseRepository", "Failed to update FCM token: ${e.message}", e)
             false
         }
     }
@@ -479,5 +519,10 @@ class FireBaseRepositoryImpl @Inject constructor(
         private const val FRIEND_REQUESTS = "FRIEND_REQUESTS"
         private const val EMAIL = "email"
         private const val QUERY_SUFFIX = "\uf8ff" // Firestore 쿼리에서 startsWith 구현을 위한 문자열 끝 범위 문자
+    }
+
+    object FirebaseLock {
+        val insertMutex = Mutex()
+        val deleteMutex = Mutex()
     }
 }

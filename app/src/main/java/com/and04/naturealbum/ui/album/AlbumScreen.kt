@@ -53,6 +53,8 @@ fun AlbumScreen(
     navigateToBackScreen: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
+    viewModel.loadAlbums()
+
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
     viewModel.loadAlbums()
