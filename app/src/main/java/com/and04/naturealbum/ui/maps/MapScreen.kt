@@ -1,11 +1,11 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -94,12 +94,14 @@ fun MapScreen(
 
     val openDialog = remember { mutableStateOf(false) }
     val pick = remember { mutableStateOf<PhotoItem?>(null) }
-    val marker = remember { Marker().apply {
-        onClickListener = Overlay.OnClickListener {
-            showPhotoContent.value = true
-            true
+    val marker = remember {
+        Marker().apply {
+            onClickListener = Overlay.OnClickListener {
+                showPhotoContent.value = true
+                true
+            }
         }
-    } }
+    }
     val bottomSheetPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
     val selectedFriends = remember { mutableStateOf(listOf<FirebaseFriend>()) }
 
@@ -289,7 +291,11 @@ fun MapScreen(
                 PhotoGrid(
                     photos = bottomSheetPhotos,
                     modifier = modifier,
-                    onPhotoClick = { photo -> pick.value = photo }
+                    onPhotoClick = { photo -> pick.value = photo },
+                    onPhotoDoubleClick = { photo ->
+                        pick.value = photo
+                        showPhotoContent.value = true
+                    }
                 )
             }
         }
@@ -314,12 +320,14 @@ fun MapScreen(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGrid(
     photos: State<List<PhotoItem>>,
     columnCount: Int = 3,
     modifier: Modifier = Modifier,
     onPhotoClick: (PhotoItem) -> Unit,
+    onPhotoDoubleClick: (PhotoItem) -> Unit,
 ) {
     val groupByLabel = photos
         .value
@@ -360,7 +368,10 @@ fun PhotoGrid(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clip(MaterialTheme.shapes.medium)
-                                .clickable { onPhotoClick(photo) },
+                                .combinedClickable(
+                                    onClick = { onPhotoClick(photo) },
+                                    onDoubleClick = { onPhotoDoubleClick(photo) },
+                                ),
                             contentScale = ContentScale.Crop,
                         ) {
                             val state by painter.state.collectAsState()
