@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -100,7 +99,7 @@ fun NatureAlbumApp(
                 onNavigateToMyPage = { state.navigateToMyPage() },
                 navigateToBackScreen = { state.popupBackStack() },
                 onNavigateToAlbum = {
-                    state.navigateToAlbum(removeBackStack = true)
+                    state.popupBackStack()
                 }
             )
         }
