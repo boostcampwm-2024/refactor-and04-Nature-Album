@@ -1,44 +1,24 @@
 package com.and04.naturealbum.ui.component
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import com.and04.naturealbum.R
 
-enum class PermissionDialogState {
-    None,
-    Explain,
-    GoToSettings,
-}
+data class PermissionDialogState(
+    val onDismiss: () -> Unit,
+    val onConfirmation: () -> Unit,
+    @StringRes val dialogText: Int,
+)
 
 @Composable
-fun PermissionDialogs(
-    permissionDialogState: PermissionDialogState,
-    onDismiss: () -> Unit,
-    onRequestPermission: () -> Unit = {},
-    onGoToSettings: () -> Unit = {},
-) {
-    when (permissionDialogState) {
-        PermissionDialogState.Explain -> {
-            MyDialog(
-                onConfirmation = {
-                    onDismiss()
-                    onRequestPermission()
-                },
-                onDismissRequest = { onDismiss() },
-                dialogText = R.string.Home_Screen_permission_explain,
-            )
-        }
-
-        PermissionDialogState.GoToSettings -> {
-            MyDialog(
-                onConfirmation = {
-                    onDismiss()
-                    onGoToSettings()
-                },
-                onDismissRequest = { onDismiss() },
-                dialogText = R.string.Home_Screen_permission_go_to_settings,
-            )
-        }
-
-        PermissionDialogState.None -> {}
+fun PermissionDialogs(permissionDialogState: PermissionDialogState?) {
+    permissionDialogState?.let { dialogState ->
+        MyDialog(
+            onConfirmation = {
+                dialogState.onDismiss()
+                dialogState.onConfirmation()
+            },
+            onDismissRequest = dialogState.onDismiss,
+            dialogText = dialogState.dialogText,
+        )
     }
 }

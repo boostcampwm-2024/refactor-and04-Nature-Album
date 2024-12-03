@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.repository
+package com.and04.naturealbum.data.repository.local
 
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
@@ -10,16 +10,17 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-interface DataRepository {
+interface LocalDataRepository {
     suspend fun getLabels(): List<Label>
     suspend fun getLabelById(id: Int): Label
     suspend fun getIdByName(name: String): Int?
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
-    suspend fun getAllAlbum(): List<AlbumDto>
+    fun getAllAlbum(): Flow<List<AlbumDto>>
     suspend fun getSyncCheckAlbums(): List<SyncAlbumsDto>
     suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
@@ -34,13 +35,16 @@ interface DataRepository {
         hazardAnalyzeStatus: HazardAnalyzeStatus,
         fileName: String,
     )
+
+    suspend fun getAddressByPhotoDetailId(photoDetailId: Int): String
+    suspend fun updateAddressByPhotoDetailId(address: String, photoDetailId: Int)
 }
 
-class DataRepositoryImpl @Inject constructor(
+class LocalDataRepositoryImpl @Inject constructor(
     private val labelDao: LabelDao,
     private val albumDao: AlbumDao,
     private val photoDetailDao: PhotoDetailDao,
-) : DataRepository {
+) : LocalDataRepository {
     override suspend fun getLabels(): List<Label> {
         return labelDao.getAllLabel()
     }
@@ -81,7 +85,7 @@ class DataRepositoryImpl @Inject constructor(
         return albumDao.getAlbumByLabelId(labelId)
     }
 
-    override suspend fun getAllAlbum(): List<AlbumDto> {
+    override fun getAllAlbum(): Flow<List<AlbumDto>> {
         return albumDao.getAllAlbum()
     }
 
@@ -129,5 +133,13 @@ class DataRepositoryImpl @Inject constructor(
         fileName: String,
     ) {
         return photoDetailDao.updateHazardCheckResultByFIleName(hazardAnalyzeStatus, fileName)
+    }
+
+    override suspend fun getAddressByPhotoDetailId(photoDetailId: Int): String {
+        return photoDetailDao.getAddress(id = photoDetailId)
+    }
+
+    override suspend fun updateAddressByPhotoDetailId(address: String, photoDetailId: Int) {
+        photoDetailDao.updateAddressById(address = address, id = photoDetailId)
     }
 }

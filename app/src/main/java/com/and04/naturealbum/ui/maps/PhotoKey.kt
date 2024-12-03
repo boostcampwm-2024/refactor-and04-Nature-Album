@@ -58,7 +58,10 @@ fun List<FirebasePhotoInfoResponse>.toFriendPhotoItems(labels: List<FirebaseLabe
         labelMap[firebasePhotoInfo.label]?.let { label ->
             PhotoItem(
                 firebasePhotoInfo.uri,
-                LatLng(firebasePhotoInfo.latitude!!, firebasePhotoInfo.longitude!!),
+                LatLng(
+                    firebasePhotoInfo.latitude ?: return@let null,
+                    firebasePhotoInfo.longitude ?: return@let null
+                ),
                 label,
                 firebasePhotoInfo.datetime.toLocalDateTime()
             )

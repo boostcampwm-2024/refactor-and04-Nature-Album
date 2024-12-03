@@ -11,7 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
-import com.and04.naturealbum.service.FirebaseMessagingService.Companion.MY_PAGE_URI
+import com.and04.naturealbum.background.service.FirebaseMessagingService.Companion.MY_PAGE_URI
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
@@ -30,7 +30,6 @@ fun NatureAlbumApp(
     startDestination: String? = null,
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
-
     val takePictureLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -44,18 +43,12 @@ fun NatureAlbumApp(
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
     ) {
-
         composable(NavigateDestination.Home.route) {
             HomeScreen(
                 locationHandler = state.locationHandler.value,
                 takePicture = { state.takePicture(takePictureLauncher) },
                 onNavigateToAlbum = { state.navigateToAlbum() },
-                onNavigateToMap = {
-                    state.locationHandler.value.getLocation { location ->
-                        state.lastLocation.value = location
-                    }
-                    state.navigateToMap()
-                },
+                onNavigateToMap = { state.navigateToMap() },
                 onNavigateToMyPage = { state.navigateToMyPage() },
             )
         }
@@ -109,6 +102,9 @@ fun NatureAlbumApp(
                 onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
                 navigateToBackScreen = { state.popupBackStack() },
+                onNavigateToAlbum = {
+                    state.navigateToAlbum(removeBackStack = true)
+                }
             )
         }
 
@@ -135,9 +131,8 @@ fun NatureAlbumApp(
         }
 
         composable(NavigateDestination.Map.route) {
-            MapScreen(state.lastLocation.value)
+            MapScreen(navigateToHome = { state.popupBackStack() })
         }
-
         composable(NavigateDestination.FriendSearch.route) { backStackEntry ->
             val backStackEntryForMyPage = remember(backStackEntry) {
                 state.getNavBackStackEntry(NavigateDestination.MyPage.route)
@@ -149,7 +144,6 @@ fun NatureAlbumApp(
             )
         }
     }
-
 
     if (startDestination == MY_PAGE_URI) {
         state.navigateToMyPage()

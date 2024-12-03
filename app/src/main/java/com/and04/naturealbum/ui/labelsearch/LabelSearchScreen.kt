@@ -182,7 +182,7 @@ fun LabelTextField(
 @Composable
 fun UnderLineSuggestionChip(
     label: Label,
-    onSelected: (Label) -> Unit
+    onSelected: (Label) -> Unit,
 ) {
     SuggestionChip(
         modifier = Modifier
@@ -346,7 +346,7 @@ fun GeminiLabelChip(
             )
         }
 
-        is UiState.Error -> {
+        is UiState.Error<*> -> {
             /* TODO ERROR */
         }
     }

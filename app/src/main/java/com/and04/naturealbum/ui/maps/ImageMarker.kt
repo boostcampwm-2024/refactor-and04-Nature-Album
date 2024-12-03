@@ -6,8 +6,8 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil3.load
-import coil3.request.allowHardware
 import coil3.request.error
+import coil3.request.placeholder
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import com.and04.naturealbum.R
@@ -22,13 +22,22 @@ class ImageMarker @JvmOverloads constructor(
     private val binding: ImageMarkerBinding =
         ImageMarkerBinding.inflate(LayoutInflater.from(context), this, true)
 
-    fun loadImage(uri: String) {
+    fun loadImage(uri: String, onImageLoaded: () -> Unit = {}) {
         binding.ivMarkerImage.load(Uri.parse(uri)) {
             transformations(CircleCropTransformation())
-            error(R.drawable.ic_launcher_background)
-            allowHardware(false)
+            placeholder(R.drawable.ic_hourglass_top)
+            error(R.drawable.ic_hourglass_disable)
+            listener(
+                onSuccess = { _, _ ->
+                    onImageLoaded()
+                },
+                onStart = { _ ->
+                    onImageLoaded()
+                },
+                onError = { _, _ ->
+                    onImageLoaded()
+                }
+            )
         }
     }
-
-    fun isImageLoaded(): Boolean = binding.ivMarkerImage.width > 0 && binding.ivMarkerImage.height > 0
 }

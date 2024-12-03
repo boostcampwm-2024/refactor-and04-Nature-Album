@@ -19,10 +19,15 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("ALTER TABLE `photo_detail` ADD COLUMN `hazard_check_result` TEXT NOT NULL DEFAULT 'NOT_CHECKED'")
     }
 }
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `photo_detail` ADD COLUMN `address` TEXT NOT NULL DEFAULT ''")
+    }
+}
 
 @Database(
     entities = [Label::class, Album::class, PhotoDetail::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 
@@ -39,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AppDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, AppDatabase::class.java, "nature_album_database")
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                     .also { appDataBase ->
                         Instance = appDataBase

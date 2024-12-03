@@ -1,4 +1,4 @@
-package com.and04.naturealbum.service
+package com.and04.naturealbum.background.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.UserRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -23,25 +23,23 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class FirebaseMessagingService : FirebaseMessagingService() {
     @Inject
-    lateinit var repository: FireBaseRepository
+    lateinit var userRepository: UserRepository
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         val uid = Firebase.auth.currentUser?.uid ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            repository.saveFcmToken(uid, token)
+            userRepository.saveFcmToken(uid, token)
         }
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val notification = remoteMessage.notification
-
         notification?.let { remoteNotification ->
             val notificationTitle =
                 remoteNotification.title ?: getString(R.string.notification_default_title)
             val notificationBody =
                 remoteNotification.body ?: getString(R.string.notification_default_body)
-
             showNotification(notificationTitle, notificationBody)
         }
     }

@@ -60,6 +60,7 @@ fun PartialBottomSheet(
     handleIcon: ImageVector = Icons.Default.DragHandle,
     handleHeight: Dp = 36.dp,
     showHandleCollapsed: Boolean = true,
+    onCollapsed: (Boolean) -> Unit = {},
     @FloatRange(0.0, 1.0) halfExpansionSize: Float = 0.5f,
     @FloatRange(0.0, 1.0) fullExpansionSize: Float = 1f,
     @FloatRange(0.0, 1.0) positionThreshold: Float = 0.5f,
@@ -96,6 +97,7 @@ fun PartialBottomSheet(
     }
 
     LaunchedEffect(state.targetValue) {
+        onCollapsed(state.targetValue == BottomSheetState.Collapsed)
         bottomPadding = with(density) { mapStatePosition[state.targetValue]!!.toDp() }
     }
 

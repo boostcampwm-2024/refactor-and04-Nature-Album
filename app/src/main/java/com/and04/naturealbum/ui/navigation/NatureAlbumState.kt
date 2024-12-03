@@ -8,7 +8,6 @@ import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.compose.runtime.Composable
@@ -23,9 +22,6 @@ import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.LocationHandler
 import com.and04.naturealbum.utils.ImageConvert
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 
 @SuppressLint("RestrictedApi")
@@ -90,7 +86,14 @@ class NatureAlbumState(
 
     fun getNavBackStackEntry(route: String) = navController.getBackStackEntry(route)
 
-    fun navigateToAlbum() = navController.navigate(NavigateDestination.Album.route)
+    fun navigateToAlbum(removeBackStack: Boolean = false) =
+        navController.navigate(NavigateDestination.Album.route) {
+            if (removeBackStack) {
+                popUpTo(NavigateDestination.Album.route) {
+                    inclusive = true
+                }
+            }
+        }
 
     fun navigateToMap() = navController.navigate(NavigateDestination.Map.route)
 
