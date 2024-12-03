@@ -6,7 +6,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.FriendRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class FriendViewModel @Inject constructor(
-    private val fireBaseRepository: FireBaseRepository,
+    private val friendRepository: FriendRepository,
 ) : ViewModel() {
 
     private val _receivedFriendRequests = MutableStateFlow<List<FirebaseFriendRequest>>(emptyList())
@@ -69,7 +69,7 @@ class FriendViewModel @Inject constructor(
         uid?.let { currentUid ->
             currentSearchJob?.cancel()
             currentSearchJob = viewModelScope.launch {
-                fireBaseRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
+                friendRepository.searchUsersAsFlow(currentUid, query).collectLatest { results ->
                     _searchResults.value = results
                 }
             }
@@ -79,7 +79,7 @@ class FriendViewModel @Inject constructor(
     private fun listenToFriends() {
         uid?.let { currentUid ->
             viewModelScope.launch {
-                fireBaseRepository.getFriendsAsFlow(currentUid).collect { friends ->
+                friendRepository.getFriendsAsFlow(currentUid).collect { friends ->
                     _friends.value = friends
                 }
             }
@@ -89,7 +89,7 @@ class FriendViewModel @Inject constructor(
     private fun listenToReceivedFriendRequests() {
         uid?.let { currentUid ->
             viewModelScope.launch {
-                fireBaseRepository.getReceivedFriendRequestsAsFlow(currentUid)
+                friendRepository.getReceivedFriendRequestsAsFlow(currentUid)
                     .collect { receivedFriendRequests ->
                         _receivedFriendRequests.value = receivedFriendRequests
                     }
@@ -100,7 +100,7 @@ class FriendViewModel @Inject constructor(
     fun sendFriendRequest(targetUid: String) {
         uid?.let { currentUid ->
             viewModelScope.launch {
-                val success = fireBaseRepository.sendFriendRequest(currentUid, targetUid)
+                val success = friendRepository.sendFriendRequest(currentUid, targetUid)
                 if (success) {
                     // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
                     _searchResults.value = _searchResults.value.toMutableMap().apply {
@@ -116,7 +116,7 @@ class FriendViewModel @Inject constructor(
     fun acceptFriendRequest(targetUid: String) {
         uid?.let { currentUid ->
             viewModelScope.launch {
-                fireBaseRepository.acceptFriendRequest(currentUid, targetUid)
+                friendRepository.acceptFriendRequest(currentUid, targetUid)
             }
         }
     }
@@ -124,7 +124,7 @@ class FriendViewModel @Inject constructor(
     fun rejectFriendRequest(targetUid: String) {
         uid?.let { currentUid ->
             viewModelScope.launch {
-                fireBaseRepository.rejectFriendRequest(currentUid, targetUid)
+                friendRepository.rejectFriendRequest(currentUid, targetUid)
             }
         }
     }

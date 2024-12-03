@@ -128,7 +128,8 @@ fun SavePhotoScreen(
             takePicture = {},
             showGPSActivationDialog = { intentSenderRequest ->
                 locationSettingsLauncher.launch(intentSenderRequest)
-            }
+            },
+            airPlaneModeMessage = {}
         )
     }
 
