@@ -100,7 +100,7 @@ exports.onFriendRequestCreated = onDocumentCreated(
             body: `${senderDisplayName}님으로부터 친구 요청이 도착했습니다.`,
           },
           data: {
-            "deeplink": "naturealbum://my_page",
+            deeplink: "naturealbum://my_page",
           },
         };
 

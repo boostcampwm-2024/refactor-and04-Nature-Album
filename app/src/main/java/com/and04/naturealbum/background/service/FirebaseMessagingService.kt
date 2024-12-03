@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.ui.MainActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -42,6 +43,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("FirebaseMessagingService", "Notification: ${remoteMessage.notification}")
+        Log.d("FirebaseMessagingService", "Data: ${remoteMessage.data}")
         val notification = remoteMessage.notification
 
         notification?.let { remoteNotification ->
@@ -56,7 +59,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
     private fun showNotification(title: String, body: String) {
         val notificationId = System.currentTimeMillis().toInt()
-        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri())
+        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri(), this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

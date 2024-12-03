@@ -27,6 +27,7 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 
 @Composable
 fun NatureAlbumApp(
+    startDestination: String,
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
     val takePictureLauncher =
@@ -36,10 +37,9 @@ fun NatureAlbumApp(
             state.handleLauncher(result)
         }
 
-
     NavHost(
         navController = state.navController,
-        startDestination = NavigateDestination.Home.route,
+        startDestination = startDestination,
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
     ) {

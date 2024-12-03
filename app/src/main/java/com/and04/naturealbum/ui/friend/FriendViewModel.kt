@@ -102,6 +102,10 @@ class FriendViewModel @Inject constructor(
         }
     }
 
+    fun setFriendRequestStatusNull() {
+        _friendRequestStatus.value = null
+    }
+
     fun sendFriendRequest(targetUid: String) {
         uid?.let { currentUid ->
             viewModelScope.launch {

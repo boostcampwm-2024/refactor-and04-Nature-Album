@@ -50,6 +50,7 @@ fun FriendSearchScreen(
                 context.getString(R.string.friend_search_screen_friend_request_fail)
             }
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            friendViewModel.setFriendRequestStatusNull()
         }
     }
 
