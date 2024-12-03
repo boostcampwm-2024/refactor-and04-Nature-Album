@@ -12,14 +12,14 @@ object ReverseGeocodeMapper {
         if (reverseGeocodeDto.results.isNullOrEmpty()) {
             return mapCoordsToRequestCoords(latitude, longitude)
         }
-        val region = reverseGeocodeDto.results[0].region
-        val land = reverseGeocodeDto.results[0].land
-        val address = buildString {
-            append("${region?.area1?.name} ")
-            append("${region?.area2?.name} ")
-            append("${land?.name} ")
-            append("${land?.number1}")
-        }
+        val region = reverseGeocodeDto.results.lastOrNull()?.region
+        val address =
+            listOfNotNull(
+                region?.area1?.name,
+                region?.area2?.name,
+                region?.area3?.name,
+                region?.area4?.name
+            ).joinToString(" ")
         return address
     }
 
