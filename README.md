@@ -47,11 +47,18 @@
 
 | *분야* | *기술 스택* |
 | --- | --- |
-| **Frontend** | <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white"/> <img src="https://img.shields.io/badge/Android Studio-3DDC84?style=for-the-badge&logo=Android Studio&logoColor=white"/> <img src="https://img.shields.io/badge/jetpackcompose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"/> <img src="https://img.shields.io/badge/xml-005FAD?style=for-the-badge&logo=xml&logoColor=white"/> <img src="https://img.shields.io/badge/kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white"/> <img src="https://img.shields.io/badge/sqlite-003B57?style=for-the-badge&logo=sqlite&logoColor=white"/> |
-| **Backend** | <img src="https://img.shields.io/badge/firebase-DD2C00?style=for-the-badge&logo=firebase&logoColor=white"/> : Firebase Firestore (NoSQL), Firebase Storage, Firebase Cloud Messaging, Cloud Functions for Firebase(<img src="https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=Node.js&logoColor=white"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">) <img src="https://img.shields.io/badge/googleauthenticator-4285F4?style=for-the-badge&logo=googleauthenticator&logoColor=white"/> |
-| **Libraries and API** | <img src="https://img.shields.io/badge/Naver Maps API-03CF5D?style=for-the-badge&logo=googlemaps&logoColor=white"/> <img src="https://img.shields.io/badge/coil-000000?style=for-the-badge&logo=coil&logoColor=white"/> <img src="https://img.shields.io/badge/Hilt-3DDC84?style=for-the-badge&logo=Hilt&logoColor=black"/> |
-| **AI** | <img src="https://img.shields.io/badge/Clova GreenEye-03CF5D?style=for-the-badge&logo=Clova GreenEye&logoColor=white"/> <img src="https://img.shields.io/badge/googlegemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white"/> |
-| **Tooling** |  <img src="https://img.shields.io/badge/notion-FFFFFF?style=for-the-badge&logo=notion&logoColor=black"/> <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/> <img src="https://img.shields.io/badge/FigJam-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/> <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white"> <img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white">  <img src="https://img.shields.io/badge/zoom-0B5CFF?style=for-the-badge&logo=zoom&logoColor=white"/>  <img src="https://img.shields.io/badge/ZEP-6758FF?style=for-the-badge&logo=ZEP&logoColor=white"/>|
+| **OS** | `Android` |
+| **Launguage** | `Kotlin` |
+| **UI** | `Compose` |
+| **Network** | `Retrofit` |
+| **Asynchronous** | `Coroutine`, `Flow` |
+| **image** | `Coil` |
+| **DI** | `Hilt` |
+| **Database** | `Room`, `FireStore` |
+| **Map** | `Naver Map` |
+| **Firebase** | `Firebase Storage`, `Firebase Cloud Messaging`, `Cloud Functions` |
+| **AI** | `Gemini`, `Green-Eye` |
+| **Tooling** | `Notion`, `Figma`, `Figjam`, `Github`, `Git`, `Zep` |
 
 
 
