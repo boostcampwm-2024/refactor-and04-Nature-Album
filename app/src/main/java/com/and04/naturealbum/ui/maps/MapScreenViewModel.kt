@@ -4,8 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
-import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.firebase.FriendRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,46 +16,46 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
-    private val localRepository: DataRepository,
-    private val fireBaseRepository: FireBaseRepository
+    private val localRepository: LocalDataRepository,
+    private val albumRepository: AlbumRepository,
+    private val friendRepository: FriendRepository
 ) : ViewModel() {
-    private val _photos = MutableStateFlow<List<PhotoItem>>(emptyList())
-    val photos: StateFlow<List<PhotoItem>> = _photos
+    private var myPhotos = listOf<PhotoItem>()
+    private val _photosByUid = MutableStateFlow<Map<String,List<PhotoItem>>>(emptyMap())
+    val photosByUid: StateFlow<Map<String,List<PhotoItem>>> = _photosByUid
 
     private val _friends = MutableStateFlow<List<FirebaseFriend>>(emptyList())
     val friends: StateFlow<List<FirebaseFriend>> = _friends
-
-    private val _friendsPhotos = MutableStateFlow<List<List<PhotoItem>>>(emptyList())
-    val friendsPhotos: StateFlow<List<List<PhotoItem>>> = _friendsPhotos
 
     init {
         viewModelScope.launch {
             val fetchPhotos = async { localRepository.getAllPhotoDetail() }
             val fetchLabels = localRepository.getLabels()
-
-            _photos.emit(fetchPhotos.await().toPhotoItems(fetchLabels))
+            myPhotos = fetchPhotos.await().toPhotoItems(fetchLabels)
+            _photosByUid.emit(mapOf("" to myPhotos))
         }
     }
 
     fun fetchFriendsPhotos(friends: List<String>) {
         viewModelScope.launch {
             try {
-                val photos = async { fireBaseRepository.getPhotos(friends) }
-                val labels = fireBaseRepository.getLabels(friends)
-                _friendsPhotos.emit(
-                    photos.await().map { (uid, photos) ->
+                val photos = async { albumRepository.getPhotos(friends) }
+                val labels = albumRepository.getLabelsToMap(friends)
+                _photosByUid.emit(
+                    mapOf("" to myPhotos) +
+                    photos.await().mapValues { (uid, photos) ->
                         photos.toFriendPhotoItems(labels.getValue(uid))
                     }
                 )
             } catch (e: Exception) {
-                Log.e("FriendViewModel", e.toString())
+                Log.e("MapScreenViewModel", e.toString())
             }
         }
     }
 
     fun fetchFriends(uid: String) {
         viewModelScope.launch {
-            fireBaseRepository.getFriendsAsFlow(uid).collect { friends ->
+            friendRepository.getFriendsAsFlow(uid).collect { friends ->
                 _friends.value = friends
             }
         }

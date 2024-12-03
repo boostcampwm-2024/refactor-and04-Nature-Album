@@ -37,6 +37,7 @@
     <string name="photo_info_screen_location_icon">위치 아이콘</string>
     <string name="photo_info_screen_description_icon">설명 아이콘</string>
     <string name="photo_info_set_thumbnail_btn_txt">대표 이미지 설정</string>
+    <string name="photo_info_success_set_thumbnail">대표 이미지로 설정되었습니다.</string>
 
     <!--Album Folder -->
     <string name="album_folder_screen_save_button">선택한 사진 저장</string>
@@ -53,6 +54,7 @@
     <string name="home_navigate_to_album">나의 도감</string>
     <string name="home_navigate_to_camera">카메라</string>
     <string name="home_text_loading">Loading...</string>
+    <string name="home_need_wifi_or_off_airplane_mode">비행기 모드를 해제 또는 WIFI를 연결해주세요.</string>
 
     <!-- component -->
     <string name="component_navigation_image_button">네비게이션 이미지 버튼</string>
@@ -61,15 +63,24 @@
     <string name="map_marker_loading">Loading map markers...</string>
     <string name="map_show_friend_map">친구 지도 보기</string>
     <string name="map_friend_dialog_title">친구 지도 같이 보기</string>
-    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 4명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 %d명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_no_friend">마이페이지에서 친구추가를 해보세요</string>
+    <string name="map_friend_dialog_no_friend_icon">친구 리스트가 비어있어요</string>
     <string name="map_friend_dialog_cancel_btn">취소</string>
     <string name="map_friend_dialog_confirm_btn">적용</string>
+
+    <!-- Loading Async Image -->
+    <string name="loading_async_image_loading">사진 로딩중</string>
+    <string name="loading_async_image_load_fail">사진을 불러오는데 실패했습니다.</string>
+
+    <!-- Photo Content -->
+    <string name="photo_content_close_btn">이전 화면으로 돌아가는 버튼</string>
 
     <!-- My Page -->
     <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>
     <string name="my_page_user_profile_image">My Page User Profile Image</string>
     <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
-    <string name="my_page_google_login_btn">구글</string>
+    <string name="my_page_google_login_btn">구글 계정으로 로그인</string>
     <string name="my_page_login_txt">로그인</string>
     <string name="my_page_social_list">친구 목록</string>
     <string name="my_page_social_search">친구 검색</string>
@@ -92,6 +103,8 @@
     <string name="my_page_no_network_social_content_message">친구 기능은 네트워크가 연결되어야 사용할 수 있습니다.</string>
     <string name="my_page_no_network_social_content_icon_description">네트워크가 없어서 나오는 아이콘 표시</string>
     <string name="my_page_permission_alarm_explain">친구 요청을 알림으로 받기 위해 필요한 권한 요청입니다. 친구 요청이 올 때 알림을 원하신다면 허용해주세요.</string>
+    <string name="my_page_no_friend_requests_message">받은 친구 요청이 없습니다.</string>
+    <string name="my_page_no_friend_message">친구가 없습니다.\n친구 검색해서 추가해주세요.</string>
 
     <!-- Top bar -->
     <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
@@ -108,5 +121,14 @@
 
     <!-- component -->
     <string name="rotating_icon_button">rotating_image</string>
+    <string name="network_disconnect_icon">네트워크 연결 없음</string>
+    <string name="network_disconnect_check_network">네트워크 연결을 확인해 주세요</string>
+
+    <!-- Album -->
+    <string name="nothing_album_txt">도감이 존재하지 않습니다.</string>
+
+    <!-- FriendSearchScreen -->
+    <string name="friend_search_screen_title">친구 검색</string>
+    <string name="freind_search_screen_no_result">검색 결과 없음</string>
 
 </resources>

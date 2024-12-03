@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.photoinfo
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,12 +28,13 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 
 @Composable
 fun PhotoInfo(
     selectedPhotoDetail: Int = 0,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     photoInfoViewModel: PhotoInfoViewModel = hiltViewModel(),
 ) {
     val isDataLoaded = rememberSaveable { mutableStateOf(false) }
@@ -48,6 +50,7 @@ fun PhotoInfo(
 
     PhotoInfo(
         onNavigateToMyPage = onNavigateToMyPage,
+        navigateToBackScreen = navigateToBackScreen,
         uiState = uiState,
         address = address,
         setAlbumThumbnail = photoInfoViewModel::setAlbumThumbnail,
@@ -57,12 +60,20 @@ fun PhotoInfo(
 @Composable
 fun PhotoInfo(
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     uiState: State<UiState<AlbumData>>,
     address: State<String>,
     setAlbumThumbnail: (Int) -> Unit,
 ) {
+    val context = LocalContext.current
+
     Scaffold(
-        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+        topBar = {
+            context.GetTopBar(
+                navigateToBackScreen = navigateToBackScreen,
+                navigateToMyPage = onNavigateToMyPage,
+            )
+        }
     ) { innerPadding ->
         Content(
             innerPadding = innerPadding,
@@ -155,7 +166,17 @@ fun SetThumbnailContent(
     photoDetail: PhotoDetail,
     setAlbumThumbnail: (Int) -> Unit,
 ) {
-    Button(onClick = { setAlbumThumbnail(photoDetail.id) }) {
+    val context = LocalContext.current
+    Button(onClick = {
+        setAlbumThumbnail(photoDetail.id)
+        Toast
+            .makeText(
+                context,
+                R.string.photo_info_set_thumbnail_btn_txt,
+                Toast.LENGTH_SHORT
+            )
+            .show()
+    }) {
         Text(text = stringResource(R.string.photo_info_set_thumbnail_btn_txt))
     }
 }
@@ -177,7 +198,8 @@ private fun PhotoInfoPreview() {
     val address = remember { mutableStateOf("") }
 
     PhotoInfo(
-        onNavigateToMyPage = {},
+        onNavigateToMyPage = { },
+        navigateToBackScreen = { },
         uiState = uiState,
         address = address,
         setAlbumThumbnail = { },

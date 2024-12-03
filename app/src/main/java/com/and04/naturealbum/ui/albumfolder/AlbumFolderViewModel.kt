@@ -3,8 +3,8 @@ package com.and04.naturealbum.ui.albumfolder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.datastore.DataStoreManager
-import com.and04.naturealbum.data.repository.DataRepository
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
@@ -21,9 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumFolderViewModel @Inject constructor(
-    private val roomRepository: DataRepository,
+    private val roomRepository: LocalDataRepository,
     private val syncDataStore: DataStoreManager,
-    private val fireBaseRepository: FireBaseRepository,
+    private val albumRepository: AlbumRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumFolderData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumFolderData>> = _uiState
@@ -60,7 +60,7 @@ class AlbumFolderViewModel @Inject constructor(
                         val uid = UserManager.getUser()?.uid
                         if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
                             val label = roomRepository.getLabelById(photoDetail.labelId)
-                            fireBaseRepository.deleteImageFile(
+                            albumRepository.deleteImageFile(
                                 uid = uid,
                                 label = label,
                                 fileName = photoDetail.fileName,

@@ -21,14 +21,17 @@ import com.naver.maps.map.overlay.OverlayImage
 
 class ClusterManager(
     private val colorRange: ColorRange,
-    private val onMarkerClick: (MarkerInfo) -> Overlay.OnClickListener,
+    private val onClusterClick: (MarkerInfo) -> Overlay.OnClickListener,
     private val onClusterChange: (MarkerInfo) -> Unit
 ) {
+    private var uid: String = ""
     private val cluster: Clusterer<PhotoKey>
 
     init {
-        cluster = Clusterer.ComplexBuilder<PhotoKey>().tagMergeStrategy { cluster ->
-            cluster.children.flatMap { node -> node.tag as List<*> }
+        cluster = Clusterer.ComplexBuilder<PhotoKey>().thresholdStrategy { _ ->
+            THRESHOLD_DISTANCE
+        }.tagMergeStrategy { cluster ->
+            cluster.children.flatMap { node -> node.tag as List<PhotoItem> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 updateMarker(info, marker)
@@ -63,11 +66,14 @@ class ClusterManager(
         marker.zIndex = size
         marker.captionText = size.toString()
         marker.iconTintColor = sizeToTint(size)
-        marker.onClickListener = onMarkerClick(info)
+        marker.onClickListener = onClusterClick(info)
     }
 
-    fun setPhotoItems(photoItems: List<PhotoItem>) {
-        cluster.clear()
+    fun setPhotoItems(uid: String, photoItems: List<PhotoItem>) {
+        if (this.uid != uid) {
+            cluster.clear()
+            this.uid = uid
+        }
         cluster.addAll(photoItems.associate { photoItem ->
             PhotoKey(
                 photoItem
@@ -89,6 +95,7 @@ class ClusterManager(
     companion object {
         private const val LEAF_NODE_SIZE = 1
         private const val DEFAULT_MARKER_Z_INDEX = 200000
+        private const val THRESHOLD_DISTANCE = 30.0
 
         private val markerIcon = OverlayImage.fromResource(R.drawable.ic_cluster)
 
