@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.api.ResolvableApiException
@@ -60,14 +59,18 @@ class LocationHandler(
         }
     }
 
-    fun getLocation(onSuccess: (Location) -> Unit) {
+    fun getLocation(onSuccess: (Location?) -> Unit) {
         if (!checkPermission()) return
-        fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-            null
-        ).addOnSuccessListener { location ->
-            // TODO: location이 null로 오면?
-            onSuccess(location)
+        try {
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                null
+            ).addOnSuccessListener { location ->
+                // TODO: location이 null로 오면?
+                onSuccess(location)
+            }
+        } catch (e: NullPointerException) {
+            onSuccess(null)
         }
     }
 
