@@ -86,10 +86,8 @@ fun AlbumFolderScreen(
         state.editMode.value = isEditModeEnabled
     }
 
-    LaunchedEffect(uiState.value) {
-        if (uiState.value is UiState.Idle) {
-            albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-        }
+    if (uiState.value is UiState.Idle) {
+        albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     }
 
     val saveImagesWithLoading = {
@@ -140,7 +138,6 @@ fun AlbumFolderScreen(
         switchEditMode = switchEditMode,
         editMode = state.editMode,
         selectAll = state.selectAll,
-        setLoading = setLoading,
         savePhotos = savePhotos,
         deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
@@ -174,7 +171,6 @@ fun AlbumFolderScreen(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
@@ -190,7 +186,6 @@ fun AlbumFolderScreen(
             switchEditMode = switchEditMode,
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = setLoading,
             savePhotos = savePhotos,
             deletePhotos = deletePhotos,
             checkList = checkList,
@@ -206,72 +201,65 @@ private fun ItemContainer(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
-    when (val success = uiState.value) {
-        is UiState.Loading, UiState.Idle -> {
-            setLoading(true)
-        }
+    if (uiState.value is UiState.Success) {
+        val success = (uiState.value as UiState.Success)
+        val label = success.data.label
+        val photoDetails = success.data.photoDetails
 
-        is UiState.Success -> {
-            val label = success.data.label
-            val photoDetails = success.data.photoDetails
-            setLoading(false)
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPaddingValues)
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPaddingValues)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AlbumLabel(
-                        modifier = Modifier
-                            .background(
-                                color = label.backgroundColor.toColor(),
-                                shape = CircleShape
-                            )
-                            .fillMaxWidth(0.9f),
-                        text = label.name,
-                        backgroundColor = label.backgroundColor.toColor(),
-                    )
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(
+                            color = label.backgroundColor.toColor(),
+                            shape = CircleShape
+                        )
+                        .fillMaxWidth(0.9f),
+                    text = label.name,
+                    backgroundColor = label.backgroundColor.toColor(),
+                )
 
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp),
+                        verticalItemSpacing = 16.dp
                     ) {
-                        LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(24.dp),
-                            horizontalArrangement = Arrangement.spacedBy(28.dp),
-                            verticalItemSpacing = 16.dp
-                        ) {
-                            items(
-                                items = photoDetails,
-                                key = { item -> item.id }
-                            ) { photoDetail ->
-                                PhotoDetailItem(
-                                    photoDetail = photoDetail,
-                                    onPhotoClick = onPhotoClick,
-                                    switchEditMode = switchEditMode,
-                                    editMode = editMode,
-                                    selectAll = selectAll.value,
-                                    checkList = checkList,
-                                )
-                            }
+                        items(
+                            items = photoDetails,
+                            key = { item -> item.id }
+                        ) { photoDetail ->
+                            PhotoDetailItem(
+                                photoDetail = photoDetail,
+                                onPhotoClick = onPhotoClick,
+                                switchEditMode = switchEditMode,
+                                editMode = editMode,
+                                selectAll = selectAll.value,
+                                checkList = checkList,
+                            )
                         }
 
                         ButtonWithAnimation(
                             selectAll = { isAllSelected: Boolean ->
                                 selectAll.value = isAllSelected
                                 if (isAllSelected)
-                                    checkList.value = photoDetails.toSet() // TODO
-                                else checkList.value = emptySet() // TODO
+                                    checkList.value = photoDetails.toSet()
+                                else checkList.value = emptySet()
                             },
                             savePhotos = savePhotos,
                             deletePhotos = deletePhotos,
@@ -281,17 +269,28 @@ private fun ItemContainer(
                                 .align(Alignment.BottomEnd)
                         )
                     }
-                }
-            }
 
-            BackHandler(enabled = editMode.value) {
-                if (editMode.value)
-                    editMode.value = false
-                checkList.value = setOf()
+                    ButtonWithAnimation(
+                        selectAll = { isAllSelected: Boolean ->
+                            selectAll.value = isAllSelected
+                            if (isAllSelected)
+                                checkList.value = photoDetails.toSet()
+                            else checkList.value = emptySet()
+                        },
+                        savePhotos = savePhotos,
+                        editMode = editMode,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomEnd)
+                    )
+                }
             }
         }
 
-        is UiState.Error -> { /* TODO ERROR */
+        BackHandler(enabled = editMode.value) {
+            if (editMode.value)
+                editMode.value = false
+            checkList.value = setOf()
         }
     }
 }
@@ -409,7 +408,6 @@ private fun AlbumFolderScreenPreview() {
             switchEditMode = { _ -> },
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = { _ -> },
             savePhotos = { },
             deletePhotos = {},
             onNavigateToMyPage = { },
