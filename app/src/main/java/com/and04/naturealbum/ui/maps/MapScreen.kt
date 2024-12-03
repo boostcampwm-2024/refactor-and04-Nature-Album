@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +71,7 @@ import com.naver.maps.map.overlay.OverlayImage
 
 @Composable
 fun MapScreen(
+    navigateToHome: () -> Unit,
     modifier: Modifier = Modifier,
     userViewModel: MapScreenViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
@@ -134,8 +136,8 @@ fun MapScreen(
                     pick.value = null
                 }
                 val uiSettings = naverMap.uiSettings
-                uiSettings.logoGravity = Gravity.TOP or Gravity.START
-                uiSettings.setLogoMargin(150, 25, 0, 0)
+                uiSettings.logoGravity = Gravity.TOP or Gravity.END
+                uiSettings.setLogoMargin(0, 16, 160, 0)
                 uiSettings.isCompassEnabled = false
                 uiSettings.isScaleBarEnabled = false
                 uiSettings.isZoomControlEnabled = false
@@ -243,10 +245,10 @@ fun MapScreen(
         }
     }
 
-    if (networkState.value == NetworkState.DISCONNECTED) {
-        NetworkDisconnectContent()
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (networkState.value == NetworkState.DISCONNECTED) {
+            NetworkDisconnectContent()
+        } else {
             // AndroidView를 MapView로 바로 설정
             AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize())
 
@@ -256,7 +258,7 @@ fun MapScreen(
                         userViewModel.fetchFriends(UserManager.getUser()!!.uid)
                         openDialog.value = true
                     },
-                    modifier = Modifier
+                    modifier = modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
                         .size(48.dp),
@@ -290,23 +292,36 @@ fun MapScreen(
                     }
                 )
             }
-        }
-        FriendDialog(
-            isOpen = openDialog,
-            friends = friends,
-            selectedFriends = selectedFriends,
-            onDismiss = { openDialog.value = false },
-            onConfirm = { friends ->
-                selectedFriends.value = friends
-                userViewModel.fetchFriendsPhotos(friends.map { friend -> friend.user.uid })
-                openDialog.value = false
+
+            FriendDialog(
+                isOpen = openDialog,
+                friends = friends,
+                selectedFriends = selectedFriends,
+                onDismiss = { openDialog.value = false },
+                onConfirm = { friends ->
+                    selectedFriends.value = friends
+                    userViewModel.fetchFriendsPhotos(friends.map { friend -> friend.user.uid })
+                    openDialog.value = false
+                }
+            )
+            if (showPhotoContent.value) {
+                PhotoContent(
+                    imageUri = pick.value!!.uri,
+                    contentDescription = pick.value!!.label.name,
+                    onDismiss = { showPhotoContent.value = false }
+                )
             }
-        )
-        if (showPhotoContent.value) {
-            PhotoContent(
-                imageUri = pick.value!!.uri,
-                contentDescription = pick.value!!.label.name,
-                onDismiss = { showPhotoContent.value = false }
+        }
+        IconButton(
+            onClick = navigateToHome,
+            modifier = modifier
+                .size(48.dp)
+                .align(Alignment.TopStart),
+        ) {
+            Icon(
+                modifier = modifier.size(24.dp),
+                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                contentDescription = stringResource(R.string.map_arrow_back_button),
             )
         }
     }
@@ -355,7 +370,7 @@ private fun PhotoGrid(
                                 .placeholder(R.drawable.ic_image)
                                 .build(),
                             contentDescription = photo.label.name,
-                            modifier = Modifier
+                            modifier = modifier
                                 .wrapContentSize(Alignment.Center)
                                 .aspectRatio(1f)
                                 .weight(1f)
@@ -368,7 +383,7 @@ private fun PhotoGrid(
                         )
                     }
                     repeat(columnCount - row.size) {
-                        Box(modifier = Modifier.weight(1f))
+                        Box(modifier = modifier.weight(1f))
                     }
                 }
             }

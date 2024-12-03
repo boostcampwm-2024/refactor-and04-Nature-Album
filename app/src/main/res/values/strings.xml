@@ -67,6 +67,8 @@
     <string name="map_friend_dialog_no_friend_icon">친구 리스트가 비어있어요</string>
     <string name="map_friend_dialog_cancel_btn">취소</string>
     <string name="map_friend_dialog_confirm_btn">적용</string>
+    <string name="map_arrow_back_button">navigate My Page To Home</string>
+
 
     <!-- Loading Async Image -->
     <string name="loading_async_image_loading">사진 로딩중</string>
