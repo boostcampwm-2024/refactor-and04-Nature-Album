@@ -28,7 +28,7 @@
 
 ![image](https://github.com/user-attachments/assets/57ba71da-e41e-4613-92a5-3e218cde9399)
 
-## ✨ 상세 기능 (GIF)
+## ✨ 상세 기능 (GIF) 
 
 <details>
 <summary>도감 등록</summary>
@@ -113,10 +113,6 @@
 | **AI** | `Gemini`, `Green-Eye` |
 | **Tooling** | `Notion`, `Figma`, `Figjam`, `Github`, `Git`, `Zep` |
 
-
-## 🔎 세부 구현 내용
-
-- 발표 자료 제작 이후 UPDATE 예정
 
 ---
 
