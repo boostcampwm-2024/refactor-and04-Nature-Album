@@ -3,31 +3,34 @@ package com.and04.naturealbum.ui.mypage
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -50,9 +53,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,16 +71,15 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
-import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.PermissionHandler
-import com.and04.naturealbum.ui.component.PortraitTopAppBar
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.utils.GetMyPageTopAppBar
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.NetworkState.CONNECTED_WIFI
@@ -90,6 +95,7 @@ private const val SOCIAL_ALARM_TAB_INDEX = 2
 @Composable
 fun MyPageScreen(
     navigateToHome: () -> Unit,
+    navigateToFriendSearchScreen: () -> Unit,
     myPageViewModel: MyPageViewModel = hiltViewModel(),
     friendViewModel: FriendViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
@@ -100,21 +106,18 @@ fun MyPageScreen(
     val receivedFriendRequests =
         friendViewModel.receivedFriendRequests.collectAsStateWithLifecycle()
     val recentSyncTime = myPageViewModel.recentSyncTime.collectAsStateWithLifecycle()
-    val searchResults = friendViewModel.searchResults.collectAsStateWithLifecycle()
     val progressState = myPageViewModel.progressState.collectAsStateWithLifecycle()
     val syncWorking = myPageViewModel.syncWorking.collectAsStateWithLifecycle()
 
     MyPageScreenContent(
         navigateToHome = navigateToHome,
+        navigateToFriendSearchScreen = navigateToFriendSearchScreen,
         uiState = uiState,
         myFriendsState = myFriends,
         friendRequestsState = receivedFriendRequests,
-        searchResults = searchResults,
         signInWithGoogle = myPageViewModel::signInWithGoogle,
-        sendFriendRequest = friendViewModel::sendFriendRequest,
         acceptFriendRequest = friendViewModel::acceptFriendRequest,
         rejectFriendRequest = friendViewModel::rejectFriendRequest,
-        onSearchQueryChange = friendViewModel::updateSearchQuery,
         recentSyncTime = recentSyncTime,
         networkState = networkState,
         initializeFriendViewModel = friendViewModel::initialize,
@@ -128,15 +131,13 @@ fun MyPageScreen(
 @Composable
 fun MyPageScreenContent(
     navigateToHome: () -> Unit,
+    navigateToFriendSearchScreen: () -> Unit,
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
-    sendFriendRequest: (String, String) -> Unit,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
     recentSyncTime: State<String>,
     networkState: State<Int>,
     initializeFriendViewModel: (String) -> Unit,
@@ -146,22 +147,16 @@ fun MyPageScreenContent(
     startSync: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
-            PortraitTopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { navigateToHome() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.my_page_arrow_back_icon_content_description)
-                        )
-                    }
-                }
-            )
+            context.GetMyPageTopAppBar { navigateToHome() }
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         MyPageContent(
+            navigateToFriendSearchScreen = navigateToFriendSearchScreen,
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
@@ -171,11 +166,8 @@ fun MyPageScreenContent(
             friendRequestsState = friendRequestsState,
             recentSyncTime = recentSyncTime,
             signInWithGoogle = signInWithGoogle,
-            sendFriendRequest = sendFriendRequest,
             acceptFriendRequest = acceptFriendRequest,
             rejectFriendRequest = rejectFriendRequest,
-            searchResults = searchResults,
-            onSearchQueryChange = onSearchQueryChange,
             snackBarHostState = snackBarHostState,
             networkState = networkState,
             initializeFriendViewModel = initializeFriendViewModel,
@@ -187,19 +179,16 @@ fun MyPageScreenContent(
     }
 }
 
-
 @Composable
 private fun MyPageContent(
+    navigateToFriendSearchScreen: () -> Unit,
     modifier: Modifier,
     uiState: State<UiState<UserInfo>>,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
     signInWithGoogle: (Context) -> Unit,
-    sendFriendRequest: (String, String) -> Unit,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
     recentSyncTime: State<String>,
     snackBarHostState: SnackbarHostState,
     networkState: State<Int>,
@@ -256,15 +245,12 @@ private fun MyPageContent(
                         NoNetworkSocialContent()
                     } else {
                         SocialContent(
+                            navigateToFriendSearchScreen = navigateToFriendSearchScreen,
                             modifier = Modifier.weight(1f),
-                            userUidState = userUid,
                             myFriendsState = myFriendsState,
                             friendRequestsState = friendRequestsState,
-                            sendFriendRequest = sendFriendRequest,
                             acceptFriendRequest = acceptFriendRequest,
                             rejectFriendRequest = rejectFriendRequest,
-                            searchResults = searchResults,
-                            onSearchQueryChange = onSearchQueryChange,
                         )
                     }
                 }
@@ -292,7 +278,7 @@ private fun MyPageContent(
 }
 
 @Composable
-private fun NoNetworkSocialContent() {
+fun NoNetworkSocialContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -313,7 +299,6 @@ private fun NoNetworkSocialContent() {
         )
     }
 }
-
 
 @Composable
 private fun UserProfileContent(
@@ -392,28 +377,51 @@ private fun LoginContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         val context = LocalContext.current
+
         Text(
             text = stringResource(R.string.my_page_login_txt),
             textAlign = TextAlign.Left
         )
 
-        Button(
-            onClick = {
-                if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.my_page_login_no_network_message),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    loginHandle()
-                    setProgressState(true)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = Color.Gray,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(R.string.my_page_login_no_network_message),
+                                Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    } else {
+                        loginHandle()
+                        setProgressState(true)
+                    }
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(30)
         ) {
-            Text(text = stringResource(R.string.my_page_google_login_btn))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_google_login),
+                    contentDescription = null,
+                )
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                Text(text = stringResource(R.string.my_page_google_login_btn))
+            }
         }
     }
 }
@@ -421,21 +429,16 @@ private fun LoginContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SocialContent(
+    navigateToFriendSearchScreen: () -> Unit,
     modifier: Modifier,
-    userUidState: String?,
     myFriendsState: State<List<FirebaseFriend>>,
     friendRequestsState: State<List<FirebaseFriendRequest>>,
-    sendFriendRequest: (String, String) -> Unit,
-    acceptFriendRequest: (String, String) -> Unit,
-    rejectFriendRequest: (String, String) -> Unit,
-    searchResults: State<Map<String, FirestoreUserWithStatus>>,
-    onSearchQueryChange: (String) -> Unit,
+    acceptFriendRequest: (String) -> Unit,
+    rejectFriendRequest: (String) -> Unit,
 ) {
-    val currentUid = userUidState ?: return
     val myFriends = myFriendsState.value
     val friendRequests = friendRequestsState.value
     val friendRequestsCount = friendRequests.size
-    val searchResultsList = searchResults.value
 
     var tabState by remember { mutableIntStateOf(SOCIAL_LIST_TAB_INDEX) }
 
@@ -458,18 +461,14 @@ private fun SocialContent(
 
         when (tabState) {
             SOCIAL_LIST_TAB_INDEX -> MyPageSocialList(myFriends) // 친구 목록
-            SOCIAL_SEARCH_TAB_INDEX -> MyPageSearch(
-                userWithStatusList = searchResultsList,
-                currentUid = currentUid,
-                sendFriendRequest = sendFriendRequest,
-                onSearchQueryChange = onSearchQueryChange
-            )
+            SOCIAL_SEARCH_TAB_INDEX -> {
+                navigateToFriendSearchScreen()
+            }
 
             SOCIAL_ALARM_TAB_INDEX -> MyPageAlarm(
                 myAlarms = friendRequests,
                 acceptFriendRequest = acceptFriendRequest,
                 rejectFriendRequest = rejectFriendRequest,
-                currentUid = currentUid
             )
         }
     }

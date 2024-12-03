@@ -7,6 +7,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -72,6 +73,13 @@ fun HomeScreen(
                         takePicture = takePicture,
                         showGPSActivationDialog = { intentSenderRequest ->
                             locationSettingsLauncher.launch(intentSenderRequest)
+                        },
+                        airPlaneModeMessage = {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.home_need_wifi_or_off_airplane_mode),
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     )
                 }
@@ -98,6 +106,13 @@ fun HomeScreen(
                     takePicture = takePicture,
                     showGPSActivationDialog = { intentSenderRequest ->
                         locationSettingsLauncher.launch(intentSenderRequest)
+                    },
+                    airPlaneModeMessage = {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.home_need_wifi_or_off_airplane_mode),
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 )
             },

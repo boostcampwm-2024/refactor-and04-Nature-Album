@@ -5,7 +5,7 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.DataRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.Album
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
-    private val repository: DataRepository,
+    private val repository: LocalDataRepository,
 ) : ViewModel() {
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
@@ -59,10 +59,9 @@ class SavePhotoViewModel @Inject constructor(
         location: Location,
         description: String,
         isRepresented: Boolean,
-        time: LocalDateTime
+        time: LocalDateTime,
     ) {
         _photoSaveState.value = UiState.Loading // 로딩 시작
-
         viewModelScope.launch {
             try {
                 val labelId =
@@ -84,6 +83,7 @@ class SavePhotoViewModel @Inject constructor(
                         )
                     )
                 }
+
                 album.await().run {
                     if (isEmpty()) {
                         repository.insertPhotoInAlbum(
