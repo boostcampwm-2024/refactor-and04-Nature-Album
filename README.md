@@ -24,7 +24,12 @@
 - 🤼 친구의 생물 지도 보기 : 로그인 하여 친구 추가한 친구들의 생물 지도 함께 보기
 
 ---
-## 상세 기능 (GIF)
+## ✨ 상세 기능 요약
+
+![image](https://github.com/user-attachments/assets/57ba71da-e41e-4613-92a5-3e218cde9399)
+
+## ✨ 상세 기능 (GIF)
+
 <details>
 <summary>도감 등록</summary>
 <div>
@@ -107,7 +112,6 @@
 | **Firebase** | `Firebase Storage`, `Firebase Cloud Messaging`, `Cloud Functions` |
 | **AI** | `Gemini`, `Green-Eye` |
 | **Tooling** | `Notion`, `Figma`, `Figjam`, `Github`, `Git`, `Zep` |
-
 
 
 ## 🔎 세부 구현 내용
