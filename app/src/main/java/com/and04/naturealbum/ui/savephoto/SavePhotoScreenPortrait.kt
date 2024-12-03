@@ -97,7 +97,7 @@ fun SavePhotoScreenPortrait(
                 imageVector = Icons.Outlined.Create,
                 stringRes = R.string.save_photo_screen_save,
                 onClick = {
-                    val time = LocalDateTime.now(ZoneId.of("UTC+9"))
+                    val time = LocalDateTime.now(ZoneId.of("UTC"))
                     savePhoto(
                         model.toString(),
                         fileName,

@@ -224,7 +224,7 @@ class SynchronizationWorker @AssistedInject constructor(
             }.await()
 
             syncDataStore.setSyncTime(
-                LocalDateTime.now(ZoneId.of("UTC+9"))
+                LocalDateTime.now(ZoneId.of("UTC"))
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             )
             Result.success()
