@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.photoinfo
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -165,7 +166,17 @@ fun SetThumbnailContent(
     photoDetail: PhotoDetail,
     setAlbumThumbnail: (Int) -> Unit,
 ) {
-    Button(onClick = { setAlbumThumbnail(photoDetail.id) }) {
+    val context = LocalContext.current
+    Button(onClick = {
+        setAlbumThumbnail(photoDetail.id)
+        Toast
+            .makeText(
+                context,
+                R.string.photo_info_set_thumbnail_btn_txt,
+                Toast.LENGTH_SHORT
+            )
+            .show()
+    }) {
         Text(text = stringResource(R.string.photo_info_set_thumbnail_btn_txt))
     }
 }
