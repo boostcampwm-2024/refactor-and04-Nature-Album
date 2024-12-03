@@ -42,14 +42,6 @@ class NatureAlbumState(
     private var imageFile = mutableStateOf<File?>(null)
     var currentUid = mutableStateOf("")
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            navController.currentBackStack.collect { backStack ->
-                Log.d("BackStackEntryTest", "${backStack.map { it.destination.route }.toList()}")
-            }
-        }
-    }
-
     fun handleLauncher(result: ActivityResult) {
         if (result.resultCode == RESULT_OK) {
             val resizePicture = ImageConvert.resizeImage(imageUri.value)!!
