@@ -21,9 +21,7 @@ interface RetrofitRepository {
 class RetrofitRepositoryImpl @Inject constructor(
     @ReverseGeocode private val reverseGeocodeAPI: NaverApi,
     @GreenEye private val greenEyeAPI: NaverApi,
-) :
-    RetrofitRepository {
-
+) : RetrofitRepository {
     override suspend fun convertCoordsToAddress(latitude: Double, longitude: Double): String {
         val coords = mapCoordsToRequestCoords(latitude, longitude)
         val result = runRemote {
@@ -33,7 +31,7 @@ class RetrofitRepositoryImpl @Inject constructor(
             onSuccess = { reverseGeocodeDto ->
                 ReverseGeocodeMapper.mapCoordsToAddress(reverseGeocodeDto = reverseGeocodeDto)
             },
-            onFailure = { "" },
+            onFailure = { EMPTY_ADDRESS },
         )
     }
 
@@ -67,5 +65,9 @@ class RetrofitRepositoryImpl @Inject constructor(
             Log.e("ERROR", "Unknown Error: ${e.message}")
             Result.failure(e)
         }
+    }
+
+    companion object {
+        const val EMPTY_ADDRESS = ""
     }
 }

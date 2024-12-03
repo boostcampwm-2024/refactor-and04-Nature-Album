@@ -1,6 +1,7 @@
 package com.and04.naturealbum.data.mapper
 
 import com.and04.naturealbum.data.dto.ReverseGeocodeDto
+import com.and04.naturealbum.data.repository.RetrofitRepositoryImpl.Companion.EMPTY_ADDRESS
 
 object ReverseGeocodeMapper {
     private const val SEPARATOR = "%2C"
@@ -8,7 +9,7 @@ object ReverseGeocodeMapper {
         reverseGeocodeDto: ReverseGeocodeDto,
     ): String {
         if (reverseGeocodeDto.results.isNullOrEmpty()) {
-            return ""
+            return EMPTY_ADDRESS
         }
         val region = reverseGeocodeDto.results.lastOrNull()?.region
         val address =
