@@ -18,7 +18,6 @@ import javax.inject.Inject
 class PhotoInfoViewModel @Inject constructor(
     private val roomRepository: LocalDataRepository,
     private val retrofitRepository: RetrofitRepository,
-    private val dataRepository: DataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumData>> = _uiState
@@ -47,7 +46,7 @@ class PhotoInfoViewModel @Inject constructor(
 
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
         val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
-        val cachedAddress = dataRepository.getAddressByPhotoDetailId(photoDetail.id)
+        val cachedAddress = roomRepository.getAddressByPhotoDetailId(photoDetail.id)
         if (cachedAddress.isNotEmpty()) {
             _address.emit(cachedAddress)
             return
@@ -64,7 +63,7 @@ class PhotoInfoViewModel @Inject constructor(
         )
 
         if (newAddress.isNotEmpty()) {
-            dataRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
+            roomRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
             _address.emit(newAddress)
         } else {
             _address.emit(coords)

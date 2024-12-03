@@ -5,7 +5,6 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.Album
@@ -28,7 +27,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
-    private val dataRepository: DataRepository,
     private val retrofitRepository: RetrofitRepository,
     private val repository: LocalDataRepository,
 ) : ViewModel() {
@@ -70,10 +68,10 @@ class SavePhotoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val labelId =
-                    if (label.id == NEW_LABEL) dataRepository.insertLabel(label).toInt()
+                    if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
                     else label.id
 
-                val album = async { dataRepository.getAlbumByLabelId(labelId) }
+                val album = async { repository.getAlbumByLabelId(labelId) }
                 val address = async {
                     if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED) {
                         retrofitRepository.convertCoordsToAddress(
@@ -85,7 +83,7 @@ class SavePhotoViewModel @Inject constructor(
                     }
                 }
                 val photoDetailId = async {
-                    dataRepository.insertPhoto(
+                    repository.insertPhoto(
                         PhotoDetail(
                             labelId = labelId,
                             photoUri = uri,
@@ -101,7 +99,7 @@ class SavePhotoViewModel @Inject constructor(
                 }
 
                 launch {
-                    dataRepository.updateAddressByPhotoDetailId(
+                    repository.updateAddressByPhotoDetailId(
                         address = address.await(),
                         photoDetailId = photoDetailId.await().toInt()
                     )
@@ -109,14 +107,14 @@ class SavePhotoViewModel @Inject constructor(
 
                 album.await().run {
                     if (isEmpty()) {
-                        dataRepository.insertPhotoInAlbum(
+                        repository.insertPhotoInAlbum(
                             Album(
                                 labelId = labelId,
                                 photoDetailId = photoDetailId.await().toInt()
                             )
                         )
                     } else if (isRepresented) {
-                        dataRepository.updateAlbum(
+                        repository.updateAlbum(
                             first().copy(
                                 photoDetailId = photoDetailId.await().toInt()
                             )

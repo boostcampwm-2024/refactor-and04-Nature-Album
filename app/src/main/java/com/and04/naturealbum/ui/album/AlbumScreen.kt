@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.AlbumDto
@@ -52,7 +53,7 @@ fun AlbumScreen(
     navigateToBackScreen: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
-    val albums = viewModel.albumList.collectAsState()
+    val albums = viewModel.albumList.collectAsStateWithLifecycle()
     AlbumScreen(
         albums = albums,
         onLabelClick = onLabelClick,
