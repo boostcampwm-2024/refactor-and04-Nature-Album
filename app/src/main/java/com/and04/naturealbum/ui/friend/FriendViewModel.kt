@@ -1,5 +1,7 @@
 package com.and04.naturealbum.ui.friend
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.dto.FirebaseFriend
@@ -34,6 +36,9 @@ class FriendViewModel @Inject constructor(
 
     private val _searchResults = MutableStateFlow<Map<String, FirestoreUserWithStatus>>(emptyMap())
     val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
+
+    private val _friendRequestStatus = MutableStateFlow<Boolean?>(null)
+    val friendRequestStatus: StateFlow<Boolean?> = _friendRequestStatus
 
     private val debouncePeriod = 100L
     private var uid: String? = null
@@ -109,6 +114,7 @@ class FriendViewModel @Inject constructor(
                             this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
                     }
                 }
+                _friendRequestStatus.value = success
             }
         }
     }

@@ -124,12 +124,12 @@ fun SavePhotoScreen(
                 }
             }
 
-        locationHandler.checkLocationSettings(
-            takePicture = {},
-            showGPSActivationDialog = { intentSenderRequest ->
-                locationSettingsLauncher.launch(intentSenderRequest)
-            }
-        )
+//        locationHandler.checkLocationSettings(
+//            takePicture = {},
+//            showGPSActivationDialog = { intentSenderRequest ->
+//                locationSettingsLauncher.launch(intentSenderRequest)
+//            }
+//        )
     }
 
     SavePhotoScreen(

@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.friend
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,10 +35,23 @@ fun FriendSearchScreen(
     friendViewModel: FriendViewModel,
     networkViewModel: NetworkViewModel,
 ) {
+    val context = LocalContext.current
+    val friendRequestStatus by friendViewModel.friendRequestStatus.collectAsStateWithLifecycle()
     val userWithStatusList by friendViewModel.searchResults.collectAsStateWithLifecycle()
     val networkState = networkViewModel.networkState.collectAsStateWithLifecycle()
     var textFieldState by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(friendRequestStatus) {
+        friendRequestStatus?.let { success ->
+            val message = if (success) {
+                context.getString(R.string.friend_search_screen_friend_request_success)
+            } else {
+                context.getString(R.string.friend_search_screen_friend_request_fail)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(Unit) {
         friendViewModel.updateSearchQuery("")
