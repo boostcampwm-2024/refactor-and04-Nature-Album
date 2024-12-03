@@ -85,11 +85,13 @@ fun PhotoInfoLandscape(
                 text = address.value
             )
 
-            RowInfo(
-                imgVector = Icons.Default.Edit,
-                contentDescription = stringResource(R.string.photo_info_screen_description_icon),
-                text = photoDetail.description
-            )
+            if (photoDetail.description.isNotEmpty()) {
+                RowInfo(
+                    imgVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.photo_info_screen_description_icon),
+                    text = photoDetail.description
+                )
+            }
 
             SetThumbnailContent(
                 photoDetail = photoDetail,
