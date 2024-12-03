@@ -1,6 +1,7 @@
 package com.and04.naturealbum.data.room
 
 import androidx.room.TypeConverter
+import com.and04.naturealbum.utils.toLocalDateTime
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,13 +14,7 @@ class Converters {
 
     @TypeConverter
     fun stringToLocalDateTime(dateTimeString: String?): LocalDateTime? {
-        return dateTimeString?.let { timeString ->
-            LocalDateTime
-                .parse(timeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                .atZone(ZoneId.of("UTC+9"))
-                .withZoneSameInstant(ZoneId.systemDefault())
-                .toLocalDateTime()
-        }
+        return dateTimeString?.toLocalDateTime()
     }
 
     @TypeConverter
