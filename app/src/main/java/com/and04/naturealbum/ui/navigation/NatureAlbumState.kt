@@ -86,14 +86,8 @@ class NatureAlbumState(
 
     fun getNavBackStackEntry(route: String) = navController.getBackStackEntry(route)
 
-    fun navigateToAlbum(removeBackStack: Boolean = false) =
-        navController.navigate(NavigateDestination.Album.route) {
-            if (removeBackStack) {
-                popUpTo(NavigateDestination.Album.route) {
-                    inclusive = true
-                }
-            }
-        }
+    fun navigateToAlbum() =
+        navController.navigate(NavigateDestination.Album.route)
 
     fun navigateToMap() = navController.navigate(NavigateDestination.Map.route)
 

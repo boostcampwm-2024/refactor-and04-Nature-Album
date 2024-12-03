@@ -55,7 +55,7 @@ class AlbumFolderViewModel @Inject constructor(
                 photoDetails.forEach { photoDetail ->
                     roomRepository.deleteImage(photoDetail) // Room에서 삭제
                     syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
-                    deleteFile(photoDetail.fileName) //file에서 이미지 삭제
+                    launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
                     launch(Dispatchers.IO) {
                         val uid = UserManager.getUser()?.uid
                         if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
@@ -67,14 +67,12 @@ class AlbumFolderViewModel @Inject constructor(
                             )
                         }
                     }
-
                     updatedPhotoDetails.remove(photoDetail)
-
                 }
-                if (updatedPhotoDetails.isNotEmpty()) {
-                    _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
+                if (updatedPhotoDetails.isEmpty()) {
+                    _uiState.emit(UiState.Error("empty"))
                 } else {
-                    _uiState.emit(UiState.Error("empty album"))
+                    _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
                 }
             }
         }

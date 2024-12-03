@@ -103,7 +103,7 @@ fun NatureAlbumApp(
                 onNavigateToMyPage = { state.navigateToMyPage() },
                 navigateToBackScreen = { state.popupBackStack() },
                 onNavigateToAlbum = {
-                    state.navigateToAlbum(removeBackStack = true)
+                    state.popupBackStack()
                 }
             )
         }

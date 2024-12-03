@@ -100,7 +100,7 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
-    suspend fun deleteUserPhoto(uid: String, fileName: String){
+    suspend fun deleteUserPhoto(uid: String, fileName: String) {
         fireStore.collection(USER).document(uid).collection(PHOTOS)
             .document(fileName)
             .delete()
@@ -123,11 +123,15 @@ class FirebaseDataSource @Inject constructor(
         return fireStore.collection(USER).document(uid).collection(FRIENDS).document(targetUid)
     }
 
+    fun getFriendDoc(uid: String, targetUid: String): DocumentReference {
+        return fireStore.collection(USER).document(uid).collection(FRIENDS).document(targetUid)
+    }
+
     suspend fun setTransactionFriendRequest(
         uid: String,
         targetUid: String,
         friendRequest: FirebaseFriendRequest,
-        targetFriendRequest: FirebaseFriendRequest
+        targetFriendRequest: FirebaseFriendRequest,
     ): Result<Transaction> {
         return runCatching {
             fireStore.runTransaction { transaction ->
@@ -146,7 +150,7 @@ class FirebaseDataSource @Inject constructor(
 
     suspend fun deleteTransactionFriendRequest(
         uid: String,
-        targetUid: String
+        targetUid: String,
     ): Result<Transaction> {
         return runCatching {
             fireStore.runTransaction { transaction ->
@@ -167,7 +171,7 @@ class FirebaseDataSource @Inject constructor(
         uid: String,
         targetUid: String,
         uidFriendData: FirebaseFriend,
-        targetUidFriendData: FirebaseFriend
+        targetUidFriendData: FirebaseFriend,
     ): Result<Transaction> {
         return runCatching {
             fireStore.runTransaction { transaction ->
@@ -200,6 +204,15 @@ class FirebaseDataSource @Inject constructor(
         return fireStore.collection(USER)
             .whereGreaterThanOrEqualTo(EMAIL, query)
             .whereLessThanOrEqualTo(EMAIL, query + QUERY_SUFFIX)
+    }
+
+    suspend fun checkFileExist(uid: String, labelName: String, fileName: String): Boolean {
+        try {
+            fireStorage.getReference("$uid/${labelName}/$fileName").metadata.await()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
     }
 
     companion object {
