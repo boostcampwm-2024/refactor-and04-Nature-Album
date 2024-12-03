@@ -31,15 +31,9 @@ class RetrofitRepositoryImpl @Inject constructor(
         }
         return result.fold(
             onSuccess = { reverseGeocodeDto ->
-                ReverseGeocodeMapper.mapCoordsToAddress(
-                    reverseGeocodeDto = reverseGeocodeDto,
-                    latitude = latitude,
-                    longitude = longitude,
-                )
+                ReverseGeocodeMapper.mapCoordsToAddress(reverseGeocodeDto = reverseGeocodeDto)
             },
-            onFailure = {
-                ReverseGeocodeMapper.mapCoordsToRequestCoords(latitude, longitude)
-            },
+            onFailure = { "" },
         )
     }
 

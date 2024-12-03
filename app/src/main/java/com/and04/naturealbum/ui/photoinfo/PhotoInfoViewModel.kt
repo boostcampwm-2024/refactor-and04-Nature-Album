@@ -9,11 +9,9 @@ import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.utils.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,27 +46,27 @@ class PhotoInfoViewModel @Inject constructor(
     }
 
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
-        val address = withContext(Dispatchers.IO) {
-            getAddress(photoDetail)
-        }
-        _address.emit(address)
-    }
-
-    private suspend fun getAddress(photoDetail: PhotoDetail): String {
+        val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
         val cachedAddress = dataRepository.getAddressByPhotoDetailId(photoDetail.id)
+
         if (cachedAddress.isNotEmpty()) {
-            return cachedAddress
+            _address.emit(cachedAddress)
         }
 
         if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
-            return cachedAddress
+            _address.emit(coords)
         }
 
         val newAddress = retrofitRepository.convertCoordsToAddress(
             latitude = photoDetail.latitude,
             longitude = photoDetail.longitude
         )
-        dataRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
-        return newAddress
+
+        if (newAddress.isNotEmpty()) {
+            dataRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
+            _address.emit(newAddress)
+        } else {
+            _address.emit(coords)
+        }
     }
 }
