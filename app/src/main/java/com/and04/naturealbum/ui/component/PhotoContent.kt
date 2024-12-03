@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.component
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -28,12 +29,17 @@ import coil3.compose.AsyncImage
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-private fun PhotoContent(
+fun PhotoContent(
     imageUri: Any,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+
+    BackHandler {
+        onDismiss()
+    }
 
     BoxWithConstraints(
         modifier
@@ -72,7 +78,7 @@ private fun PhotoContent(
 
         IconButton(
             modifier = modifier.align(Alignment.TopEnd),
-            onClick = {},
+            onClick = {onDismiss()},
             colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)
         ) {
             Icon(

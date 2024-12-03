@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
@@ -60,6 +61,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.LoadingIcons
 import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
+import com.and04.naturealbum.ui.component.PhotoContent
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.NetworkState
@@ -88,9 +90,16 @@ fun MapScreen(
 
     val photosByUid = userViewModel.photosByUid.collectAsStateWithLifecycle()
 
+    val showPhotoContent = remember { mutableStateOf(false) }
+
     val openDialog = remember { mutableStateOf(false) }
-    val marker = remember { Marker() }
     val pick = remember { mutableStateOf<PhotoItem?>(null) }
+    val marker = remember { Marker().apply {
+        onClickListener = Overlay.OnClickListener {
+            showPhotoContent.value = true
+            true
+        }
+    } }
     val bottomSheetPhotos = remember { mutableStateOf(listOf<PhotoItem>()) }
     val selectedFriends = remember { mutableStateOf(listOf<FirebaseFriend>()) }
 
@@ -295,7 +304,12 @@ fun MapScreen(
                 openDialog.value = false
             }
         )
-
+        if (showPhotoContent.value) {
+            PhotoContent(
+                imageUri = pick.value!!.uri,
+                onDismiss = { showPhotoContent.value = false }
+            )
+        }
     }
 }
 
