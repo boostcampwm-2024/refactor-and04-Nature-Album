@@ -2,8 +2,8 @@ package com.and04.naturealbum.ui.photoinfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.DataRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
@@ -16,9 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PhotoInfoViewModel @Inject constructor(
-    private val roomRepository: DataRepository,
+    private val roomRepository: LocalDataRepository,
     private val retrofitRepository: RetrofitRepository,
-    private val dataRepository: DataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumData>> = _uiState
@@ -47,7 +46,7 @@ class PhotoInfoViewModel @Inject constructor(
 
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
         val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
-        val cachedAddress = dataRepository.getAddressByPhotoDetailId(photoDetail.id)
+        val cachedAddress = roomRepository.getAddressByPhotoDetailId(photoDetail.id)
         if (cachedAddress.isNotEmpty()) {
             _address.emit(cachedAddress)
             return
@@ -64,7 +63,7 @@ class PhotoInfoViewModel @Inject constructor(
         )
 
         if (newAddress.isNotEmpty()) {
-            dataRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
+            roomRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
             _address.emit(newAddress)
         } else {
             _address.emit(coords)

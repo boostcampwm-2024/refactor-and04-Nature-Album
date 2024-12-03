@@ -8,8 +8,8 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
-import com.and04.naturealbum.data.repository.FireBaseRepository
 import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetailDao
@@ -27,7 +27,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class FirebaseInsertService : Service() {
     @Inject
-    lateinit var fireBaseRepository: FireBaseRepository
+    lateinit var albumRepository: AlbumRepository
 
     @Inject
     lateinit var retrofitRepository: RetrofitRepository
@@ -70,7 +70,7 @@ class FirebaseInsertService : Service() {
                     )
                 }
 
-                val storageUri = fireBaseRepository
+                val storageUri = albumRepository
                     .saveImageFile(
                         uid = uid,
                         label = label.name,
@@ -78,13 +78,13 @@ class FirebaseInsertService : Service() {
                         uri = uri.toUri()
                     )
 
-                val serverLabels = fireBaseRepository.getLabels(uid)
+                val serverLabels = albumRepository.getLabelsToList(uid).getOrThrow()
                 val serverNoLabel = serverLabels.none { serverLabel ->
                     serverLabel.labelName == label.name
                 }
 
                 if (serverNoLabel) {
-                    fireBaseRepository
+                    albumRepository
                         .insertLabel(
                             uid = uid,
                             labelName = label.name,
@@ -96,7 +96,7 @@ class FirebaseInsertService : Service() {
                         )
                 }
 
-                fireBaseRepository
+                albumRepository
                     .insertPhotoInfo(
                         uid = uid,
                         fileName = fileName,

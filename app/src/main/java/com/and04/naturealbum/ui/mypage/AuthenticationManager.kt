@@ -8,7 +8,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.and04.naturealbum.BuildConfig
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
-import com.and04.naturealbum.data.repository.FireBaseRepository
+import com.and04.naturealbum.data.repository.firebase.UserRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -31,7 +31,7 @@ interface AuthResponse {
 }
 
 class AuthenticationManager @Inject constructor(
-    private val fireBaseRepository: FireBaseRepository,
+    private val userRepository: UserRepository,
 ) {
     private val auth = Firebase.auth
 
@@ -161,7 +161,7 @@ class AuthenticationManager @Inject constructor(
                 val token = task.result
                 if (token != null) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        val success = fireBaseRepository.saveFcmToken(uid, token)
+                        val success = userRepository.saveFcmToken(uid, token)
                         if (success) {
                             Log.d("FCM", "FCM token updated successfully via Repository")
                         } else {
@@ -183,7 +183,7 @@ class AuthenticationManager @Inject constructor(
     ): Boolean {
         Log.d("Firestore", "Checking if user exists in Firestore: UID=$uid")
         return try {
-            val userDoc = fireBaseRepository.createUserIfNotExists(
+            val userDoc = userRepository.createUserIfNotExists(
                 uid = uid,
                 displayName = displayName,
                 email = email,

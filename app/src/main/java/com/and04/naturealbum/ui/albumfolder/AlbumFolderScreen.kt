@@ -65,7 +65,7 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -74,6 +74,7 @@ fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
@@ -87,10 +88,8 @@ fun AlbumFolderScreen(
         state.editMode.value = isEditModeEnabled
     }
 
-    LaunchedEffect(uiState.value) {
-        if (uiState.value is UiState.Idle) {
-            albumFolderViewModel.loadFolderData(selectedAlbumLabel)
-        }
+    if (uiState.value is UiState.Idle) {
+        albumFolderViewModel.loadFolderData(selectedAlbumLabel)
     }
 
     val saveImagesWithLoading = {
@@ -150,12 +149,13 @@ fun AlbumFolderScreen(
         switchEditMode = switchEditMode,
         editMode = state.editMode,
         selectAll = state.selectAll,
-        setLoading = setLoading,
         savePhotos = savePhotos,
         deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
+        navigateToBackScreen = navigateToBackScreen,
         onNavigateToAlbum = onNavigateToAlbum,
         checkList = state.checkList,
+        onNavigateToAlbum = onNavigateToAlbum,
     )
 
     if (state.imgDownLoading.value) {
@@ -176,15 +176,20 @@ fun AlbumFolderScreen(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
-    onNavigateToAlbum: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
+    onNavigateToAlbum: () -> Unit,
 ) {
     Scaffold(
-        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+        topBar = {
+            context.GetTopBar(
+                navigateToBackScreen = navigateToBackScreen,
+                navigateToMyPage = onNavigateToMyPage,
+            )
+        }
     ) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
@@ -193,7 +198,6 @@ fun AlbumFolderScreen(
             switchEditMode = switchEditMode,
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = setLoading,
             savePhotos = savePhotos,
             deletePhotos = deletePhotos,
             checkList = checkList,
@@ -210,95 +214,87 @@ private fun ItemContainer(
     switchEditMode: (Boolean) -> Unit,
     editMode: MutableState<Boolean>,
     selectAll: MutableState<Boolean>,
-    setLoading: (Boolean) -> Unit,
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
     onNavigateToAlbum: () -> Unit,
 ) {
-    when (val success = uiState.value) {
-        is UiState.Loading, UiState.Idle -> {
-            setLoading(true)
-        }
+    if (uiState.value is UiState.Success) {
+        val success = (uiState.value as UiState.Success)
+        val label = success.data.label
+        val photoDetails = success.data.photoDetails
 
-        is UiState.Success -> {
-            val label = success.data.label
-            val photoDetails = success.data.photoDetails
-            setLoading(false)
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPaddingValues)
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPaddingValues)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AlbumLabel(
-                        modifier = Modifier
-                            .background(
-                                color = label.backgroundColor.toColor(),
-                                shape = CircleShape
-                            )
-                            .fillMaxWidth(0.9f),
-                        text = label.name,
-                        backgroundColor = label.backgroundColor.toColor(),
-                    )
-
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        LazyVerticalStaggeredGrid(
-                            columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(24.dp),
-                            horizontalArrangement = Arrangement.spacedBy(28.dp),
-                            verticalItemSpacing = 16.dp
-                        ) {
-                            items(
-                                items = photoDetails,
-                                key = { item -> item.id }
-                            ) { photoDetail ->
-                                PhotoDetailItem(
-                                    photoDetail = photoDetail,
-                                    onPhotoClick = onPhotoClick,
-                                    switchEditMode = switchEditMode,
-                                    editMode = editMode,
-                                    selectAll = selectAll.value,
-                                    checkList = checkList,
-                                )
-                            }
-                        }
-
-                        ButtonWithAnimation(
-                            selectAll = { isAllSelected: Boolean ->
-                                selectAll.value = isAllSelected
-                                if (isAllSelected)
-                                    checkList.value = photoDetails.toSet() // TODO
-                                else checkList.value = emptySet() // TODO
-                            },
-                            savePhotos = savePhotos,
-                            deletePhotos = deletePhotos,
-                            editMode = editMode,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomEnd)
+                AlbumLabel(
+                    modifier = Modifier
+                        .background(
+                            color = label.backgroundColor.toColor(),
+                            shape = CircleShape
                         )
+                        .fillMaxWidth(0.9f),
+                    text = label.name,
+                    backgroundColor = label.backgroundColor.toColor(),
+                )
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(LocalContext.current.gridColumnCount()),
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp),
+                        verticalItemSpacing = 16.dp
+                    ) {
+                        items(
+                            items = photoDetails,
+                            key = { item -> item.id }
+                        ) { photoDetail ->
+                            PhotoDetailItem(
+                                photoDetail = photoDetail,
+                                onPhotoClick = onPhotoClick,
+                                switchEditMode = switchEditMode,
+                                editMode = editMode,
+                                selectAll = selectAll.value,
+                                checkList = checkList,
+                            )
+                        }
                     }
+
+                    ButtonWithAnimation(
+                        selectAll = { isAllSelected: Boolean ->
+                            selectAll.value = isAllSelected
+                            if (isAllSelected)
+                                checkList.value = photoDetails.toSet()
+                            else checkList.value = emptySet()
+                        },
+                        savePhotos = savePhotos,
+                        deletePhotos = deletePhotos,
+                        editMode = editMode,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomEnd)
+                    )
                 }
             }
-
-            BackHandler(enabled = editMode.value) {
-                if (editMode.value)
-                    editMode.value = false
-                checkList.value = setOf()
-            }
         }
 
-        is UiState.Error<*> -> { /* TODO ERROR */
-            onNavigateToAlbum()
+        BackHandler(enabled = editMode.value) {
+            if (editMode.value)
+                editMode.value = false
+            checkList.value = setOf()
         }
+    }
+    if (uiState.value is UiState.Error<*>){
+        onNavigateToAlbum()
     }
 }
 
@@ -415,10 +411,10 @@ private fun AlbumFolderScreenPreview() {
             switchEditMode = { _ -> },
             editMode = editMode,
             selectAll = selectAll,
-            setLoading = { _ -> },
             savePhotos = { },
             deletePhotos = {},
             onNavigateToMyPage = { },
+            navigateToBackScreen = { },
             checkList = checkList,
             onNavigateToAlbum = {}
         )
