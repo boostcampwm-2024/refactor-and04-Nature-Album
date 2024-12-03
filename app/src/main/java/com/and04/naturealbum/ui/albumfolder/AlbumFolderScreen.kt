@@ -248,8 +248,8 @@ private fun ItemContainer(
                         selectAll = { isAllSelected: Boolean ->
                             selectAll.value = isAllSelected
                             if (isAllSelected)
-                                checkList.value = photoDetails.toSet() // TODO
-                            else checkList.value = emptySet() // TODO
+                                checkList.value = photoDetails.toSet()
+                            else checkList.value = emptySet()
                         },
                         savePhotos = savePhotos,
                         editMode = editMode,
