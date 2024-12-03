@@ -123,7 +123,6 @@ private fun SearchContent(
             .padding(innerPadding)
             .fillMaxSize()
     ) {
-
         LabelTextField(query = query)
 
         Text(
@@ -145,6 +144,8 @@ private fun SearchContent(
                 randomColor = randomColor,
                 onSelected = onSelected,
             )
+        } else {
+            randomColor.value = getRandomColor()
         }
 
 //        TODO 추후 시연할 때 주석 해제
@@ -233,7 +234,6 @@ fun CreateLabelContent(
     onSelected: (Label) -> Unit,
 ) {
     val context = LocalContext.current
-
     Row(
         modifier = Modifier.padding(start = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -261,11 +261,7 @@ fun CreateLabelContent(
             },
             label = { Text(query.value) },
             colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor =
-                randomColor.value.ifBlank {
-                    randomColor.value = getRandomColor()
-                    randomColor.value
-                }.toColor(),
+                containerColor = randomColor.value.toColor(),
                 labelColor = if (Color(randomColor.value.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
             )
         )
