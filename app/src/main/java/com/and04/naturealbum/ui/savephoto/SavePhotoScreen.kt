@@ -39,6 +39,7 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -109,6 +110,10 @@ fun SavePhotoScreen(
 //        val bitmap = loadImageFromUri(context, model)
 //        viewModel.getGeneratedContent(bitmap)
 //    }
+
+    LaunchedEffect(location) {
+        newLocation.value = location
+    }
 
     if (newLocation.value == null) {
         val locationSettingsLauncher =

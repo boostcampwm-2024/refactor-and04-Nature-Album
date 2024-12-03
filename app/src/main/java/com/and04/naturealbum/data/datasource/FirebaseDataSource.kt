@@ -116,8 +116,11 @@ class FirebaseDataSource @Inject constructor(
     }
 
     fun getFriendRequestDoc(uid: String, targetUid: String): DocumentReference {
-        return fireStore.collection(USER).document(uid).collection(FRIEND_REQUESTS)
-            .document(targetUid)
+        return fireStore.collection(USER).document(uid).collection(FRIEND_REQUESTS).document(targetUid)
+    }
+
+    fun getFriendDoc(uid: String, targetUid: String): DocumentReference {
+        return fireStore.collection(USER).document(uid).collection(FRIENDS).document(targetUid)
     }
 
     suspend fun setTransactionFriendRequest(
