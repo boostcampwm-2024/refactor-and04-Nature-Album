@@ -48,13 +48,14 @@ class PhotoInfoViewModel @Inject constructor(
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
         val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
         val cachedAddress = dataRepository.getAddressByPhotoDetailId(photoDetail.id)
-
         if (cachedAddress.isNotEmpty()) {
             _address.emit(cachedAddress)
+            return
         }
 
         if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
             _address.emit(coords)
+            return
         }
 
         val newAddress = retrofitRepository.convertCoordsToAddress(
