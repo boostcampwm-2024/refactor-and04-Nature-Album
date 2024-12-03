@@ -1,7 +1,6 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
-import android.util.Log
 import androidx.annotation.IntRange
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp

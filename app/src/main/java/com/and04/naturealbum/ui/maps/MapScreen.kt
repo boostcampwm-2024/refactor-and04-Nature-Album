@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Diversity3
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.ImageNotSupported
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -31,8 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,19 +47,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImagePainter
-import coil3.compose.SubcomposeAsyncImage
-import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.ImageRequest
 import coil3.request.placeholder
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.ui.component.LoadingAsyncImage
-import com.and04.naturealbum.ui.component.LoadingIcons
 import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
-import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkViewModel
