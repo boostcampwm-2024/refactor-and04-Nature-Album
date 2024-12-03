@@ -8,9 +8,9 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.repository.FireBaseRepository
-import com.and04.naturealbum.ui.MainActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -43,20 +43,20 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val notification = remoteMessage.notification
+
         notification?.let { remoteNotification ->
             val notificationTitle =
                 remoteNotification.title ?: getString(R.string.notification_default_title)
             val notificationBody =
                 remoteNotification.body ?: getString(R.string.notification_default_body)
+
             showNotification(notificationTitle, notificationBody)
         }
     }
 
     private fun showNotification(title: String, body: String) {
         val notificationId = System.currentTimeMillis().toInt()
-
-        // TODO: 현재는 앱 열기. 추후 MyPage로 여는 것으로 교체
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri())
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -88,5 +88,6 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         // 알림 채널의 고유 ID, Android 8.0 이상에서는 반드시 사용
         private const val CHANNEL_ID = "nature_album_channel_id"
+        private const val MY_PAGE_URI = "naturealbum://my_page"
     }
 }

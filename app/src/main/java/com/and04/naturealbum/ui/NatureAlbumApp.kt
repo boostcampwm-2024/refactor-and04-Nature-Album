@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -10,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
@@ -118,7 +120,12 @@ fun NatureAlbumApp(
             )
         }
 
-        composable(NavigateDestination.MyPage.route) {
+        composable(
+            route = NavigateDestination.MyPage.route,
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "naturealbum://${NavigateDestination.MyPage.route}"
+            })
+        ) {
             MyPageScreen(
                 navigateToHome = { state.popupBackStack() },
                 navigateToFriendSearchScreen = { state.navigateToFriendSearch() },
