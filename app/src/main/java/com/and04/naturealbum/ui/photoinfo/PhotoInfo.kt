@@ -124,7 +124,7 @@ private fun Content(
             )
         }
 
-        is UiState.Error -> { /* TODO ERROR */
+        is UiState.Error<*> -> { /* TODO ERROR */
         }
     }
 }

@@ -74,6 +74,7 @@ fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    onNavigateToAlbum: () -> Unit,
     state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
@@ -153,6 +154,7 @@ fun AlbumFolderScreen(
         savePhotos = savePhotos,
         deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
+        onNavigateToAlbum = onNavigateToAlbum,
         checkList = state.checkList,
     )
 
@@ -178,6 +180,7 @@ fun AlbumFolderScreen(
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
+    onNavigateToAlbum: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     Scaffold(
@@ -194,6 +197,7 @@ fun AlbumFolderScreen(
             savePhotos = savePhotos,
             deletePhotos = deletePhotos,
             checkList = checkList,
+            onNavigateToAlbum = onNavigateToAlbum,
         )
     }
 }
@@ -210,6 +214,7 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
+    onNavigateToAlbum: () -> Unit,
 ) {
     when (val success = uiState.value) {
         is UiState.Loading, UiState.Idle -> {
@@ -291,7 +296,8 @@ private fun ItemContainer(
             }
         }
 
-        is UiState.Error -> { /* TODO ERROR */
+        is UiState.Error<*> -> { /* TODO ERROR */
+            onNavigateToAlbum()
         }
     }
 }
@@ -414,6 +420,7 @@ private fun AlbumFolderScreenPreview() {
             deletePhotos = {},
             onNavigateToMyPage = { },
             checkList = checkList,
+            onNavigateToAlbum = {}
         )
     }
 }

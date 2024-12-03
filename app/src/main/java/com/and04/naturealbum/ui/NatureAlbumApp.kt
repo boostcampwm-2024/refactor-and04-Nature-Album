@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -94,6 +95,10 @@ fun NatureAlbumApp(
                 selectedAlbumLabel = labelId,
                 onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                onNavigateToAlbum = {
+                    Log.d("FFFF", "afafasfaad")
+                    state.navigateToAlbum(removeBackStack = true)
+                }
             )
         }
 
