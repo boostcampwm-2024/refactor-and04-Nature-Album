@@ -123,7 +123,7 @@ class FriendRepository @Inject constructor(
                                         .get(),
 
                                     firebaseDataSource
-                                        .getFriendRequestDoc(uid, userDoc.id)
+                                        .getFriendDoc(uid, userDoc.id)
                                         .get()
                                 ).map { taskResult -> taskResult.await() }
 
