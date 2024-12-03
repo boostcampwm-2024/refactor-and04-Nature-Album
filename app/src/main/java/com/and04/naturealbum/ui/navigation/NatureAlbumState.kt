@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.navigation
 
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -7,6 +8,7 @@ import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.compose.runtime.Composable
@@ -16,15 +18,17 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.LocationHandler
-import com.and04.naturealbum.ui.friend.FriendSearchScreen
 import com.and04.naturealbum.utils.ImageConvert
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 
+@SuppressLint("RestrictedApi")
 @Stable
 class NatureAlbumState(
     val navController: NavHostController,
@@ -37,6 +41,14 @@ class NatureAlbumState(
     var selectedLabel = mutableStateOf<Label?>(null)
     private var imageFile = mutableStateOf<File?>(null)
     var currentUid = mutableStateOf("")
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            navController.currentBackStack.collect { backStack ->
+                Log.d("BackStackEntryTest", "${backStack.map { it.destination.route }.toList()}")
+            }
+        }
+    }
 
     fun handleLauncher(result: ActivityResult) {
         if (result.resultCode == RESULT_OK) {
@@ -90,7 +102,9 @@ class NatureAlbumState(
 
     fun navigateToMap() = navController.navigate(NavigateDestination.Map.route)
 
-    fun navigateToMyPage() = navController.navigate(NavigateDestination.MyPage.route)
+    fun navigateToMyPage() = navController.navigate(NavigateDestination.MyPage.route) {
+        launchSingleTop = true
+    }
 
     fun navigateToSearchLabel() = navController.navigate(NavigateDestination.SearchLabel.route)
 

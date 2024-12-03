@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -27,7 +26,7 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 
 @Composable
 fun NatureAlbumApp(
-    startDestination: String,
+    startDestination: String? = null,
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
     val takePictureLauncher =
@@ -39,7 +38,7 @@ fun NatureAlbumApp(
 
     NavHost(
         navController = state.navController,
-        startDestination = startDestination,
+        startDestination = NavigateDestination.Home.route,
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
     ) {
@@ -145,5 +144,9 @@ fun NatureAlbumApp(
                 networkViewModel = hiltViewModel(backStackEntryForMyPage),
             )
         }
+    }
+
+    if (startDestination == "naturealbum://my_page") {
+        state.navigateToMyPage()
     }
 }

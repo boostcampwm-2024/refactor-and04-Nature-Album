@@ -59,7 +59,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
     private fun showNotification(title: String, body: String) {
         val notificationId = System.currentTimeMillis().toInt()
-        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri(), this, MainActivity::class.java)
+        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri())
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
