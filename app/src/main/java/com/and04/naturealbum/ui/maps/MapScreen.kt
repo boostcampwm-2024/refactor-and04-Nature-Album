@@ -110,7 +110,7 @@ fun MapScreen(
         ColorRange.entries.map { colorRange ->
             ClusterManager(
                 colorRange = colorRange,
-                onMarkerClick = { info ->
+                onClusterClick = { info ->
                     Overlay.OnClickListener {
                         bottomSheetPhotos.value = info.tag as List<PhotoItem>
                         pick.value = bottomSheetPhotos.value
@@ -166,6 +166,7 @@ fun MapScreen(
         pick.value = null
         bottomSheetPhotos.value = emptyList()
     }
+
     LaunchedEffect(cameraPivot.value) {
         mapView.getMapAsync { naverMap ->
             pick.value?.let { pick ->
@@ -253,7 +254,6 @@ fun MapScreen(
     if (networkState.value == NetworkState.DISCONNECTED) {
         NetworkDisconnectContent()
     } else {
-
         Box(modifier = Modifier.fillMaxSize()) {
             // AndroidView를 MapView로 바로 설정
             AndroidView(factory = { mapView }, modifier = modifier.fillMaxSize())

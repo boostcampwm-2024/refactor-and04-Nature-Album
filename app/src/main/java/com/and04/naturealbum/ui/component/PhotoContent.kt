@@ -30,7 +30,7 @@ import coil3.compose.AsyncImage
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun PhotoContent(
-    imageUri: Any,
+    imageUri: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {

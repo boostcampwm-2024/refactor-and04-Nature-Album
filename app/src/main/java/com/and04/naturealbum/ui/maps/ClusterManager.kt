@@ -22,7 +22,7 @@ import com.naver.maps.map.overlay.OverlayImage
 
 class ClusterManager(
     private val colorRange: ColorRange,
-    private val onMarkerClick: (MarkerInfo) -> Overlay.OnClickListener,
+    private val onClusterClick: (MarkerInfo) -> Overlay.OnClickListener,
     private val onClusterChange: (MarkerInfo) -> Unit
 ) {
     private var uid: String = ""
@@ -32,7 +32,7 @@ class ClusterManager(
         cluster = Clusterer.ComplexBuilder<PhotoKey>().thresholdStrategy { _ ->
             30.0
         }.tagMergeStrategy { cluster ->
-            cluster.children.flatMap { node -> node.tag as List<*> }
+            cluster.children.flatMap { node -> node.tag as List<PhotoItem> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
             override fun updateClusterMarker(info: ClusterMarkerInfo, marker: Marker) {
                 updateMarker(info, marker)
@@ -67,16 +67,14 @@ class ClusterManager(
         marker.zIndex = size
         marker.captionText = size.toString()
         marker.iconTintColor = sizeToTint(size)
-        marker.onClickListener = onMarkerClick(info)
+        marker.onClickListener = onClusterClick(info)
     }
 
     fun setPhotoItems(uid: String, photoItems: List<PhotoItem>) {
         if (this.uid != uid) {
-            Log.e("ClusterManager", "$uid clear")
             cluster.clear()
             this.uid = uid
         }
-        Log.e("ClusterManager", "setPhotoItems: $uid")
         cluster.addAll(photoItems.associate { photoItem ->
             PhotoKey(
                 photoItem
