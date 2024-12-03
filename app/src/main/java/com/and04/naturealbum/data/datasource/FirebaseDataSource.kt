@@ -6,6 +6,7 @@ import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirestoreUser
+import com.and04.naturealbum.data.room.Label
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -31,6 +32,10 @@ class FirebaseDataSource @Inject constructor(
             val task = fireStorage.getReference("$uid/$label/$fileName").putFile(uri).await()
             task.storage.downloadUrl.await()
         }
+    }
+
+    suspend fun deleteImage(uid: String, label: Label, fileName: String) {
+        fireStorage.getReference("$uid/${label.name}/$fileName").delete().await()
     }
 
     suspend fun getUser(uid: String): DocumentSnapshot {
@@ -66,6 +71,13 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
+    suspend fun deleteUserLabel(uid: String, label: Label) {
+        fireStore.collection(USER).document(uid).collection(LABEL)
+            .document(label.name)
+            .delete()
+            .await()
+    }
+
     suspend fun getUserPhotos(uid: String): Result<QuerySnapshot> {
         return runCatching {
             fireStore.collection(USER).document(uid)
@@ -86,6 +98,13 @@ class FirebaseDataSource @Inject constructor(
                 .set(photoData)
                 .await()
         }
+    }
+
+    suspend fun deleteUserPhoto(uid: String, fileName: String){
+        fireStore.collection(USER).document(uid).collection(PHOTOS)
+            .document(fileName)
+            .delete()
+            .await()
     }
 
     fun getUserFriends(uid: String): CollectionReference {

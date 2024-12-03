@@ -1,12 +1,13 @@
 package com.and04.naturealbum.data.repository.firebase
 
-import android.util.Log
 import com.and04.naturealbum.data.datasource.FirebaseDataSource
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class FriendRepository @Inject constructor(
     private val firebaseDataSource: FirebaseDataSource
@@ -22,7 +24,6 @@ class FriendRepository @Inject constructor(
     suspend fun sendFriendRequest(uid: String, targetUid: String): Boolean {
         val requestTime = LocalDateTime.now().toString()
 
-        // TODO: 요청자와 대상자의 사용자 정보 가져오기 -> NoSQL 구조 확정 후 구조 동일하면 Firebase.auth.currentUser를 사용하는 방향 고려
         val currentUserSnapshot = firebaseDataSource.getUser(uid)
         val targetUserSnapshot = firebaseDataSource.getUser(targetUid)
 
@@ -92,10 +93,16 @@ class FriendRepository @Inject constructor(
         query: String
     ): Flow<Map<String, FirestoreUserWithStatus>> =
         callbackFlow {
+            if (query.isBlank()) {
+                trySend(emptyMap())
+                close()
+                return@callbackFlow
+            }
+            val jobList = mutableListOf<Job>()
+
             val listener = firebaseDataSource.searchUsers(query)
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
-                        Log.e("searchUsersAsFlow", "Listen failed: ${e.message}")
                         trySend(emptyMap())
                         return@addSnapshotListener
                     }
@@ -103,7 +110,7 @@ class FriendRepository @Inject constructor(
                     val userMap = mutableMapOf<String, FirestoreUserWithStatus>()
 
                     snapshot?.documents?.forEach { userDoc ->
-                        launch {
+                        val job = launch {
                             if (userDoc.id == uid) return@launch
 
                             val user = userDoc.toObject(FirestoreUser::class.java) ?: return@launch
@@ -136,21 +143,29 @@ class FriendRepository @Inject constructor(
 
                                     else -> FriendStatus.NORMAL
                                 }
+
+                                userMap[userDoc.id] = FirestoreUserWithStatus(
+                                    user = user,
+                                    status = friendStatus
+                                )
+
+                                trySend(userMap).isSuccess
+                            } catch (ex: CancellationException) {
+                                this@launch.cancel()
                             } catch (ex: Exception) {
-                                Log.e("searchUsersAsFlow", "Error: ${ex.message}")
+                                this@launch.cancel()
                             }
-
-                            userMap[userDoc.id] = FirestoreUserWithStatus(
-                                user = user,
-                                status = friendStatus
-                            )
-
-                            trySend(userMap).isSuccess
                         }
+
+                        jobList.add(job)
                     }
                 }
 
-            awaitClose { listener.remove() }
+            awaitClose {
+                listener.remove()
+                jobList.forEach { job: Job -> job.cancel() }
+                jobList.clear()
+            }
         }
 
     fun getFriendsAsFlow(uid: String): Flow<List<FirebaseFriend>> = callbackFlow {
@@ -167,10 +182,11 @@ class FriendRepository @Inject constructor(
                     } catch (e: Exception) {
                         null
                     }
-
                 } ?: emptyList()
+
                 trySend(friendList)
             }
+
         awaitClose { listener.remove() }
     }
 
@@ -196,8 +212,10 @@ class FriendRepository @Inject constructor(
                                 null
                             }
                         } ?: emptyList()
+
                     trySend(receivedFriendRequestList)
                 }
+
             awaitClose { listener.remove() }
         }
 }

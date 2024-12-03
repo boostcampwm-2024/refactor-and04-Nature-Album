@@ -374,7 +374,7 @@ class SynchronizationWorker @AssistedInject constructor(
         val uid = UserManager.getUser()?.uid
         if (!uid.isNullOrEmpty()) {
             val label = roomRepository.getLabelById(labelId)
-            fireBaseRepository.deleteImageFile(
+            albumRepository.deleteImageFile(
                 uid = uid,
                 label = label,
                 fileName = photo.fileName,
