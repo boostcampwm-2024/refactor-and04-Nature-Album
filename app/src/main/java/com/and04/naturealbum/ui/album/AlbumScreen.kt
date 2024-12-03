@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,11 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopbar
 import com.and04.naturealbum.utils.gridColumnCount
@@ -48,14 +47,9 @@ fun AlbumScreen(
     onNavigateToMyPage: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
-    viewModel.loadAlbums()
-
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-
-    viewModel.loadAlbums()
-
+    val albums = viewModel.albumList.collectAsState()
     AlbumScreen(
-        uiState = uiState,
+        albums = albums,
         onLabelClick = onLabelClick,
         onNavigateToMyPage = onNavigateToMyPage
     )
@@ -63,40 +57,30 @@ fun AlbumScreen(
 
 @Composable
 fun AlbumScreen(
-    uiState: State<UiState<List<AlbumDto>>>,
+    albums: State<List<AlbumDto>>,
     onLabelClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
-    when (val success = uiState.value) {
-        is UiState.Success -> {
-            val albumList = success.data
-
-            Scaffold(
-                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
-            ) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize()
-                ) {
-                    AlbumGrid(
-                        albums = albumList,
-                        onLabelClick = onLabelClick,
-                        columnCount = LocalContext.current.gridColumnCount(),
-                    )
-                }
-            }
-        }
-
-        else -> {
-            // TODO: loading
+    Scaffold(
+        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            AlbumGrid(
+                albums = albums,
+                onLabelClick = onLabelClick,
+                columnCount = LocalContext.current.gridColumnCount(),
+            )
         }
     }
 }
 
 @Composable
 fun AlbumGrid(
-    albums: List<AlbumDto>,
+    albums: State<List<AlbumDto>>,
     onLabelClick: (Int) -> Unit,
     columnCount: Int,
 ) {
@@ -107,7 +91,7 @@ fun AlbumGrid(
         horizontalArrangement = Arrangement.spacedBy(28.dp),
     ) {
         items(
-            items = albums,
+            items = albums.value,
             key = { albumDto -> albumDto.labelId }
         ) { album ->
             AlbumItem(
@@ -166,10 +150,12 @@ fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier =
 @Composable
 fun AlbumScreenPreview() {
     NatureAlbumTheme {
-        val uiState = remember { mutableStateOf(UiState.Success(listOf<AlbumDto>())) }
+        val uiState: State<List<AlbumDto>> = remember {
+            mutableStateOf(emptyList<AlbumDto>())
+        }
 
         AlbumScreen(
-            uiState = uiState,
+            albums = uiState,
             onLabelClick = {},
             onNavigateToMyPage = {},
         )

@@ -10,6 +10,7 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.LabelDao
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.data.room.PhotoDetailDao
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface DataRepository {
@@ -19,7 +20,7 @@ interface DataRepository {
     suspend fun getAllPhotoDetail(): List<PhotoDetail>
     suspend fun getPhotoDetailById(id: Int): PhotoDetail
     suspend fun getPhotoDetailsUriByLabelId(labelId: Int): List<PhotoDetail>
-    suspend fun getAllAlbum(): List<AlbumDto>
+    fun getAllAlbum(): Flow<List<AlbumDto>>
     suspend fun getSyncCheckAlbums(): List<SyncAlbumsDto>
     suspend fun getSyncCheckPhotos(): List<SyncPhotoDetailsDto>
     suspend fun getAlbumByLabelId(labelId: Int): List<Album>
@@ -84,7 +85,7 @@ class DataRepositoryImpl @Inject constructor(
         return albumDao.getAlbumByLabelId(labelId)
     }
 
-    override suspend fun getAllAlbum(): List<AlbumDto> {
+    override fun getAllAlbum(): Flow<List<AlbumDto>> {
         return albumDao.getAllAlbum()
     }
 
