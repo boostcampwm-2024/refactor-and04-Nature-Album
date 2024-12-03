@@ -22,6 +22,6 @@ object ReverseGeocodeMapper {
     }
 
     fun mapCoordsToRequestCoords(latitude: Double, longitude: Double): String {
-        return "${latitude}$SEPARATOR${longitude}"
+        return "${longitude}$SEPARATOR${latitude}"
     }
 }
