@@ -7,6 +7,7 @@ import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.model.AlbumData
 import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.utils.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,24 +45,28 @@ class PhotoInfoViewModel @Inject constructor(
     }
 
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
-        val coords = "${photoDetail.longitude}%2C${photoDetail.latitude}"
-        retrofitRepository.convertCoordsToAddress(coords = coords)
-            .onSuccess { dto ->
-                if (dto.results.isNullOrEmpty()) {
-                    _address.emit("${photoDetail.latitude}, ${photoDetail.longitude}")
-                    return
-                }
-                val region = dto.results[0].region
-                val address = buildString {
-                    append("${region?.area1?.name} ")
-                    append("${region?.area2?.name} ")
-                    append("${region?.area3?.name} ")
-                    append(region?.area4?.name)
-                }
-                _address.emit(address)
-            }
-            .onFailure {
-                _address.emit("${photoDetail.latitude}, ${photoDetail.longitude}")
-            }
+        val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
+        val cachedAddress = roomRepository.getAddressByPhotoDetailId(photoDetail.id)
+        if (cachedAddress.isNotEmpty()) {
+            _address.emit(cachedAddress)
+            return
+        }
+
+        if (NetworkState.getNetWorkCode() == NetworkState.DISCONNECTED) {
+            _address.emit(coords)
+            return
+        }
+
+        val newAddress = retrofitRepository.convertCoordsToAddress(
+            latitude = photoDetail.latitude,
+            longitude = photoDetail.longitude
+        )
+
+        if (newAddress.isNotEmpty()) {
+            roomRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
+            _address.emit(newAddress)
+        } else {
+            _address.emit(coords)
+        }
     }
 }

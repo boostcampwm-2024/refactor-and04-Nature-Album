@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -27,13 +28,11 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 fun NatureAlbumApp(
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
-    val takePictureLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            state.handleLauncher(result)
-        }
-
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        state.handleLauncher(result)
+    }
 
     NavHost(
         navController = state.navController,
@@ -100,6 +99,9 @@ fun NatureAlbumApp(
                 onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
                 navigateToBackScreen = { state.popupBackStack() },
+                onNavigateToAlbum = {
+                    state.navigateToAlbum(removeBackStack = true)
+                }
             )
         }
 

@@ -74,6 +74,7 @@ data class PhotoDetail(
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "datetime") val datetime: LocalDateTime,
     @ColumnInfo(name = "hazard_check_result") val hazardCheckResult: HazardAnalyzeStatus,
+    @ColumnInfo(name = "address") val address: String,
 ) {
     companion object {
         fun emptyPhotoDetail(): PhotoDetail {
@@ -86,7 +87,8 @@ data class PhotoDetail(
                 latitude = 0.0,
                 description = "",
                 datetime = LocalDateTime.now(),
-                hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED
+                hazardCheckResult = HazardAnalyzeStatus.NOT_CHECKED,
+                address = ""
             )
         }
     }

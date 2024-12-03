@@ -17,7 +17,7 @@ interface NaverApi {
     suspend fun convertCoordsToAddress(
         @Query(value = "coords", encoded = true) coords: String,
         @Query("output") output: String? = "json",
-        @Query("orders") orders: String? = "roadaddr",
+        @Query("orders") orders: String? = "legalcode,roadaddr",
     ): ReverseGeocodeDto
 
     @POST("custom/v1/{domainId}/{signature}/predict")

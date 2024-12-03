@@ -8,6 +8,7 @@ import androidx.room.Update
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LabelDao {
@@ -55,7 +56,7 @@ interface AlbumDao {
             
     """
     )
-    suspend fun getAllAlbum(): List<AlbumDto>
+    fun getAllAlbum(): Flow<List<AlbumDto>>
 
     @Query(
         """
@@ -128,10 +129,19 @@ interface PhotoDetailDao {
     @Query("SELECT hazard_check_result FROM photo_detail WHERE file_name = :fileName")
     suspend fun getHazardCheckResultByFileName(fileName: String): HazardAnalyzeStatus
 
+    @Query("SELECT address FROM photo_detail WHERE id = :id")
+    suspend fun getAddress(id: Int): String
+
     @Query("UPDATE photo_detail SET hazard_check_result = :hazardAnalyzeStatus WHERE file_name = :fileName")
     suspend fun updateHazardCheckResultByFIleName(
         hazardAnalyzeStatus: HazardAnalyzeStatus,
         fileName: String,
+    )
+
+    @Query("UPDATE photo_detail SET address = :address WHERE id = :id")
+    suspend fun updateAddressById(
+        address: String,
+        id: Int,
     )
 
     @Delete

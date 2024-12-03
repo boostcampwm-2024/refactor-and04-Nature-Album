@@ -75,6 +75,7 @@ fun AlbumFolderScreen(
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
     navigateToBackScreen: () -> Unit,
+    onNavigateToAlbum: () -> Unit,
     state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
@@ -113,7 +114,16 @@ fun AlbumFolderScreen(
                         WRITE_EXTERNAL_STORAGE
                     )
                 if (!hasPreviouslyDeniedPermission)
-                    state.permissionDialogState.value = PermissionDialogState.GoToSettings
+                    state.permissionDialogState.value = PermissionDialogState(
+                        onDismiss = { state.permissionDialogState.value = null },
+                        onConfirmation = {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                                context.startActivity(this)
+                            }
+                        },
+                        dialogText = R.string.album_folder_permission_go_to_settings
+                    )
             }
         }
 
@@ -144,6 +154,7 @@ fun AlbumFolderScreen(
         onNavigateToMyPage = onNavigateToMyPage,
         navigateToBackScreen = navigateToBackScreen,
         checkList = state.checkList,
+        onNavigateToAlbum = onNavigateToAlbum,
     )
 
     if (state.imgDownLoading.value) {
@@ -153,16 +164,7 @@ fun AlbumFolderScreen(
         )
     }
 
-    PermissionDialogs(
-        permissionDialogState = state.permissionDialogState.value,
-        onDismiss = { state.permissionDialogState.value = PermissionDialogState.None },
-        onGoToSettings = {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-                context.startActivity(this)
-            }
-        }
-    )
+    PermissionDialogs(state.permissionDialogState.value)
 }
 
 @Composable
@@ -178,6 +180,7 @@ fun AlbumFolderScreen(
     onNavigateToMyPage: () -> Unit,
     navigateToBackScreen: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
+    onNavigateToAlbum: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -197,6 +200,7 @@ fun AlbumFolderScreen(
             savePhotos = savePhotos,
             deletePhotos = deletePhotos,
             checkList = checkList,
+            onNavigateToAlbum = onNavigateToAlbum,
         )
     }
 }
@@ -212,6 +216,7 @@ private fun ItemContainer(
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
+    onNavigateToAlbum: () -> Unit,
 ) {
     if (uiState.value is UiState.Success) {
         val success = (uiState.value as UiState.Success)
@@ -286,6 +291,9 @@ private fun ItemContainer(
                 editMode.value = false
             checkList.value = setOf()
         }
+    }
+    if (uiState.value is UiState.Error<*>){
+        onNavigateToAlbum()
     }
 }
 
@@ -407,6 +415,7 @@ private fun AlbumFolderScreenPreview() {
             onNavigateToMyPage = { },
             navigateToBackScreen = { },
             checkList = checkList,
+            onNavigateToAlbum = {}
         )
     }
 }

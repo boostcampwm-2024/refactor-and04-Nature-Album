@@ -13,13 +13,13 @@ class AlbumFolderState(
     editMode: Boolean,
     checkList: Set<PhotoDetail>,
     selectAll: Boolean,
-    permissionDialogState: PermissionDialogState,
+    permissionDialogState: PermissionDialogState?,
 ) {
     var imgDownLoading = mutableStateOf(imgDownLoading)
     var editMode = mutableStateOf(editMode)
     var checkList = mutableStateOf(checkList)
     var selectAll = mutableStateOf(selectAll)
-    var permissionDialogState = mutableStateOf(permissionDialogState)
+    var permissionDialogState = mutableStateOf<PermissionDialogState?>(null)
 }
 
 @Composable
@@ -28,7 +28,7 @@ fun rememberAlbumFolderState(
     editMode: Boolean = false,
     checkList: Set<PhotoDetail> = setOf(),
     selectAll: Boolean = false,
-    permissionDialogState: PermissionDialogState = PermissionDialogState.None,
+    permissionDialogState: PermissionDialogState? = null,
 ): AlbumFolderState {
     return remember {
         AlbumFolderState(

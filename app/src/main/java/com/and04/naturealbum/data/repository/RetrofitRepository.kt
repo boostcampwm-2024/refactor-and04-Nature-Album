@@ -3,8 +3,9 @@ package com.and04.naturealbum.data.repository
 import android.util.Log
 import com.and04.naturealbum.data.dto.GreenEyeRequestBody
 import com.and04.naturealbum.data.dto.GreenEyeRequestBodyImages
-import com.and04.naturealbum.data.dto.ReverseGeocodeDto
 import com.and04.naturealbum.data.mapper.HazardMapper
+import com.and04.naturealbum.data.mapper.ReverseGeocodeMapper
+import com.and04.naturealbum.data.mapper.ReverseGeocodeMapper.mapCoordsToRequestCoords
 import com.and04.naturealbum.data.retorifit.NaverApi
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.di.GreenEye
@@ -13,20 +14,25 @@ import java.io.IOException
 import javax.inject.Inject
 
 interface RetrofitRepository {
-    suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto>
+    suspend fun convertCoordsToAddress(latitude: Double, longitude: Double): String
     suspend fun analyzeHazardWithGreenEye(photoData: String): HazardAnalyzeStatus
 }
 
 class RetrofitRepositoryImpl @Inject constructor(
     @ReverseGeocode private val reverseGeocodeAPI: NaverApi,
     @GreenEye private val greenEyeAPI: NaverApi,
-) :
-    RetrofitRepository {
-
-    override suspend fun convertCoordsToAddress(coords: String): Result<ReverseGeocodeDto> {
-        return runRemote {
+) : RetrofitRepository {
+    override suspend fun convertCoordsToAddress(latitude: Double, longitude: Double): String {
+        val coords = mapCoordsToRequestCoords(latitude, longitude)
+        val result = runRemote {
             reverseGeocodeAPI.convertCoordsToAddress(coords = coords)
         }
+        return result.fold(
+            onSuccess = { reverseGeocodeDto ->
+                ReverseGeocodeMapper.mapCoordsToAddress(reverseGeocodeDto = reverseGeocodeDto)
+            },
+            onFailure = { EMPTY_ADDRESS },
+        )
     }
 
     override suspend fun analyzeHazardWithGreenEye(photoData: String): HazardAnalyzeStatus {
@@ -59,5 +65,9 @@ class RetrofitRepositoryImpl @Inject constructor(
             Log.e("ERROR", "Unknown Error: ${e.message}")
             Result.failure(e)
         }
+    }
+
+    companion object {
+        const val EMPTY_ADDRESS = ""
     }
 }
