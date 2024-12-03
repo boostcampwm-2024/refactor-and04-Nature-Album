@@ -155,7 +155,6 @@ fun AlbumFolderScreen(
         navigateToBackScreen = navigateToBackScreen,
         onNavigateToAlbum = onNavigateToAlbum,
         checkList = state.checkList,
-        onNavigateToAlbum = onNavigateToAlbum,
     )
 
     if (state.imgDownLoading.value) {
@@ -293,7 +292,7 @@ private fun ItemContainer(
             checkList.value = setOf()
         }
     }
-    if (uiState.value is UiState.Error<*>){
+    if (uiState.value is UiState.Error<*>) {
         onNavigateToAlbum()
     }
 }
