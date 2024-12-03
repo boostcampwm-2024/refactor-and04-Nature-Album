@@ -93,6 +93,7 @@ fun NatureAlbumApp(
             AlbumScreen(
                 onLabelClick = { labelId -> state.navigateToAlbumFolder(labelId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                navigateToBackScreen = { state.popupBackStack() },
             )
         }
 
@@ -103,6 +104,7 @@ fun NatureAlbumApp(
                 selectedAlbumLabel = labelId,
                 onPhotoClick = { photoDetailId -> state.navigateToAlbumInfo(photoDetailId) },
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                navigateToBackScreen = { state.popupBackStack() },
             )
         }
 
@@ -112,6 +114,7 @@ fun NatureAlbumApp(
             PhotoInfo(
                 selectedPhotoDetail = photoDetailId,
                 onNavigateToMyPage = { state.navigateToMyPage() },
+                navigateToBackScreen = { state.popupBackStack() },
             )
         }
 

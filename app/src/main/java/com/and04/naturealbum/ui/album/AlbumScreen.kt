@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -28,17 +30,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -46,6 +50,7 @@ import com.and04.naturealbum.utils.toColor
 fun AlbumScreen(
     onLabelClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     viewModel.loadAlbums()
@@ -57,6 +62,7 @@ fun AlbumScreen(
     AlbumScreen(
         uiState = uiState,
         onLabelClick = onLabelClick,
+        navigateToBackScreen = navigateToBackScreen,
         onNavigateToMyPage = onNavigateToMyPage
     )
 }
@@ -65,14 +71,21 @@ fun AlbumScreen(
 fun AlbumScreen(
     uiState: State<UiState<List<AlbumDto>>>,
     onLabelClick: (Int) -> Unit,
+    navigateToBackScreen: () -> Unit,
     onNavigateToMyPage: () -> Unit,
 ) {
     when (val success = uiState.value) {
         is UiState.Success -> {
+            val context = LocalContext.current
             val albumList = success.data
 
             Scaffold(
-                topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } }
+                topBar = {
+                    context.GetTopBar(
+                        navigateToBackScreen = navigateToBackScreen,
+                        navigateToMyPage = onNavigateToMyPage,
+                    )
+                }
             ) { paddingValues ->
                 Column(
                     modifier = Modifier
@@ -82,7 +95,7 @@ fun AlbumScreen(
                     AlbumGrid(
                         albums = albumList,
                         onLabelClick = onLabelClick,
-                        columnCount = LocalContext.current.gridColumnCount(),
+                        columnCount = context.gridColumnCount(),
                     )
                 }
             }
@@ -96,6 +109,29 @@ fun AlbumScreen(
 
 @Composable
 fun AlbumGrid(
+    albums: List<AlbumDto>,
+    onLabelClick: (Int) -> Unit,
+    columnCount: Int,
+) {
+    if (albums.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = stringResource(R.string.nothing_album_txt))
+        }
+    } else {
+        AlbumGridList(
+            albums = albums,
+            onLabelClick = onLabelClick,
+            columnCount = columnCount,
+        )
+    }
+
+}
+
+@Composable
+fun AlbumGridList(
     albums: List<AlbumDto>,
     onLabelClick: (Int) -> Unit,
     columnCount: Int,
@@ -117,6 +153,7 @@ fun AlbumGrid(
         }
     }
 }
+
 
 @Composable
 fun AlbumItem(album: AlbumDto, onLabelClick: (Int) -> Unit, modifier: Modifier = Modifier) {
@@ -170,8 +207,9 @@ fun AlbumScreenPreview() {
 
         AlbumScreen(
             uiState = uiState,
-            onLabelClick = {},
-            onNavigateToMyPage = {},
+            onLabelClick = { },
+            onNavigateToMyPage = { },
+            navigateToBackScreen = { },
         )
     }
 }

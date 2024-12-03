@@ -65,7 +65,7 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.AlbumFolderData
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.toColor
 
@@ -74,6 +74,7 @@ fun AlbumFolderScreen(
     selectedAlbumLabel: Int = 0,
     onPhotoClick: (Int) -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     state: AlbumFolderState = rememberAlbumFolderState(),
     albumFolderViewModel: AlbumFolderViewModel = hiltViewModel(),
 ) {
@@ -141,6 +142,7 @@ fun AlbumFolderScreen(
         savePhotos = savePhotos,
         deletePhotos = deletePhotos,
         onNavigateToMyPage = onNavigateToMyPage,
+        navigateToBackScreen = navigateToBackScreen,
         checkList = state.checkList,
     )
 
@@ -174,10 +176,16 @@ fun AlbumFolderScreen(
     savePhotos: () -> Unit,
     deletePhotos: () -> Unit,
     onNavigateToMyPage: () -> Unit,
+    navigateToBackScreen: () -> Unit,
     checkList: MutableState<Set<PhotoDetail>>,
 ) {
     Scaffold(
-        topBar = { context.GetTopbar { onNavigateToMyPage() } }
+        topBar = {
+            context.GetTopBar(
+                navigateToBackScreen = navigateToBackScreen,
+                navigateToMyPage = onNavigateToMyPage,
+            )
+        }
     ) { innerPadding ->
         ItemContainer(
             innerPaddingValues = innerPadding,
@@ -253,21 +261,6 @@ private fun ItemContainer(
                                 checkList = checkList,
                             )
                         }
-
-                        ButtonWithAnimation(
-                            selectAll = { isAllSelected: Boolean ->
-                                selectAll.value = isAllSelected
-                                if (isAllSelected)
-                                    checkList.value = photoDetails.toSet()
-                                else checkList.value = emptySet()
-                            },
-                            savePhotos = savePhotos,
-                            deletePhotos = deletePhotos,
-                            editMode = editMode,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomEnd)
-                        )
                     }
 
                     ButtonWithAnimation(
@@ -278,6 +271,7 @@ private fun ItemContainer(
                             else checkList.value = emptySet()
                         },
                         savePhotos = savePhotos,
+                        deletePhotos = deletePhotos,
                         editMode = editMode,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -411,6 +405,7 @@ private fun AlbumFolderScreenPreview() {
             savePhotos = { },
             deletePhotos = {},
             onNavigateToMyPage = { },
+            navigateToBackScreen = { },
             checkList = checkList,
         )
     }

@@ -72,7 +72,7 @@ import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetTopbar
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.NetworkState
 import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.isPortrait
@@ -171,8 +171,15 @@ fun SavePhotoScreen(
     savePhoto: (String, String, Label, Location, String, Boolean, LocalDateTime) -> Unit,
     label: Label?,
 ) {
+    val context = LocalContext.current
+
     Scaffold(
-        topBar = { LocalContext.current.GetTopbar { onNavigateToMyPage() } },
+        topBar = {
+            context.GetTopBar(
+                navigateToMyPage = onNavigateToMyPage,
+                navigateToBackScreen = onBack,
+            )
+        },
     ) { innerPadding ->
         BackgroundImage()
 
@@ -181,7 +188,7 @@ fun SavePhotoScreen(
                 ProgressIndicator(location.value == null)
             }
         } else {
-            if (LocalContext.current.isPortrait()) {
+            if (context.isPortrait()) {
                 SavePhotoScreenPortrait(
                     innerPadding = innerPadding,
                     model = model,
