@@ -24,13 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.placeholder
+import com.and04.naturealbum.R
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun PhotoContent(
     imageUri: String,
+    contentDescription: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -45,8 +50,7 @@ fun PhotoContent(
         modifier
             .fillMaxSize()
             .background(Color.Black)
-    )
-    {
+    ) {
         val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
             scale = (scale * zoomChange).coerceIn(1f, 3f)
 
@@ -61,9 +65,13 @@ fun PhotoContent(
                 y = (offset.y + scale * offsetChange.y).coerceIn(-maxY, maxY)
             )
         }
-        AsyncImage(
-            model = imageUri,
-            modifier = Modifier
+        LoadingAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUri)
+                .placeholder(R.drawable.ic_image)
+                .build(),
+            contentDescription = contentDescription,
+            modifier = modifier
                 .fillMaxSize()
                 .align(Alignment.Center)
                 .graphicsLayer {
@@ -73,18 +81,16 @@ fun PhotoContent(
                     translationY = offset.y
                 }
                 .transformable(state),
-            contentDescription = "",
         )
-
         IconButton(
             modifier = modifier.align(Alignment.TopEnd),
-            onClick = {onDismiss()},
+            onClick = { onDismiss() },
             colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)
         ) {
             Icon(
                 modifier = modifier.size(96.dp),
                 imageVector = Icons.Default.Close,
-                contentDescription = null
+                contentDescription = stringResource(R.string.photo_content_close_btn)
             )
         }
     }

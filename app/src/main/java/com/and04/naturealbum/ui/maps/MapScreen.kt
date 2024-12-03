@@ -58,6 +58,7 @@ import coil3.request.ImageRequest
 import coil3.request.placeholder
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirebaseFriend
+import com.and04.naturealbum.ui.component.LoadingAsyncImage
 import com.and04.naturealbum.ui.component.LoadingIcons
 import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
@@ -313,16 +314,16 @@ fun MapScreen(
         if (showPhotoContent.value) {
             PhotoContent(
                 imageUri = pick.value!!.uri,
+                contentDescription = pick.value!!.label.name,
                 onDismiss = { showPhotoContent.value = false }
             )
         }
     }
 }
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PhotoGrid(
+private fun PhotoGrid(
     photos: State<List<PhotoItem>>,
     columnCount: Int = 3,
     modifier: Modifier = Modifier,
@@ -357,7 +358,7 @@ fun PhotoGrid(
                     modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     row.forEach { photo ->
-                        SubcomposeAsyncImage(
+                        LoadingAsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(photo.uri)
                                 .placeholder(R.drawable.ic_image)
@@ -373,26 +374,7 @@ fun PhotoGrid(
                                     onDoubleClick = { onPhotoDoubleClick(photo) },
                                 ),
                             contentScale = ContentScale.Crop,
-                        ) {
-                            val state by painter.state.collectAsState()
-                            when (state) {
-                                is AsyncImagePainter.State.Loading -> RotatingImageLoading(
-                                    drawableRes = LoadingIcons.entries.random().id,
-                                    stringRes = null,
-                                )
-
-                                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
-                                is AsyncImagePainter.State.Empty -> Icon(
-                                    imageVector = Icons.Outlined.Image,
-                                    contentDescription = stringResource(R.string.map_image_loading)
-                                )
-
-                                is AsyncImagePainter.State.Error -> Icon(
-                                    imageVector = Icons.Outlined.ImageNotSupported,
-                                    contentDescription = stringResource(R.string.map_image_load_fail)
-                                )
-                            }
-                        }
+                        )
                     }
                     repeat(columnCount - row.size) {
                         Box(modifier = Modifier.weight(1f))

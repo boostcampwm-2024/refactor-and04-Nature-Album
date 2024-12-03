@@ -64,8 +64,13 @@
     <string name="map_friend_dialog_no_friend_icon">친구 리스트가 비어있어요</string>
     <string name="map_friend_dialog_cancel_btn">취소</string>
     <string name="map_friend_dialog_confirm_btn">적용</string>
-    <string name="map_image_loading">사진 로딩중</string>
-    <string name="map_image_load_fail">사진을 불러오는데 실패했습니다.</string>
+
+    <!-- Loading Async Image -->
+    <string name="loading_async_image_loading">사진 로딩중</string>
+    <string name="loading_async_image_load_fail">사진을 불러오는데 실패했습니다.</string>
+
+    <!-- Photo Content -->
+    <string name="photo_content_close_btn">이전 화면으로 돌아가는 버튼</string>
 
     <!-- My Page -->
     <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>

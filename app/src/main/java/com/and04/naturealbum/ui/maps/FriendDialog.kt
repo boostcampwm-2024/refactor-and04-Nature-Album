@@ -49,12 +49,14 @@ import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirestoreUser
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 
+const val USER_SELECT_MAX = 4
+
 @Composable
 fun FriendDialog(
     isOpen: State<Boolean> = remember { mutableStateOf(true) },
     friends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
     selectedFriends: State<List<FirebaseFriend>> = remember { mutableStateOf(emptyList()) },
-    userSelectMax: Int = 4,
+    userSelectMax: Int = USER_SELECT_MAX,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
     onConfirm: (List<FirebaseFriend>) -> Unit = {}
@@ -97,12 +99,16 @@ fun FriendDialog(
                             .weight(weight = 1f, fill = false)
                             .padding(horizontal = 16.dp),
                     ) {
-                        items(friends.value) { friend ->
+                        items(
+                            items = friends.value,
+                            key = { item -> item.user.uid },
+                        ) { friend ->
                             FriendDialogItem(friend = friend,
                                 isSelect = checkedFriends.contains(friend),
                                 onSelect = {
                                     if (checkedFriends.contains(friend)) {
-                                        checkedFriends = checkedFriends.filter { it != friend }
+                                        checkedFriends =
+                                            checkedFriends.filter { check -> check != friend }
                                     } else if (checkedFriends.size < userSelectMax) {
                                         checkedFriends = checkedFriends + friend
                                     }

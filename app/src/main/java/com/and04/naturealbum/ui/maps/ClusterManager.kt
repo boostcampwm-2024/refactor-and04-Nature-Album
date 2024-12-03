@@ -30,7 +30,7 @@ class ClusterManager(
 
     init {
         cluster = Clusterer.ComplexBuilder<PhotoKey>().thresholdStrategy { _ ->
-            30.0
+            THRESHOLD_DISTANCE
         }.tagMergeStrategy { cluster ->
             cluster.children.flatMap { node -> node.tag as List<PhotoItem> }
         }.clusterMarkerUpdater(object : DefaultClusterMarkerUpdater() {
@@ -96,6 +96,7 @@ class ClusterManager(
     companion object {
         private const val LEAF_NODE_SIZE = 1
         private const val DEFAULT_MARKER_Z_INDEX = 200000
+        private const val THRESHOLD_DISTANCE = 30.0
 
         private val markerIcon = OverlayImage.fromResource(R.drawable.ic_cluster)
 
