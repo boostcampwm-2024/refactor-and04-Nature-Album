@@ -261,21 +261,6 @@ private fun ItemContainer(
                                 checkList = checkList,
                             )
                         }
-
-                        ButtonWithAnimation(
-                            selectAll = { isAllSelected: Boolean ->
-                                selectAll.value = isAllSelected
-                                if (isAllSelected)
-                                    checkList.value = photoDetails.toSet()
-                                else checkList.value = emptySet()
-                            },
-                            savePhotos = savePhotos,
-                            deletePhotos = deletePhotos,
-                            editMode = editMode,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomEnd)
-                        )
                     }
 
                     ButtonWithAnimation(
@@ -286,6 +271,7 @@ private fun ItemContainer(
                             else checkList.value = emptySet()
                         },
                         savePhotos = savePhotos,
+                        deletePhotos = deletePhotos,
                         editMode = editMode,
                         modifier = Modifier
                             .fillMaxWidth()
