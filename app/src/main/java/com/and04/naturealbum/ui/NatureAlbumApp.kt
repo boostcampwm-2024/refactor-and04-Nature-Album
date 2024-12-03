@@ -1,6 +1,5 @@
 package com.and04.naturealbum.ui
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -11,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
+import com.and04.naturealbum.background.service.FirebaseMessagingService.Companion.MY_PAGE_URI
 import com.and04.naturealbum.ui.album.AlbumScreen
 import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
@@ -26,13 +27,15 @@ import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
 
 @Composable
 fun NatureAlbumApp(
+    startDestination: String? = null,
     state: NatureAlbumState = rememberNatureAlbumState(),
 ) {
-    val takePictureLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        state.handleLauncher(result)
-    }
+    val takePictureLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            state.handleLauncher(result)
+        }
 
     NavHost(
         navController = state.navController,
@@ -115,7 +118,12 @@ fun NatureAlbumApp(
             )
         }
 
-        composable(NavigateDestination.MyPage.route) {
+        composable(
+            route = NavigateDestination.MyPage.route,
+            deepLinks = listOf(navDeepLink {
+                uriPattern = MY_PAGE_URI
+            })
+        ) {
             MyPageScreen(
                 navigateToHome = { state.popupBackStack() },
                 navigateToFriendSearchScreen = { state.navigateToFriendSearch() },
@@ -135,5 +143,9 @@ fun NatureAlbumApp(
                 networkViewModel = hiltViewModel(backStackEntryForMyPage),
             )
         }
+    }
+
+    if (startDestination == MY_PAGE_URI) {
+        state.navigateToMyPage()
     }
 }

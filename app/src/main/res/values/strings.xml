@@ -132,5 +132,7 @@
     <!-- FriendSearchScreen -->
     <string name="friend_search_screen_title">친구 검색</string>
     <string name="freind_search_screen_no_result">검색 결과 없음</string>
+    <string name="friend_search_screen_friend_request_success">친구 요청 성공</string>
+    <string name="friend_search_screen_friend_request_fail">친구 요청 실패</string>
 
 </resources>

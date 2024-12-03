@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,10 +12,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val deeplink = handleDeepLink(intent)
         setContent {
             NatureAlbumTheme {
-                NatureAlbumApp()
+                NatureAlbumApp(startDestination = deeplink)
             }
         }
     }
+
+    private fun handleDeepLink(intent: Intent?) =
+        intent?.extras?.getString("deeplink") ?: intent?.data?.toString()
 }

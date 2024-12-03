@@ -35,13 +35,16 @@ class FriendViewModel @Inject constructor(
     private val _searchResults = MutableStateFlow<Map<String, FirestoreUserWithStatus>>(emptyMap())
     val searchResults: StateFlow<Map<String, FirestoreUserWithStatus>> = _searchResults
 
+    private val _friendRequestStatus = MutableStateFlow<Boolean?>(null)
+    val friendRequestStatus: StateFlow<Boolean?> = _friendRequestStatus
+
     private val debouncePeriod = 100L
     private var uid: String? = null
 
     private var currentSearchJob: Job? = null
 
     fun initialize(userUid: String) {
-        if (uid == userUid) return // 이미 로그인된 상태라면 중복 초기화 방지
+        if (uid == userUid) return
         uid = userUid
         listenToFriends()
         listenToReceivedFriendRequests()
@@ -97,18 +100,21 @@ class FriendViewModel @Inject constructor(
         }
     }
 
+    fun setFriendRequestStatusNull() {
+        _friendRequestStatus.value = null
+    }
+
     fun sendFriendRequest(targetUid: String) {
         uid?.let { currentUid ->
             viewModelScope.launch {
                 val success = friendRepository.sendFriendRequest(currentUid, targetUid)
                 if (success) {
-                    // 친구 요청이 성공적으로 전송되었을 경우 UI 상태를 업데이트
                     _searchResults.value = _searchResults.value.toMutableMap().apply {
-                        // 검색 결과에서 해당 targetUid의 STATUS를 SENT로 변경
                         this[targetUid] =
                             this[targetUid]?.copy(status = FriendStatus.SENT) ?: return@launch
                     }
                 }
+                _friendRequestStatus.value = success
             }
         }
     }

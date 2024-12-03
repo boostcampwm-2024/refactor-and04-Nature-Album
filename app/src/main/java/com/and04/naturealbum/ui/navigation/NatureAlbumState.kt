@@ -1,5 +1,6 @@
 package com.and04.naturealbum.ui.navigation
 
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -16,15 +17,14 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.LocationHandler
-import com.and04.naturealbum.ui.friend.FriendSearchScreen
 import com.and04.naturealbum.utils.ImageConvert
 import java.io.File
 
+@SuppressLint("RestrictedApi")
 @Stable
 class NatureAlbumState(
     val navController: NavHostController,
@@ -97,7 +97,9 @@ class NatureAlbumState(
 
     fun navigateToMap() = navController.navigate(NavigateDestination.Map.route)
 
-    fun navigateToMyPage() = navController.navigate(NavigateDestination.MyPage.route)
+    fun navigateToMyPage() = navController.navigate(NavigateDestination.MyPage.route) {
+        launchSingleTop = true
+    }
 
     fun navigateToSearchLabel() = navController.navigate(NavigateDestination.SearchLabel.route)
 

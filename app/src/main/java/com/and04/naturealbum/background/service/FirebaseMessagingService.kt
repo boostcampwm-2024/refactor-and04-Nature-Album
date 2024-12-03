@@ -6,11 +6,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.repository.firebase.UserRepository
-import com.and04.naturealbum.ui.MainActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -26,18 +25,11 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var userRepository: UserRepository
 
-    // FCM 토큰이 갱신될 때 자동으로 호출
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCM", "Refresh token $token")
         val uid = Firebase.auth.currentUser?.uid ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            val success = userRepository.saveFcmToken(uid, token)
-            if (success) {
-                Log.d("FCM", "FCM token successfully updated via Repository for user: $uid")
-            } else {
-                Log.e("FCM", "Failed to update FCM token via Repository for user: $uid")
-            }
+            userRepository.saveFcmToken(uid, token)
         }
     }
 
@@ -54,9 +46,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
     private fun showNotification(title: String, body: String) {
         val notificationId = System.currentTimeMillis().toInt()
-
-        // TODO: 현재는 앱 열기. 추후 MyPage로 여는 것으로 교체
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(Intent.ACTION_VIEW, MY_PAGE_URI.toUri())
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -64,7 +54,6 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // NotificationChannel 설정 (Android 8.0 이상)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -86,7 +75,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
-        // 알림 채널의 고유 ID, Android 8.0 이상에서는 반드시 사용
         private const val CHANNEL_ID = "nature_album_channel_id"
+        const val MY_PAGE_URI = "naturealbum://my_page"
     }
 }

@@ -99,6 +99,9 @@ exports.onFriendRequestCreated = onDocumentCreated(
             title: "새로운 친구 요청",
             body: `${senderDisplayName}님으로부터 친구 요청이 도착했습니다.`,
           },
+          data: {
+            deeplink: "naturealbum://my_page",
+          },
         };
 
         // FCM 메시지 전송
