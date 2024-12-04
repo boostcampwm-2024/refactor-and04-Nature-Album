@@ -87,6 +87,14 @@ class FirebaseDataSource @Inject constructor(
         }
     }
 
+    suspend fun getPhotoInfo(uid: String, fileName: String): DocumentSnapshot {
+        return fireStore.collection(USER).document(uid)
+            .collection(PHOTOS)
+            .document(fileName)
+            .get()
+            .await()
+    }
+
     suspend fun setUserPhoto(
         uid: String,
         fileName: String,
