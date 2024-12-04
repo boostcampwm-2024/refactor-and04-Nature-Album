@@ -93,12 +93,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
         fun runImmediately(context: Context) {
             if (!IS_RUNNING) {
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED) //Wifi 연결 시 실행
-                    .build()
-
                 val workRequest = OneTimeWorkRequestBuilder<SynchronizationWorker>()
-                    .setConstraints(constraints)
                     .build()
 
                 WorkManager.getInstance(context)
