@@ -30,7 +30,6 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.ImageConvert
-import com.and04.naturealbum.utils.toDate
 import com.and04.naturealbum.utils.toDateTimeString
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -93,12 +92,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
         fun runImmediately(context: Context) {
             if (!IS_RUNNING) {
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED) //Wifi 연결 시 실행
-                    .build()
-
                 val workRequest = OneTimeWorkRequestBuilder<SynchronizationWorker>()
-                    .setConstraints(constraints)
                     .build()
 
                 WorkManager.getInstance(context)
