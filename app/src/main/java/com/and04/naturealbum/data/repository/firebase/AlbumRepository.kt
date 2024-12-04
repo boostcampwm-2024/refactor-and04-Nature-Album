@@ -134,6 +134,24 @@ class AlbumRepositoryImpl @Inject constructor(
                                 val albums = localRepository.getAlbumByLabelId(label.id)
                                 if (albums.isEmpty()) {
                                     firebaseDataSource.deleteUserLabel(uid, label)
+                                } else {
+                                    val albumPresentFileName =
+                                        localRepository.getPhotoDetailById(albums[0].photoDetailId).fileName
+                                    val document =
+                                        firebaseDataSource.getPhotoInfo(uid, albumPresentFileName)
+                                    document.toObject(FirebasePhotoInfoResponse::class.java)
+                                        ?.let { photoInfo ->
+                                            firebaseDataSource.setUserLabel(
+                                                uid,
+                                                label.name,
+                                                FirebaseLabel(
+                                                    backgroundColor = label.backgroundColor,
+                                                    thumbnailUri = photoInfo.uri,
+                                                    fileName = document.id,
+                                                )
+                                            )
+                                        }
+
                                 }
                             }
 
