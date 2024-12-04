@@ -30,6 +30,8 @@ import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.ImageConvert
+import com.and04.naturealbum.utils.toDate
+import com.and04.naturealbum.utils.toDateTimeString
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted
@@ -224,8 +226,7 @@ class SynchronizationWorker @AssistedInject constructor(
             }.await()
 
             syncDataStore.setSyncTime(
-                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                LocalDateTime.now(ZoneId.of("UTC")).toDateTimeString()
             )
             Result.success()
         } catch (e: Exception) {

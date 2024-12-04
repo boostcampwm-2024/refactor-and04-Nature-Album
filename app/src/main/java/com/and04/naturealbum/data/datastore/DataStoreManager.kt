@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.and04.naturealbum.utils.toLocalDateTime
+import com.and04.naturealbum.utils.toSyncDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -12,9 +14,10 @@ class DataStoreManager(
     private val context: Context,
 ) {
     private val Context.dataStore by preferencesDataStore(name = SYNC_TIME)
-    val syncTime = context.dataStore.data.map { time ->
-        time[SYNC_TIME_KEY] ?: NEVER_SYNC
-    }
+    val syncTime = context.dataStore.data
+        .map { time ->
+            time[SYNC_TIME_KEY]?.toLocalDateTime()?.toSyncDate() ?: NEVER_SYNC
+        }
 
     suspend fun setSyncTime(dateTime: String) {
         context.dataStore.edit { store ->

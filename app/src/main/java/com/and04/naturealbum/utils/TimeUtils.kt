@@ -10,6 +10,11 @@ fun LocalDateTime.toDate(): String {
     return format(formatter)
 }
 
+fun LocalDateTime.toSyncDate(): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    return format(formatter)
+}
+
 fun String.toLocalDateTime(): LocalDateTime = LocalDateTime
     .parse(this, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     .atZone(ZoneId.of("UTC"))
