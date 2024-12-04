@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -351,7 +352,13 @@ private fun PhotoGrid(
                 val backgroundColor = label.color.toColor()
                 SuggestionChip(
                     onClick = {},
-                    label = { Text(text = label.name) },
+                    label = {
+                        Text(
+                            text = label.name,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     modifier = modifier,
                     colors = SuggestionChipDefaults.suggestionChipColors(
                         containerColor = backgroundColor,
