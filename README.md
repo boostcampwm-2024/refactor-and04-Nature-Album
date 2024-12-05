@@ -17,9 +17,8 @@
 - 비회원으로 네트워크 없이 어디서든 생물을 촬영해 나만의 생물 도감을 만들어보세요~!
 - 추가로 로그인을 하면 친구들의 생물 지도를 함께 볼 수 있답니다 😉 함께 즐겨보시는 것도 추천드립니다.
 
-<video src="https://github.com/user-attachments/assets/d94678b8-9fa7-403f-9682-339455125831" width="100%" controls></video>
-
 <br>
+
 ## ✨ 서비스 기능 소개
 
 - 📸 생물 촬영 : 카메라로 주변의 생물 촬영
@@ -36,7 +35,9 @@
 
 <br>
 
-## ✨ 상세 기능 (GIF) 
+## ✨ 상세 기능
+
+<video src="https://github.com/user-attachments/assets/d94678b8-9fa7-403f-9682-339455125831" width="100%" controls></video>
 
 <details>
 <summary>도감 등록</summary>
@@ -161,6 +162,8 @@
 3. 한 번의 탐색으로 데이터 분류
 - 한 번의 탐색으로 `서버에 필요한 데이터`, `로컬에 필요한 데이터`, `상이한 데이터`를 추출, 현재 같은 탐색을 3번 반복하여 서로 다른 데이터를 추출하고 있는데 이를 한 번에 3가지의 데이터를 추출하여 시간 단축을 기대할 수 있습니다.
 
+---
+
 ### 2. Recomposition 최적화
 <img src="https://github.com/user-attachments/assets/970c860e-befb-4c64-a69d-005ead29d5b4" width="100%">
 
@@ -197,6 +200,8 @@
 
 <br>
 
+---
+
 ### 3. FCM 구현: 백엔드 문제 해결
 <img src="https://github.com/user-attachments/assets/99bc90fb-3e43-4c6c-96a8-2e34f169d2c0" width="100%">
 
@@ -224,24 +229,27 @@ FCM(Firebase Cloud Messaging)으로 친구 요청 알림을 구현하려 했으�
 <img src="https://github.com/user-attachments/assets/1cfdc52e-83f6-4a9c-bb08-ed659babcfc9" width="100%">
 
 #### 🔍 **문제 상황**
-1. Coil이 View의 Attach 상태를 확인하지 못해 이미지 로딩 취소.  
-2. Compose와 MapView의 라이프사이클 불일치
+1. Marker의 아이콘을 뷰로 생성할때 attach를 하지 않고 바로 비트맵으로 변환해서 내부의 이미지 비동기 로딩이 동작하지 않음.
+2. Compose에서 MapView의 라이프사이클을 관리해야 
 
 #### 🚀 **해결 과정**
-1. **Coil 로딩 문제 해결**  
-   - ViewTreeObserver로 Attach 상태를 확인한 후 Coil 로딩을 시작하고, 로딩 완료 후 Marker에 적용.  
+1. **Marker - Coil 이미지 로드**  
+   - 마커의 아이콘으로 사용할 커스텀 뷰 제작.  
+   - 커스텀 뷰에 uri를 설정하는 메소드를 추가해 coil로 이미지 로드.  
+   - 마커를 invisible인 상태로 맵뷰에 add  
+   - ImageView.load의 이미지 로드 상태 리스너에서 마커의 아이콘을 업데이트하는 콜백 실행  
 2. **Compose-View 라이프사이클 동기화**  
    - DisposableEffect와 LifecycleObserver를 활용해 MapView와 Compose 생명주기를 통합 관리.  
-3. **작업 순서 최적화**  
-   - Attach 확인 → Coil 로딩 → Marker 적용 순서로 문제 해결.
+   - onDispose에서 메모리 정리  
 
 #### ✅ **결과**
-- Coil로 Marker에 정상적으로 이미지 로딩.  
+- Coil로 Marker에 정상적으로 이미지 로딩.
+- 마커의 이미지 로드 시작, 실패시 아이콘 변경
 - Compose와 MapView를 안정적으로 통합 관리.  
 
 #### 🌟 **배운 점 및 성장**
 - **생명주기 관리 이해**: Compose와 View의 독립적 라이프사이클을 통합 관리하는 방법 학습.  
-- **비동기 처리 최적화**: Attach 상태 확인 후 Coil 로딩으로 비동기 문제 해결 능력 강화.  
+- **비동기 처리 최적화**: 정적인 UI와 비동기로 동작되는 UI의 연동방법 학습.
 - **통합 관리 경험**: Compose와 기존 View를 함께 사용하는 기술적 자신감 확보.  
 
 
