@@ -150,6 +150,47 @@
 2. 서비스의 특성상 서버는 로컬 데이터의 변화를 파악하기 어렵지만 로컬은 서버에 저장 된 데이터를 파악할 수 있습니다. Local DB에 서버 저장 유무에 대한 속성을 추가하여 미등록 된 데이터만 가져와 비교하는 방법으로 시간 단축을 기대할 수 있습니다.
 3. 한 번의 탐색으로 `서버에 필요한 데이터`, `로컬에 필요한 데이터`, `상이한 데이터`를 추출, 현재 같은 탐색을 3번 반복하여 서로 다른 데이터를 추출하고 있는데 이를 한 번에 3가지의 데이터를 추출하여 시간 단축을 기대할 수 있습니다.
 
+<br>
+
+### 2. Recomposition 최적화
+
+![63](https://github.com/user-attachments/assets/970c860e-befb-4c64-a69d-005ead29d5b4)
+
+기존 하위 컴포저블이 가진 상태를 호이스팅함으로써 공유하고 재사용 가능한 stateless한 컴포저블로 만들었습니다.
+
+호이스팅된 상태를 하위 컴포저블에게 주기 위해 `by remember`를 사용하여 바로 값에 접근하여 값 자체를 상태를 필요로하는 컴포저블에게 넘겨주었습니다.
+
+<br>
+
+#### 문제점!
+하지만 위 이미지처럼 `by remember` 를 통해 값 자체를 넘겨줄 때 상태를 끌어올린 위치까지 전부 리컴포지션이 되는 문제가 발생했습니다.
+
+하지만 반대로 `= remember` 를 사용해 `State` 타입을 넘겨주었을 땐, 실제 상태를 이용하는 컴포저블만 리컴포지션이 발생했습니다.
+
+<br>
+
+#### 원인과 해결 과정
+두 선언 방식은 어떤 차이가 있길래 리컴포지션 측면에서 전혀 다른 결과가 발생했는지 알아보기 위해 들어간 내부 코드의 설명에서 정답을 찾을 수 있었습니다.
+
+내부 코드에서는 아래와 같은 설명을 통해 안내하고 있었습니다.
+
+> A mutable value holder where reads to the value property during the execution of a Composable function, the current RecomposeScope will be subscribed to changes of that value.
+>
+> When the value property is written to and changed, a recomposition of any subscribed RecomposeScopes will be scheduled.
+
+
+컴포저블 함수가 실행되는 동안 `.value(getValue)` 를 읽으면 현재 실행중인 컴포저블은 해당 상태의 변경사항을 구독(subscribed)한다.
+
+`value` 속성이 작성되고 변경되면 해당 상태를 구독한 컴포지션은 리컴포지션의 대상이된다.
+
+<br>
+
+즉, 상위 컴포저블에서 `by remember` 를 통해 값에 접근할 때는 내부적으로 `getValue` 를 통해 `value` 속성에 접근했기에 리컴포지션이 대상이 되었던 것이고, `= remember`를 사용하여 `State` 타입을 넘겨주었을 때는 `value` 속성에 접근한 것이 아니기에 리컴포지션 대상이 되지 않았던 것이었습니다.
+
+따라서, 상태를 끌어올린 위치의 컴포저블에서는 `= remember` 를 사용하고, 상태를 필요로하는 하위 컴포저블까지 `State` 타입을 넘겨주는 것으로 리컴포지션 최적화를 할 수 있었습니다.
+
+<br>
+
 ---
 
 ## 📔 문서
