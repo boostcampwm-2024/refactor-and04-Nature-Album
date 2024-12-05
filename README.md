@@ -131,7 +131,7 @@
 
 ## 핵심 경험
 ### 1. 동기화
-<img src="https://github.com/user-attachments/assets/c4f57389-85ec-4354-ba8b-dc2de9e684ad" width=500/> <img src="https://github.com/user-attachments/assets/5d9a473f-882e-4c53-a5f7-a725f4f4284e" width=500/>   
+<img src="https://github.com/user-attachments/assets/c4f57389-85ec-4354-ba8b-dc2de9e684ad" width=400/> <img src="https://github.com/user-attachments/assets/5d9a473f-882e-4c53-a5f7-a725f4f4284e" width=400/>   
 동기화는 로그인 상태에서 매일 자정에 WIFI 연결 상태에서만 실행이 됩니다.   
 동기화가 필요한 상황은 다음과 같습니다.   
 > 1. 비회원으로 사용하다 로그인하는 경우
