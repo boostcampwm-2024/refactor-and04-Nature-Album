@@ -1,0 +1,138 @@
+<resources>
+    <string name="app_name">Nature Album</string>
+
+    <!-- Search Label -->
+    <string name="label_search_title_topbar">Label</string>
+    <string name="label_search_check_icon_description">라벨 추가</string>
+    <string name="label_search_select_create">라벨 선택 또는 생성</string>
+    <string name="label_search_create">생성</string>
+    <string name="label_search_label_search">라벨 검색</string>
+    <string name="label_search_blank_query_toast">라벨을 입력하세요.</string>
+    <string name="label_search_nest_label_toast">이미 존재하는 라벨입니다.</string>
+    <string name="label_by_gemini_search_create">AI 추천 라벨</string>
+
+    <string name="Home_Screen_button_camera">카메라</string>
+    <string name="Home_Screen_button_field_guide">나의 생물 도감</string>
+    <string name="Home_Screen_button_map">나의 생물 지도</string>
+    <string name="Home_Screen_permission_explain">이 앱은 촬영한 사진을 지도에 표시하고 도감을 작성하기 위해 카메라와 위치 접근 권한이 필요합니다.\n권한을 허용해 주시면 주변 생물에 대한 사진과 위치 정보를 기록하여 나만의 도감을 만들 수 있습니다.</string>
+    <string name="Home_Screen_permission_go_to_settings">설정으로 이동해서 직접 권한을 부여하세요.</string>
+
+    <string name="dialog_confirm_button">확인</string>
+    <string name="dialog_dismiss_button">취소</string>
+
+    <!-- Save Photo -->
+    <string name="save_photo_screen_cancel">취소</string>
+    <string name="save_photo_screen_save">도감에 등록하기</string>
+    <string name="save_photo_screen_set_represent">대표 이미지로 설정하기</string>
+    <string name="save_photo_screen_label">라벨</string>
+    <string name="save_photo_screen_select_label">라벨을 선택해주세요. (필수)</string>
+    <string name="save_photo_screen_description">설명</string>
+    <string name="save_photo_screen_description_about_photo">사진에 대한 설명을 추가할 수 있습니다. (선택)</string>
+    <string name="save_photo_screen_image_description">사진찍은 이미지</string>
+    <string name="save_photo_screen_saving">저장중</string>
+    <string name="save_photo_screen_loading">불러오는중..</string>
+
+    <!-- Photo Info -->
+    <string name="photo_info_screen_calender_icon">달력 아이콘</string>
+    <string name="photo_info_screen_location_icon">위치 아이콘</string>
+    <string name="photo_info_screen_description_icon">설명 아이콘</string>
+    <string name="photo_info_set_thumbnail_btn_txt">대표 이미지 설정</string>
+    <string name="photo_info_success_set_thumbnail">대표 이미지로 설정되었습니다.</string>
+
+    <!--Album Folder -->
+    <string name="album_folder_screen_save_button">선택한 사진 저장</string>
+    <string name="album_folder_screen_delete_button">선택한 사진 삭제</string>
+    <string name="album_folder_screen_select_all">전체선택</string>
+    <string name="album_folder_screen_item_select_icon_description">아이템 선택 아이콘</string>
+    <string name="album_folder_screen_item_image_description">아이템 이미지</string>
+    <string name="album_folder_screen_save_text">저장중...</string>
+    <string name="album_folder_permission_go_to_settings">설정으로 이동해서 직접 권한을 부여하세요.</string>
+
+    <!-- Home -->
+    <string name="home_navigate_to_map">나의 생물 지도</string>
+    <string name="home_btn_menu_map_description"> 나의 생물 지도로 가는 버튼</string>
+    <string name="home_navigate_to_album">나의 도감</string>
+    <string name="home_navigate_to_camera">카메라</string>
+    <string name="home_text_loading">Loading...</string>
+    <string name="home_need_wifi_or_off_airplane_mode">비행기 모드를 해제 또는 WIFI를 연결해주세요.</string>
+
+    <!-- component -->
+    <string name="component_navigation_image_button">네비게이션 이미지 버튼</string>
+
+    <!-- Map -->
+    <string name="map_marker_loading">Loading map markers...</string>
+    <string name="map_show_friend_map">친구 지도 보기</string>
+    <string name="map_friend_dialog_title">친구 지도 같이 보기</string>
+    <string name="map_friend_dialog_body">친구의 지도를 함께 봐봅시다\n총 %d명의 친구 선택 가능해요!</string>
+    <string name="map_friend_dialog_no_friend">마이페이지에서 친구추가를 해보세요</string>
+    <string name="map_friend_dialog_no_friend_icon">친구 리스트가 비어있어요</string>
+    <string name="map_friend_dialog_cancel_btn">취소</string>
+    <string name="map_friend_dialog_confirm_btn">적용</string>
+    <string name="map_arrow_back_button">navigate My Page To Home</string>
+
+
+    <!-- Loading Async Image -->
+    <string name="loading_async_image_loading">사진 로딩중</string>
+    <string name="loading_async_image_load_fail">사진을 불러오는데 실패했습니다.</string>
+
+    <!-- Photo Content -->
+    <string name="photo_content_close_btn">이전 화면으로 돌아가는 버튼</string>
+
+    <!-- My Page -->
+    <string name="my_page_arrow_back_icon_content_description">navigate My Page To Home</string>
+    <string name="my_page_user_profile_image">My Page User Profile Image</string>
+    <string name="my_page_default_user_email">현재 비회원 계정입니다.</string>
+    <string name="my_page_google_login_btn">구글 계정으로 로그인</string>
+    <string name="my_page_login_txt">로그인</string>
+    <string name="my_page_social_list">친구 목록</string>
+    <string name="my_page_social_search">친구 검색</string>
+    <string name="my_page_social_alarm">알림</string>
+    <string name="my_page_search_hint">이메일로 친구 찾기</string>
+    <string name="my_page_friend_requested">확인중</string>
+    <string name="my_page_friend_request">친구 요청</string>
+    <string name="my_page_friend_request_received">요청 받음</string>
+    <string name="my_page_friend">나와 친구</string>
+    <string name="my_page_alarm_txt">께서\n친구 신청을 요청했습니다.</string>
+    <string name="my_page_request_accept">수락</string>
+    <string name="my_page_request_deny">거절</string>
+    <string name="my_page_search_bar_search_icon">검색 바에서 검색 아이콘</string>
+    <string name="my_page_sync">동기화</string>
+    <string name="my_page_sync_icon_content_description">동기화 버튼</string>
+    <string name="my_page_not_yet_sync">동기화 전적 없음</string>
+    <string name="my_page_snackbar_confirm_button">확인</string>
+    <string name="my_page_snackbar_network_state_data_keep_going">WIFI 상태가 아닙니다. 계속 진행하시겠습니까?</string>
+    <string name="my_page_snackbar_network_state_disconnect">네트워크가 끊겼습니다.</string>
+    <string name="my_page_no_network_social_content_message">친구 기능은 네트워크가 연결되어야 사용할 수 있습니다.</string>
+    <string name="my_page_no_network_social_content_icon_description">네트워크가 없어서 나오는 아이콘 표시</string>
+    <string name="my_page_permission_alarm_explain">친구 요청을 알림으로 받기 위해 필요한 권한 요청입니다. 친구 요청이 올 때 알림을 원하신다면 허용해주세요.</string>
+    <string name="my_page_no_friend_requests_message">받은 친구 요청이 없습니다.</string>
+    <string name="my_page_no_friend_message">친구가 없습니다.\n친구 검색해서 추가해주세요.</string>
+
+    <!-- Top bar -->
+    <string name="top_bar_navigate_to_my_page">Navigate to My Page Screen</string>
+    <string name="cliping_button_navigate_to_map">Navigate To Map Button</string>
+
+    <!-- service -->
+    <string name="service_analyze_hazard_fail">유해성 검사에 실패했습니다.</string>
+
+    <!-- Notification -->
+    <string name="notification_default_title">알림 제목 없음</string>
+    <string name="notification_default_body">알림 내용 없음</string>
+    <string name="notification_channel_name">Nature Album</string>
+    <string name="my_page_login_no_network_message">로그인 하려면 네트워크 연결해주세요</string>
+
+    <!-- component -->
+    <string name="rotating_icon_button">rotating_image</string>
+    <string name="network_disconnect_icon">네트워크 연결 없음</string>
+    <string name="network_disconnect_check_network">네트워크 연결을 확인해 주세요</string>
+
+    <!-- Album -->
+    <string name="nothing_album_txt">도감이 존재하지 않습니다.</string>
+
+    <!-- FriendSearchScreen -->
+    <string name="friend_search_screen_title">친구 검색</string>
+    <string name="freind_search_screen_no_result">검색 결과 없음</string>
+    <string name="friend_search_screen_friend_request_success">친구 요청 성공</string>
+    <string name="friend_search_screen_friend_request_fail">친구 요청 실패</string>
+
+</resources>
