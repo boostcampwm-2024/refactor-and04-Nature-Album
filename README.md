@@ -8,6 +8,7 @@
 
 <img src="https://github.com/user-attachments/assets/5dca1733-a3dc-4a2f-bca3-094cd8bb2010" alt="Nature Album 배너 이미지" width="100%">
 
+<br>
 
 ## ⭐ 프로젝트 소개
 
@@ -16,6 +17,8 @@
 - 비회원으로 네트워크 없이 어디서든 생물을 촬영해 나만의 생물 도감을 만들어보세요~!
 - 추가로 로그인을 하면 친구들의 생물 지도를 함께 볼 수 있답니다 😉 함께 즐겨보시는 것도 추천드립니다.
 
+<br>
+
 ## ✨ 서비스 기능 소개
 
 - 📸 생물 촬영 : 카메라로 주변의 생물 촬영
@@ -23,10 +26,14 @@
 - 🗺️ 생물 지도 확인 : 생물 도감의 위치 별로 표시되는 지도 확인
 - 🤼 친구의 생물 지도 보기 : 로그인 하여 친구 추가한 친구들의 생물 지도 함께 보기
 
+<br>
+
 ---
 ## ✨ 상세 기능 요약
 
-![image](https://github.com/user-attachments/assets/57ba71da-e41e-4613-92a5-3e218cde9399)
+![04  구조](https://github.com/user-attachments/assets/646c79fa-180d-490f-b212-cfe8989c06b1)
+
+<br>
 
 ## ✨ 상세 기능 (GIF) 
 
@@ -90,11 +97,15 @@
 </div>
 </details>
 
+<br>
+
 ---
 
 ## 💫 서비스 구조
 
-![image](https://github.com/user-attachments/assets/f1fcbcba-9c45-49a1-b2cb-1326bff9eb93)
+![04  구조](https://github.com/user-attachments/assets/aa64e72c-2f8b-4f85-921d-544bda283487)
+
+<br>
 
 ## ✨ 기술 스택
 
@@ -113,6 +124,7 @@
 | **AI** | `Gemini`, `Green-Eye` |
 | **Tooling** | `Notion`, `Figma`, `Figjam`, `Github`, `Git`, `Zep` |
 
+<br>
 
 ---
 
@@ -120,8 +132,11 @@
 
 [Wiki 바로가기](https://github.com/boostcampwm-2024/and04-Nature-Album/wiki)   
 
+<br>
+
 <img src="https://github.com/user-attachments/assets/2d1fa247-6d4f-43c5-9a9a-baa94b13a03d"/>
 
+<br>
 
 ---
 
