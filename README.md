@@ -37,7 +37,7 @@
 
 ## ✨ 상세 기능
 
-<video src="https://github.com/user-attachments/assets/d94678b8-9fa7-403f-9682-339455125831" width="100%" controls></video>
+<video src="https://github.com/user-attachments/assets/c591e4e1-0a63-4d1f-857b-50beb7c6ad98" width="100%" controls></video>
 
 <details>
 <summary>도감 등록</summary>
