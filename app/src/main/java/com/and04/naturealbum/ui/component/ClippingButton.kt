@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
-import com.and04.naturealbum.utils.parseDrawableSvgFile
-import com.and04.naturealbum.utils.parseSvgFile
+import com.and04.naturealbum.utils.image.parseDrawableSvgFile
+import com.and04.naturealbum.utils.image.parseSvgFile
 
 private fun Path.scale(scaleX: Float, scaleY: Float) {
     val matrix = Matrix().apply {

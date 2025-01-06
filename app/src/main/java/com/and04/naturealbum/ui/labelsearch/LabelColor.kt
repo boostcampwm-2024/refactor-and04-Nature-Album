@@ -1,7 +1,7 @@
 package com.and04.naturealbum.ui.labelsearch
 
 import androidx.compose.ui.graphics.luminance
-import com.and04.naturealbum.utils.toColor
+import com.and04.naturealbum.utils.color.toColor
 
 fun getRandomColor(): String {
     while (true) {

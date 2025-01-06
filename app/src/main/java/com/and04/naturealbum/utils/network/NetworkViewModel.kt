@@ -1,4 +1,4 @@
-package com.and04.naturealbum.utils
+package com.and04.naturealbum.utils.network
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

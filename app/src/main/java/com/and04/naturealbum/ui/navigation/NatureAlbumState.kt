@@ -21,7 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.LocationHandler
-import com.and04.naturealbum.utils.ImageConvert
+import com.and04.naturealbum.utils.image.ImageConvert
 import java.io.File
 
 @SuppressLint("RestrictedApi")

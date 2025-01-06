@@ -48,8 +48,8 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.FirestoreUserWithStatus
 import com.and04.naturealbum.data.dto.FriendStatus
 import com.and04.naturealbum.ui.mypage.NoNetworkSocialContent
-import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
-import com.and04.naturealbum.utils.NetworkViewModel
+import com.and04.naturealbum.utils.network.NetworkState.DISCONNECTED
+import com.and04.naturealbum.utils.network.NetworkViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.and04.naturealbum.utils
+package com.and04.naturealbum.utils.network
 
 import android.content.Context
 import android.net.ConnectivityManager

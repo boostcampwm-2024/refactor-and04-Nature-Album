@@ -29,8 +29,8 @@ import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.mypage.UserManager
-import com.and04.naturealbum.utils.ImageConvert
-import com.and04.naturealbum.utils.toDateTimeString
+import com.and04.naturealbum.utils.image.ImageConvert
+import com.and04.naturealbum.utils.time.toDateTimeString
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.assisted.Assisted

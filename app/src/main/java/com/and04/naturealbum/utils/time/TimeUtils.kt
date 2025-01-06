@@ -1,4 +1,4 @@
-package com.and04.naturealbum.utils
+package com.and04.naturealbum.utils.time
 
 import java.time.LocalDateTime
 import java.time.ZoneId

@@ -1,4 +1,4 @@
-package com.and04.naturealbum.utils
+package com.and04.naturealbum.utils.color
 
 import androidx.compose.ui.graphics.Color
 

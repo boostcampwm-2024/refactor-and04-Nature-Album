@@ -13,7 +13,7 @@ import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetailDao
-import com.and04.naturealbum.utils.ImageConvert
+import com.and04.naturealbum.utils.image.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint

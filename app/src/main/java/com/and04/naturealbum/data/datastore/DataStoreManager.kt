@@ -5,8 +5,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.and04.naturealbum.utils.toLocalDateTime
-import com.and04.naturealbum.utils.toSyncDate
+import com.and04.naturealbum.utils.time.toLocalDateTime
+import com.and04.naturealbum.utils.time.toSyncDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 

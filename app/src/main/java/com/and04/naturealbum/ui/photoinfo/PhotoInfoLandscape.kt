@@ -26,8 +26,8 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
-import com.and04.naturealbum.utils.toColor
-import com.and04.naturealbum.utils.toDate
+import com.and04.naturealbum.utils.color.toColor
+import com.and04.naturealbum.utils.time.toDate
 
 @Composable
 fun PhotoInfoLandscape(

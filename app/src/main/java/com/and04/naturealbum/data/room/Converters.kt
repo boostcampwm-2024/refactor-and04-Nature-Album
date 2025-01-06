@@ -1,9 +1,8 @@
 package com.and04.naturealbum.data.room
 
 import androidx.room.TypeConverter
-import com.and04.naturealbum.utils.toLocalDateTime
+import com.and04.naturealbum.utils.time.toLocalDateTime
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class Converters {

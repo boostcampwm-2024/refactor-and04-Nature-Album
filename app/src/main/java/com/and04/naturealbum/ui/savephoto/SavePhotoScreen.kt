@@ -74,8 +74,8 @@ import com.and04.naturealbum.ui.component.RotatingImageLoading
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopBar
-import com.and04.naturealbum.utils.NetworkState
-import com.and04.naturealbum.utils.NetworkState.DISCONNECTED
+import com.and04.naturealbum.utils.network.NetworkState
+import com.and04.naturealbum.utils.network.NetworkState.DISCONNECTED
 import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase

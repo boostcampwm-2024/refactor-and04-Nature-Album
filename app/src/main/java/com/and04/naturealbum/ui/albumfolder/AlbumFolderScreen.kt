@@ -67,7 +67,7 @@ import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
-import com.and04.naturealbum.utils.toColor
+import com.and04.naturealbum.utils.color.toColor
 
 @Composable
 fun AlbumFolderScreen(

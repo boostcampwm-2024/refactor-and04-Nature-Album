@@ -4,7 +4,7 @@ import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.utils.toLocalDateTime
+import com.and04.naturealbum.utils.time.toLocalDateTime
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.clustering.ClusteringKey
 import java.time.LocalDateTime

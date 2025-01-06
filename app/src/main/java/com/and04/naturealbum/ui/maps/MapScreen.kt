@@ -58,9 +58,9 @@ import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
 import com.and04.naturealbum.ui.mypage.UserManager
-import com.and04.naturealbum.utils.NetworkState
-import com.and04.naturealbum.utils.NetworkViewModel
-import com.and04.naturealbum.utils.toColor
+import com.and04.naturealbum.utils.network.NetworkState
+import com.and04.naturealbum.utils.network.NetworkViewModel
+import com.and04.naturealbum.utils.color.toColor
 import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate

@@ -50,7 +50,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.ui.model.UiState
 import com.and04.naturealbum.ui.savephoto.SavePhotoViewModel
-import com.and04.naturealbum.utils.toColor
+import com.and04.naturealbum.utils.color.toColor
 
 @Composable
 fun LabelSearchScreen(
