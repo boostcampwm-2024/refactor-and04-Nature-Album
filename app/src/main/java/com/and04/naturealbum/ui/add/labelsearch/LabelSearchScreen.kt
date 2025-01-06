@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.labelsearch
+package com.and04.naturealbum.ui.add.labelsearch
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -48,8 +48,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.model.UiState
-import com.and04.naturealbum.ui.savephoto.SavePhotoViewModel
+import com.and04.naturealbum.ui.utils.UiState
+import com.and04.naturealbum.ui.add.savephoto.SavePhotoViewModel
 import com.and04.naturealbum.utils.color.toColor
 
 @Composable

@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.savephoto
+package com.and04.naturealbum.ui.add.savephoto
 
 import android.app.Activity.RESULT_OK
 import android.content.Context
@@ -67,11 +67,11 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.LocationHandler
+import com.and04.naturealbum.ui.utils.LocationHandler
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.network.NetworkState

@@ -12,18 +12,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
 import com.and04.naturealbum.background.service.FirebaseMessagingService.Companion.MY_PAGE_URI
-import com.and04.naturealbum.ui.album.AlbumScreen
-import com.and04.naturealbum.ui.albumfolder.AlbumFolderScreen
+import com.and04.naturealbum.ui.album.labels.AlbumScreen
+import com.and04.naturealbum.ui.album.labelphotos.AlbumFolderScreen
 import com.and04.naturealbum.ui.friend.FriendSearchScreen
 import com.and04.naturealbum.ui.home.HomeScreen
-import com.and04.naturealbum.ui.labelsearch.LabelSearchScreen
+import com.and04.naturealbum.ui.add.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.maps.MapScreen
 import com.and04.naturealbum.ui.mypage.MyPageScreen
 import com.and04.naturealbum.ui.navigation.NatureAlbumState
 import com.and04.naturealbum.ui.navigation.NavigateDestination
 import com.and04.naturealbum.ui.navigation.rememberNatureAlbumState
-import com.and04.naturealbum.ui.photoinfo.PhotoInfo
-import com.and04.naturealbum.ui.savephoto.SavePhotoScreen
+import com.and04.naturealbum.ui.album.photoinfo.PhotoInfo
+import com.and04.naturealbum.ui.add.savephoto.SavePhotoScreen
 
 @Composable
 fun NatureAlbumApp(

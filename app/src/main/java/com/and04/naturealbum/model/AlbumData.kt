@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.model
+package com.and04.naturealbum.model
 
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail

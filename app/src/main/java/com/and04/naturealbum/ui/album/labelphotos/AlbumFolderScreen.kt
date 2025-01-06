@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.albumfolder
+package com.and04.naturealbum.ui.album.labelphotos
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
@@ -62,8 +62,8 @@ import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.ui.component.PermissionDialogState
 import com.and04.naturealbum.ui.component.PermissionDialogs
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.model.AlbumFolderData
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.model.AlbumFolderData
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount

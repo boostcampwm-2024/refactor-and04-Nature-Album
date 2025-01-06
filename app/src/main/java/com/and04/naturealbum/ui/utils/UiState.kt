@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.model
+package com.and04.naturealbum.ui.utils
 
 sealed class UiState<out T> {
     data object Idle : UiState<Nothing>()

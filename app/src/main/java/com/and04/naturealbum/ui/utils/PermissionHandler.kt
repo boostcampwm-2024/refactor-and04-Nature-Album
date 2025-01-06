@@ -1,11 +1,10 @@
-package com.and04.naturealbum.ui
+package com.and04.naturealbum.ui.utils
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
-import java.security.Permissions
 
 class PermissionHandler(
     private val context: Context,

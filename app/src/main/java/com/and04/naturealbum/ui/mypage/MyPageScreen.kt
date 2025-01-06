@@ -69,12 +69,12 @@ import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.MyFriend
-import com.and04.naturealbum.ui.PermissionHandler
+import com.and04.naturealbum.ui.utils.PermissionHandler
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
-import com.and04.naturealbum.ui.model.UiState
-import com.and04.naturealbum.ui.model.UserInfo
+import com.and04.naturealbum.ui.utils.UiState
+import com.and04.naturealbum.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetMyPageTopAppBar
 import com.and04.naturealbum.utils.network.NetworkState

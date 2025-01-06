@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.album
+package com.and04.naturealbum.ui.album.labels
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background

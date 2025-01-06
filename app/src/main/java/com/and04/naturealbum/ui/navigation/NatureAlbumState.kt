@@ -20,7 +20,7 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.LocationHandler
+import com.and04.naturealbum.ui.utils.LocationHandler
 import com.and04.naturealbum.utils.image.ImageConvert
 import java.io.File
 

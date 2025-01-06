@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.photoinfo
+package com.and04.naturealbum.ui.album.photoinfo
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

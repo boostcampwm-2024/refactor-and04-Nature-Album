@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.savephoto
+package com.and04.naturealbum.ui.add.savephoto
 
 import android.location.Location
 import android.net.Uri
@@ -25,7 +25,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.ui.utils.UiState
 import java.time.LocalDateTime
 import java.time.ZoneId
 

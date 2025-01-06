@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.labelsearch
+package com.and04.naturealbum.ui.add.labelsearch
 
 import androidx.compose.ui.graphics.luminance
 import com.and04.naturealbum.utils.color.toColor

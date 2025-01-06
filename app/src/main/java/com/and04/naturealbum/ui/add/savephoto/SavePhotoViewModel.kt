@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.savephoto
+package com.and04.naturealbum.ui.add.savephoto
 
 import android.graphics.Bitmap
 import android.location.Location
@@ -12,7 +12,7 @@ import com.and04.naturealbum.data.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import com.google.firebase.Firebase
 import com.google.firebase.vertexai.type.content

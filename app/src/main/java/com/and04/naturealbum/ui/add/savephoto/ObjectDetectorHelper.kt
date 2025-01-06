@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.savephoto
+package com.and04.naturealbum.ui.add.savephoto
 
 import android.content.Context
 import android.graphics.Bitmap

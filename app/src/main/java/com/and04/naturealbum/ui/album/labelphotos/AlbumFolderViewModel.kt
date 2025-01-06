@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.albumfolder
+package com.and04.naturealbum.ui.album.labelphotos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,8 +6,8 @@ import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.model.AlbumFolderData
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.model.AlbumFolderData
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -79,7 +79,7 @@ class AlbumFolderViewModel @Inject constructor(
     }
 
     private fun deleteFile(fileName: String) {
-        val file = File("${filePath}${fileName}")
+        val file = File("$filePath${fileName}")
         if (file.exists()) {
             file.delete()
         }

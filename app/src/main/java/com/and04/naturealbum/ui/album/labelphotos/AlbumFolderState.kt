@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.albumfolder
+package com.and04.naturealbum.ui.album.labelphotos
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable

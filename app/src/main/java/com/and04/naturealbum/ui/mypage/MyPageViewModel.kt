@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.datastore.DataStoreManager
 import com.and04.naturealbum.data.datastore.DataStoreManager.Companion.NEVER_SYNC
-import com.and04.naturealbum.ui.model.UiState
-import com.and04.naturealbum.ui.model.UserInfo
+import com.and04.naturealbum.ui.utils.UiState
+import com.and04.naturealbum.model.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

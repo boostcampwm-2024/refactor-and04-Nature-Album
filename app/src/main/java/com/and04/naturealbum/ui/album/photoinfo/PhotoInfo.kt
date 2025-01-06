@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.photoinfo
+package com.and04.naturealbum.ui.album.photoinfo
 
 import android.content.res.Configuration
 import android.widget.Toast
@@ -26,8 +26,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.room.Label
 import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.ui.model.AlbumData
-import com.and04.naturealbum.ui.model.UiState
+import com.and04.naturealbum.model.AlbumData
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.GetTopBar
 
 @Composable
