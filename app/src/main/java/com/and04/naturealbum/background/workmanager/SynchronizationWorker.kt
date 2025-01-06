@@ -14,7 +14,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.and04.naturealbum.data.datastore.DataStoreManager
+import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
@@ -24,10 +24,10 @@ import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.Album
-import com.and04.naturealbum.data.room.HazardAnalyzeStatus
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.Album
+import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.image.ImageConvert
 import com.and04.naturealbum.utils.time.toDateTimeString

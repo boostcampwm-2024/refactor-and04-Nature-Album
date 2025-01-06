@@ -23,8 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.ui.component.AlbumLabel
 import com.and04.naturealbum.utils.color.toColor
 import com.and04.naturealbum.utils.time.toDate

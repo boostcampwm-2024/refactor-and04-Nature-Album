@@ -2,11 +2,11 @@ package com.and04.naturealbum.ui.album.labelphotos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.datastore.DataStoreManager
+import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.model.AlbumFolderData
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.model.AlbumFolderData
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.mypage.UserManager
 import com.and04.naturealbum.utils.network.NetworkState

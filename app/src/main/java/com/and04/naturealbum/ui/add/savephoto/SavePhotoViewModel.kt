@@ -7,11 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.Album
-import com.and04.naturealbum.data.room.HazardAnalyzeStatus
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.Label.Companion.NEW_LABEL
-import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.Album
+import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.Label.Companion.NEW_LABEL
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import com.google.firebase.Firebase

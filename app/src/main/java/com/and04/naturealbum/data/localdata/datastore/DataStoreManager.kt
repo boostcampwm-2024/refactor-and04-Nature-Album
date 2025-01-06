@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.datastore
+package com.and04.naturealbum.data.localdata.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

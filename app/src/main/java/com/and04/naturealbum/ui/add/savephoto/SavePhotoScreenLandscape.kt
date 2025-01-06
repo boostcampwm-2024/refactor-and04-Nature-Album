@@ -24,7 +24,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.ui.utils.UiState
 import java.time.LocalDateTime
 import java.time.ZoneId

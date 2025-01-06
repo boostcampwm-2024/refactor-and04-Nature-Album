@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.room
+package com.and04.naturealbum.data.localdata.room
 
 import androidx.room.Dao
 import androidx.room.Delete

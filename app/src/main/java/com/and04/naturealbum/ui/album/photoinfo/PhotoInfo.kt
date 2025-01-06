@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.model.AlbumData
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.model.AlbumData
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.GetTopBar
 

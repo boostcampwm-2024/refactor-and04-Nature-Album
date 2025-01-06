@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.room
+package com.and04.naturealbum.data.localdata.room
 
 import android.content.Context
 import androidx.room.Database

@@ -66,7 +66,7 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LATITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
-import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.ui.utils.LocationHandler
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.ProgressIndicator

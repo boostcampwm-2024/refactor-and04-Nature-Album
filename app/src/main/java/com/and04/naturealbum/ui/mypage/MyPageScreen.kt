@@ -74,7 +74,7 @@ import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
 import com.and04.naturealbum.ui.utils.UiState
-import com.and04.naturealbum.model.UserInfo
+import com.and04.naturealbum.data.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetMyPageTopAppBar
 import com.and04.naturealbum.utils.network.NetworkState

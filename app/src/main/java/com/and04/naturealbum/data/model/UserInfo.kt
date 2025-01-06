@@ -1,4 +1,4 @@
-package com.and04.naturealbum.model
+package com.and04.naturealbum.data.model
 
 data class UserInfo (
     val userEmail: String?,

@@ -3,10 +3,10 @@ package com.and04.naturealbum.di
 import android.content.Context
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepositoryImpl
-import com.and04.naturealbum.data.room.AlbumDao
-import com.and04.naturealbum.data.room.AppDatabase
-import com.and04.naturealbum.data.room.LabelDao
-import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.data.localdata.room.AlbumDao
+import com.and04.naturealbum.data.localdata.room.AppDatabase
+import com.and04.naturealbum.data.localdata.room.LabelDao
+import com.and04.naturealbum.data.localdata.room.PhotoDetailDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

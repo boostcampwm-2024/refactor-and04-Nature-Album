@@ -7,7 +7,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.net.toUri
-import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

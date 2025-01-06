@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.model.AlbumData
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.model.AlbumData
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel

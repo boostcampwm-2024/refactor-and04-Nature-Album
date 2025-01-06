@@ -10,9 +10,9 @@ import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
-import com.and04.naturealbum.data.room.HazardAnalyzeStatus
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.PhotoDetailDao
 import com.and04.naturealbum.utils.image.ImageConvert
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase

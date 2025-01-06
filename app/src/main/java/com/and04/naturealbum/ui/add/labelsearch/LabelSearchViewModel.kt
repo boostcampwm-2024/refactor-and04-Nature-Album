@@ -3,7 +3,7 @@ package com.and04.naturealbum.ui.add.labelsearch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.localdata.room.Label
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

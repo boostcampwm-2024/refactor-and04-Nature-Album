@@ -8,7 +8,7 @@ import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
-import com.and04.naturealbum.data.room.Label
+import com.and04.naturealbum.data.localdata.room.Label
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

@@ -3,13 +3,13 @@ package com.and04.naturealbum.data.repository.local
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
-import com.and04.naturealbum.data.room.Album
-import com.and04.naturealbum.data.room.AlbumDao
-import com.and04.naturealbum.data.room.HazardAnalyzeStatus
-import com.and04.naturealbum.data.room.Label
-import com.and04.naturealbum.data.room.LabelDao
-import com.and04.naturealbum.data.room.PhotoDetail
-import com.and04.naturealbum.data.room.PhotoDetailDao
+import com.and04.naturealbum.data.localdata.room.Album
+import com.and04.naturealbum.data.localdata.room.AlbumDao
+import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
+import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.localdata.room.LabelDao
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.PhotoDetailDao
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

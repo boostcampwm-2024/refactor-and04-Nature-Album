@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.and04.naturealbum.data.room.PhotoDetail
+import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.ui.component.PermissionDialogState
 
 @Stable
