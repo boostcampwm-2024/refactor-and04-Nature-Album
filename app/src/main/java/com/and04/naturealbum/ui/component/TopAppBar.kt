@@ -32,13 +32,13 @@ enum class AppBarType {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NatureAlbumPortraitTopAppBar(
-    title: @Composable () -> Unit,
+    title: String,
     type: AppBarType,
     navigateToBackScreen: () -> Unit,
     navigateToMyPage: () -> Unit,
 ) {
     TopAppBar(
-        title = { title() },
+        title = { Text(title) },
         navigationIcon = {
             if (type == AppBarType.All || type == AppBarType.Navigation) {
                 IconButton(onClick = { navigateToBackScreen() }) {
@@ -73,7 +73,7 @@ fun NatureAlbumLandscapeTopAppBar(
             .padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (type == AppBarType.All || type == AppBarType.Navigation){
+        if (type == AppBarType.All || type == AppBarType.Navigation) {
             IconButton(
                 onClick = { navigateToBackScreen() },
             ) {
@@ -89,7 +89,7 @@ fun NatureAlbumLandscapeTopAppBar(
             textAlign = TextAlign.Start,
         )
 
-        if (type == AppBarType.All || type == AppBarType.Action){
+        if (type == AppBarType.All || type == AppBarType.Action) {
             Box {
                 MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
             }

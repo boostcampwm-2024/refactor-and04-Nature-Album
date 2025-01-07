@@ -2,7 +2,6 @@ package com.and04.naturealbum.utils
 
 import android.content.Context
 import android.content.res.Configuration
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.and04.naturealbum.R
@@ -35,7 +34,7 @@ fun Context.GetTopBar(
 ) {
     if (isPortrait()) {
         NatureAlbumPortraitTopAppBar(
-            title = { Text(title) },
+            title = title,
             type = type,
             navigateToMyPage = navigateToMyPage,
             navigateToBackScreen = navigateToBackScreen
