@@ -19,8 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.component.ClippingButtonWithFile
-import com.and04.naturealbum.utils.GetHomeTopBar
+import com.and04.naturealbum.utils.GetTopBar
 
 @Composable
 fun HomeScreenLandscape(
@@ -31,7 +32,12 @@ fun HomeScreenLandscape(
     onNavigateToMap: () -> Unit,
 ) {
     Scaffold(
-        topBar = { context.GetHomeTopBar { onNavigateToMyPage() } }
+        topBar = {
+            context.GetTopBar(
+                type = AppBarType.Action,
+                navigateToMyPage = { onNavigateToMyPage() }
+            )
+        }
     ) { innerPadding ->
         MainBackground(Modifier.fillMaxSize())
         Row(

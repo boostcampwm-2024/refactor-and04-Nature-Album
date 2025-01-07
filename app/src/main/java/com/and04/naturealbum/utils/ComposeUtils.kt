@@ -7,8 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.AppBarType
-import com.and04.naturealbum.ui.component.LandscapeHomeTopAppBar
-import com.and04.naturealbum.ui.component.LandscapeMyPageTopAppBar
 import com.and04.naturealbum.ui.component.LandscapeTopAppBar
 import com.and04.naturealbum.ui.component.NatureAlbumPortraitTopAppBar
 
@@ -44,26 +42,10 @@ fun Context.GetTopBar(
         )
     } else {
         LandscapeTopAppBar(
+            title = title,
+            type = type,
             navigateToMyPage = navigateToMyPage,
             navigateToBackScreen = navigateToBackScreen,
         )
     }
-}
-
-@Composable
-fun Context.GetHomeTopBar(
-    navigateToMyPage: () -> Unit,
-) {
-    LandscapeHomeTopAppBar(
-        onClick = navigateToMyPage
-    )
-}
-
-@Composable
-fun Context.GetMyPageTopAppBar(
-    navigateToBackScreen: () -> Unit,
-) {
-    LandscapeMyPageTopAppBar(
-        navigateToBackScreen = navigateToBackScreen
-    )
 }

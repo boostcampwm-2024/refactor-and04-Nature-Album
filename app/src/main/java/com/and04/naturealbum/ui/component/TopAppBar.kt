@@ -62,6 +62,8 @@ fun NatureAlbumPortraitTopAppBar(
 
 @Composable
 fun LandscapeTopAppBar(
+    title: String,
+    type: AppBarType,
     navigateToBackScreen: () -> Unit,
     navigateToMyPage: () -> Unit,
 ) {
@@ -71,54 +73,7 @@ fun LandscapeTopAppBar(
             .padding(start = 30.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(
-            onClick = { navigateToBackScreen() },
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.top_bar_navigate_to_my_page)
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.app_name),
-            textAlign = TextAlign.Start,
-        )
-        Box {
-            MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
-        }
-    }
-}
-
-@Composable
-fun LandscapeHomeTopAppBar(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 30.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.app_name),
-            textAlign = TextAlign.Start,
-        )
-        Box {
-            MyPageNavigationIconButton(navigateToMyPage = onClick)
-        }
-    }
-}
-
-@Composable
-fun LandscapeMyPageTopAppBar(
-    navigateToBackScreen: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 30.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box {
+        if (type == AppBarType.All || type == AppBarType.Navigation){
             IconButton(
                 onClick = { navigateToBackScreen() },
             ) {
@@ -130,9 +85,15 @@ fun LandscapeMyPageTopAppBar(
         }
 
         Text(
-            text = stringResource(R.string.app_name),
+            text = title,
             textAlign = TextAlign.Start,
         )
+
+        if (type == AppBarType.All || type == AppBarType.Action){
+            Box {
+                MyPageNavigationIconButton(navigateToMyPage = navigateToMyPage)
+            }
+        }
     }
 }
 
