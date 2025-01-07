@@ -69,14 +69,15 @@ import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.dto.FirebaseFriend
 import com.and04.naturealbum.data.dto.FirebaseFriendRequest
 import com.and04.naturealbum.data.dto.MyFriend
-import com.and04.naturealbum.ui.utils.PermissionHandler
+import com.and04.naturealbum.data.model.UserInfo
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
 import com.and04.naturealbum.ui.friend.FriendViewModel
-import com.and04.naturealbum.ui.utils.UiState
-import com.and04.naturealbum.data.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
-import com.and04.naturealbum.utils.GetMyPageTopAppBar
+import com.and04.naturealbum.ui.utils.PermissionHandler
+import com.and04.naturealbum.ui.utils.UiState
+import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkState.CONNECTED_DATA
 import com.and04.naturealbum.utils.network.NetworkState.CONNECTED_WIFI
@@ -148,7 +149,10 @@ fun MyPageScreenContent(
 
     Scaffold(
         topBar = {
-            context.GetMyPageTopAppBar { navigateToHome() }
+            context.GetTopBar(
+                type = AppBarType.Navigation,
+                navigateToBackScreen = { navigateToHome() }
+            )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->

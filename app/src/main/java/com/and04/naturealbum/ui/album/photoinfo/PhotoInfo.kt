@@ -27,6 +27,7 @@ import com.and04.naturealbum.R
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumData
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.GetTopBar
 
@@ -70,6 +71,8 @@ fun PhotoInfo(
     Scaffold(
         topBar = {
             context.GetTopBar(
+                title = { Text(stringResource(R.string.topbar_title_photo_info)) },
+                type = AppBarType.All,
                 navigateToBackScreen = navigateToBackScreen,
                 navigateToMyPage = onNavigateToMyPage,
             )
