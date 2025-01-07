@@ -30,14 +30,14 @@ fun Context.gridColumnCount(): Int {
 
 @Composable
 fun Context.GetTopBar(
-    title: @Composable () -> Unit = { Text(stringResource(R.string.app_name)) },
+    title: String = stringResource(R.string.app_name),
     type: AppBarType,
     navigateToMyPage: () -> Unit = {},
     navigateToBackScreen: () -> Unit = {},
 ) {
     if (isPortrait()) {
         NatureAlbumPortraitTopAppBar(
-            title = title,
+            title = { Text(title) },
             type = type,
             navigateToMyPage = navigateToMyPage,
             navigateToBackScreen = navigateToBackScreen

@@ -183,7 +183,7 @@ fun SavePhotoScreen(
     Scaffold(
         topBar = {
             context.GetTopBar(
-                title = { Text(stringResource(R.string.topbar_title_add_album)) },
+                title = stringResource(R.string.topbar_title_add_album),
                 type = AppBarType.All,
                 navigateToMyPage = onNavigateToMyPage,
                 navigateToBackScreen = onBack,

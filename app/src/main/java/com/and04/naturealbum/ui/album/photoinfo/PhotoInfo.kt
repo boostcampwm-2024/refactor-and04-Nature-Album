@@ -71,7 +71,7 @@ fun PhotoInfo(
     Scaffold(
         topBar = {
             context.GetTopBar(
-                title = { Text(stringResource(R.string.topbar_title_photo_info)) },
+                title = stringResource(R.string.topbar_title_photo_info),
                 type = AppBarType.All,
                 navigateToBackScreen = navigateToBackScreen,
                 navigateToMyPage = onNavigateToMyPage,
