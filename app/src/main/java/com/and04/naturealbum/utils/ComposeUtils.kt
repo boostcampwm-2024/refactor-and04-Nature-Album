@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.and04.naturealbum.R
 import com.and04.naturealbum.ui.component.AppBarType
-import com.and04.naturealbum.ui.component.LandscapeTopAppBar
+import com.and04.naturealbum.ui.component.NatureAlbumLandscapeTopAppBar
 import com.and04.naturealbum.ui.component.NatureAlbumPortraitTopAppBar
 
 const val COLUMN_COUNT_PORTRAIT = 2
@@ -41,7 +41,7 @@ fun Context.GetTopBar(
             navigateToBackScreen = navigateToBackScreen
         )
     } else {
-        LandscapeTopAppBar(
+        NatureAlbumLandscapeTopAppBar(
             title = title,
             type = type,
             navigateToMyPage = navigateToMyPage,

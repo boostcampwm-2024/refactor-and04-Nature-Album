@@ -61,7 +61,7 @@ fun NatureAlbumPortraitTopAppBar(
 }
 
 @Composable
-fun LandscapeTopAppBar(
+fun NatureAlbumLandscapeTopAppBar(
     title: String,
     type: AppBarType,
     navigateToBackScreen: () -> Unit,
