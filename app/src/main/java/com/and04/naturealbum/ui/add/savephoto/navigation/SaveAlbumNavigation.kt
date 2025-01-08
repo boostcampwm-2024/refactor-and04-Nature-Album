@@ -8,16 +8,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.and04.naturealbum.ui.add.savephoto.SavePhotoScreen
+import com.and04.naturealbum.ui.navigation.NatureAlbumNavigator
 import com.and04.naturealbum.ui.navigation.NatureAlbumState
 import com.and04.naturealbum.ui.navigation.NavigateDestination
 
 fun NavGraphBuilder.saveAlbumNavGraph(
     state: NatureAlbumState,
+    navigator: NatureAlbumNavigator,
     takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
-){
+) {
     composable(NavigateDestination.SavePhoto.route) { backStackEntry ->
         val savePhotoBackStackEntry = remember(backStackEntry) {
-            state.getNavBackStackEntry(NavigateDestination.SavePhoto.route)
+            navigator.getNavBackStackEntry(NavigateDestination.SavePhoto.route)
         }
         SavePhotoScreen(
             locationHandler = state.locationHandler.value,
@@ -25,11 +27,14 @@ fun NavGraphBuilder.saveAlbumNavGraph(
             model = state.imageUri.value,
             fileName = state.fileName.value,
             onBack = { state.takePicture(takePictureLauncher) },
-            onSave = { state.navigateSavePhotoToAlbum() },
-            onCancel = { state.navigateToHome() },
+            onSave = {
+                navigator.navigateSavePhotoToAlbum()
+                state.selectedLabel.value = null
+            },
+            onCancel = { navigator.navigateToHome() },
             label = state.selectedLabel.value,
-            onLabelSelect = { state.navigateToSearchLabel() },
-            onNavigateToMyPage = { state.navigateToMyPage() },
+            onLabelSelect = { navigator.navigateToSearchLabel() },
+            onNavigateToMyPage = { navigator.navigateToMyPage() },
             viewModel = hiltViewModel(savePhotoBackStackEntry),
         )
     }

@@ -21,50 +21,54 @@ import com.and04.naturealbum.ui.mypage.navigation.myPageNavigation
 @Composable
 fun NatureAlbumNavHost(
     state: NatureAlbumState,
+    navigator: NatureAlbumNavigator,
     takePictureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>,
 ){
     NavHost(
-        navController = state.navController,
+        navController = navigator.navController,
         startDestination = NavigateDestination.Home.route,
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
     ) {
         homeNavGraph(
             state = state,
+            navigator = navigator,
             takePictureLauncher = takePictureLauncher
         )
 
         saveAlbumNavGraph(
             state = state,
+            navigator = navigator,
             takePictureLauncher = takePictureLauncher
         )
 
         labelSearchNavigation(
-            state = state
+            state = state,
+            navigator = navigator
         )
 
         labelsAlbumNavigation(
-            state = state
+            navigator = navigator
         )
 
         albumFolderNavigation(
-            state = state
+            navigator = navigator
         )
 
         photoInfoNavigation(
-            state = state
+            navigator = navigator
         )
 
         myPageNavigation(
-            state = state
+            navigator = navigator
         )
 
         mapNavigation(
-            state = state
+            navigator = navigator
         )
 
         friendSearchNavigation(
-            state = state
+            navigator = navigator
         )
     }
 }
