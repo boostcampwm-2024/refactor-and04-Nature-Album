@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.friend
+package com.and04.naturealbum.ui.mypage.friendsearch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

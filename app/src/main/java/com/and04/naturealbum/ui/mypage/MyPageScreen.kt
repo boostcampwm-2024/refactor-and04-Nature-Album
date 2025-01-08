@@ -72,7 +72,7 @@ import com.and04.naturealbum.data.dto.MyFriend
 import com.and04.naturealbum.ui.utils.PermissionHandler
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingButton
-import com.and04.naturealbum.ui.friend.FriendViewModel
+import com.and04.naturealbum.ui.mypage.friendsearch.FriendViewModel
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.data.model.UserInfo
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme

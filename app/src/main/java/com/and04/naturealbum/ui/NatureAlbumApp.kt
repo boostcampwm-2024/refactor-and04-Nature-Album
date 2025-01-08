@@ -14,7 +14,7 @@ import androidx.navigation.navDeepLink
 import com.and04.naturealbum.background.service.FirebaseMessagingService.Companion.MY_PAGE_URI
 import com.and04.naturealbum.ui.album.labels.AlbumScreen
 import com.and04.naturealbum.ui.album.labelphotos.AlbumFolderScreen
-import com.and04.naturealbum.ui.friend.FriendSearchScreen
+import com.and04.naturealbum.ui.mypage.friendsearch.FriendSearchScreen
 import com.and04.naturealbum.ui.home.HomeScreen
 import com.and04.naturealbum.ui.add.labelsearch.LabelSearchScreen
 import com.and04.naturealbum.ui.maps.MapScreen
