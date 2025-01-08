@@ -59,6 +59,20 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                freeCompilerArgs.addAll(
+                    listOf(
+                        "-P",
+                        "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" +
+                                layout.buildDirectory.get().asFile.absolutePath + "/compose_metrics",
+                        "-P",
+                        "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" +
+                                layout.buildDirectory.get().asFile.absolutePath + "/compose_metrics"
+                    )
+                )
+            }
+        }
     }
     buildFeatures {
         compose = true

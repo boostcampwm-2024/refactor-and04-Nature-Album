@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.and04.naturealbum.R
@@ -19,12 +20,12 @@ import com.and04.naturealbum.utils.GetHomeTopBar
 
 @Composable
 fun HomeScreenPortrait(
-    context: Context,
     onClickCamera: () -> Unit,
     onNavigateToAlbum: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToMap: () -> Unit,
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = { context.GetHomeTopBar { onNavigateToMyPage() } }
     ) { innerPadding ->
@@ -40,7 +41,6 @@ fun HomeScreenPortrait(
             )
 
             ClippingButtonWithFile(
-                context = context,
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp)
