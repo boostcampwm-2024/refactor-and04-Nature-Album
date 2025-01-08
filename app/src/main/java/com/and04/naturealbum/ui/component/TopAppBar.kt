@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
-import com.and04.naturealbum.ui.mypage.UserManager
+import com.and04.naturealbum.ui.utils.UserManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

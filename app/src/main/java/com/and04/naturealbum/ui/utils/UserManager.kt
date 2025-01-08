@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.mypage
+package com.and04.naturealbum.ui.utils
 
 import android.net.Uri
 import com.google.firebase.auth.FirebaseUser

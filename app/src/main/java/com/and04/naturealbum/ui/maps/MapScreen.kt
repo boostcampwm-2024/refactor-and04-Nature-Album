@@ -57,7 +57,7 @@ import com.and04.naturealbum.ui.component.LoadingAsyncImage
 import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
-import com.and04.naturealbum.ui.mypage.UserManager
+import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkViewModel
 import com.and04.naturealbum.utils.color.toColor
