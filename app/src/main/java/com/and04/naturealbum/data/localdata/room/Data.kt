@@ -1,6 +1,7 @@
 package com.and04.naturealbum.data.localdata.room
 
 import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -64,6 +65,8 @@ data class Album(
         )
     ]
 )
+
+@Immutable
 data class PhotoDetail(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "label_id") val labelId: Int,

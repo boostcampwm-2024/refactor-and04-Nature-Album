@@ -67,16 +67,17 @@ import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_LOCATION_LONGITUDE
 import com.and04.naturealbum.background.service.FirebaseInsertService.Companion.SERVICE_URI
 import com.and04.naturealbum.data.localdata.room.Label
-import com.and04.naturealbum.ui.utils.LocationHandler
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.component.BackgroundImage
 import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.ui.utils.LocationHandler
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.GetTopBar
+import com.and04.naturealbum.utils.isPortrait
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkState.DISCONNECTED
-import com.and04.naturealbum.utils.isPortrait
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import java.io.IOException
@@ -182,6 +183,8 @@ fun SavePhotoScreen(
     Scaffold(
         topBar = {
             context.GetTopBar(
+                title = stringResource(R.string.topbar_title_add_album),
+                type = AppBarType.All,
                 navigateToMyPage = onNavigateToMyPage,
                 navigateToBackScreen = onBack,
             )

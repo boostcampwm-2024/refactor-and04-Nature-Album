@@ -40,6 +40,7 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.dto.AlbumDto
 import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
 import com.and04.naturealbum.utils.GetTopBar
 import com.and04.naturealbum.utils.gridColumnCount
@@ -72,6 +73,7 @@ fun AlbumScreen(
     Scaffold(
         topBar = {
             context.GetTopBar(
+                type = AppBarType.All,
                 navigateToBackScreen = navigateToBackScreen,
                 navigateToMyPage = onNavigateToMyPage,
             )
