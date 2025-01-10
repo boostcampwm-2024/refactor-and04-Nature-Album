@@ -58,16 +58,17 @@ import coil3.compose.AsyncImage
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.model.AlbumFolderData
 import com.and04.naturealbum.ui.component.AlbumLabel
+import com.and04.naturealbum.ui.component.AppBarType
 import com.and04.naturealbum.ui.component.PermissionDialogState
 import com.and04.naturealbum.ui.component.PermissionDialogs
 import com.and04.naturealbum.ui.component.RotatingImageLoading
-import com.and04.naturealbum.data.model.AlbumFolderData
-import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.theme.NatureAlbumTheme
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.GetTopBar
-import com.and04.naturealbum.utils.gridColumnCount
 import com.and04.naturealbum.utils.color.toColor
+import com.and04.naturealbum.utils.gridColumnCount
 
 @Composable
 fun AlbumFolderScreen(
@@ -185,6 +186,7 @@ fun AlbumFolderScreen(
     Scaffold(
         topBar = {
             context.GetTopBar(
+                type = AppBarType.All,
                 navigateToBackScreen = navigateToBackScreen,
                 navigateToMyPage = onNavigateToMyPage,
             )
