@@ -8,6 +8,7 @@ import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.localdata.datastore.DataStoreManager.Companion.NEVER_SYNC
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.data.model.UserInfo
+import com.and04.naturealbum.ui.utils.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

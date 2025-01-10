@@ -28,7 +28,7 @@ import com.and04.naturealbum.data.localdata.room.Album
 import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
-import com.and04.naturealbum.ui.mypage.UserManager
+import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.image.ImageConvert
 import com.and04.naturealbum.utils.time.toDateTimeString
 import com.google.firebase.auth.ktx.auth
