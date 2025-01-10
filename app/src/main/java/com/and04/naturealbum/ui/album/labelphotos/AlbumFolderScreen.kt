@@ -2,7 +2,6 @@ package com.and04.naturealbum.ui.album.labelphotos
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -144,7 +143,6 @@ fun AlbumFolderScreen(
     }
 
     AlbumFolderScreen(
-        context = context,
         uiState = uiState,
         onPhotoClick = onPhotoClick,
         switchEditMode = switchEditMode,
@@ -170,7 +168,6 @@ fun AlbumFolderScreen(
 
 @Composable
 fun AlbumFolderScreen(
-    context: Context,
     uiState: State<UiState<AlbumFolderData>>,
     onPhotoClick: (Int) -> Unit,
     switchEditMode: (Boolean) -> Unit,
@@ -183,6 +180,7 @@ fun AlbumFolderScreen(
     checkList: MutableState<Set<PhotoDetail>>,
     onNavigateToAlbum: () -> Unit,
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             context.GetTopBar(
@@ -365,6 +363,7 @@ private fun PhotoDetailItem(
 @Composable
 fun PhotoDetailImage(photoDetail: PhotoDetail) {
     val rememberedImage = rememberSaveable(photoDetail.photoUri) { photoDetail.photoUri }
+    val time = photoDetail.datetime
     AsyncImage(
         model = rememberedImage,
         contentDescription = stringResource(R.string.album_folder_screen_item_image_description),
@@ -406,7 +405,6 @@ private fun AlbumFolderScreenPreview() {
         val checkList = remember { mutableStateOf<Set<PhotoDetail>>(setOf()) }
 
         AlbumFolderScreen(
-            context = LocalContext.current,
             uiState = uiState,
             onPhotoClick = { },
             switchEditMode = { _ -> },
