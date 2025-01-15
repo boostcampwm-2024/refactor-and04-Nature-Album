@@ -3,16 +3,17 @@ package com.and04.naturealbum.ui.album.labelphotos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
-import com.and04.naturealbum.data.repository.firebase.AlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumFolderData
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -49,31 +50,35 @@ class AlbumFolderViewModel @Inject constructor(
 
     fun deletePhotos(photoDetails: Set<PhotoDetail>) {
         viewModelScope.launch {
-            val currentData = (_uiState.value as? UiState.Success)?.data
-            if (currentData != null) {
-                val updatedPhotoDetails = currentData.photoDetails.toMutableList()
-                photoDetails.forEach { photoDetail ->
-                    roomRepository.deleteImage(photoDetail) // Room에서 삭제
-                    syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
-                    launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
-                    launch(Dispatchers.IO) {
-                        val uid = UserManager.getUser()?.uid
-                        if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
-                            val label = roomRepository.getLabelById(photoDetail.labelId)
-                            albumRepository.deleteImageFile(
-                                uid = uid,
-                                label = label,
-                                fileName = photoDetail.fileName,
-                            )
-                        }
-                    }
-                    updatedPhotoDetails.remove(photoDetail)
-                }
-                if (updatedPhotoDetails.isEmpty()) {
-                    _uiState.emit(UiState.Error("empty"))
-                } else {
-                    _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
-                }
+            val currentData = (_uiState.value as? UiState.Success)?.data ?: return@launch
+            val updatedPhotoDetails = currentData.photoDetails.toMutableList()
+
+            photoDetails.forEach { photoDetail ->
+                roomRepository.deleteImage(photoDetail) // Room에서 삭제
+                launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
+                deleteFileFromFirebase(photoDetail)
+                updatedPhotoDetails.remove(photoDetail)
+            }
+
+            if (updatedPhotoDetails.isEmpty()) {
+                _uiState.emit(UiState.Error("empty"))
+            } else {
+                _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
+            }
+        }
+    }
+
+    private suspend fun deleteFileFromFirebase(photoDetail: PhotoDetail) = coroutineScope {
+        launch(Dispatchers.IO) {
+            val uid = UserManager.getUser()?.uid
+            if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
+                albumRepository.deleteImageFile(
+                    uid = uid,
+                    label = roomRepository.getLabelById(photoDetail.labelId),
+                    fileName = photoDetail.fileName,
+                )
+                syncDataStore.setDeletedFileName(photoDetail.fileName) // 파이어 베이스 삭제 정보를 DataStore에 저장
+
             }
         }
     }
