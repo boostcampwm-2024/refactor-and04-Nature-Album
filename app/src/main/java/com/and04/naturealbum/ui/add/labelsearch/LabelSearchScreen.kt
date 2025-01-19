@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.add.labelsearch
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.ui.add.savephoto.SavePhotoViewModel
+import com.and04.naturealbum.ui.component.ProgressIndicator
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.color.toColor
 
@@ -97,7 +99,9 @@ fun LabelSearchScreen(
     ) { innerPadding ->
         when (labelsState) {
             is LabelSearchUiState.Loading -> {
-                //TODO Loading
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    ProgressIndicator(true)
+                }
             }
 
             is LabelSearchUiState.RegisteredLabels -> {
