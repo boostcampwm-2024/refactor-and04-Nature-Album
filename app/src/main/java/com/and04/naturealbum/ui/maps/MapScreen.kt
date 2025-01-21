@@ -1,6 +1,7 @@
 package com.and04.naturealbum.ui.maps
 
 import android.graphics.PointF
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import androidx.activity.compose.BackHandler
@@ -58,9 +59,9 @@ import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
 import com.and04.naturealbum.ui.utils.UserManager
+import com.and04.naturealbum.utils.color.toColor
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkViewModel
-import com.and04.naturealbum.utils.color.toColor
 import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
@@ -69,6 +70,7 @@ import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
+import java.util.UUID
 
 @Composable
 fun MapScreen(
@@ -77,6 +79,10 @@ fun MapScreen(
     userViewModel: MapScreenViewModel = hiltViewModel(),
     networkViewModel: NetworkViewModel = hiltViewModel(),
 ) {
+    // 고유 식별자를 생성해 MapScreen 인스턴스를 추적
+    val instanceId = remember { UUID.randomUUID().toString() }
+    Log.d("MapScreen", "New MapScreen instance created: $instanceId")
+
     val context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 
@@ -221,30 +227,74 @@ fun MapScreen(
     DisposableEffect(lifecycleOwner) {
         // 현재 LifecycleOwner의 Lifecycle을 가져오기
         val lifecycle = lifecycleOwner.lifecycle
+
+        Log.d("MapScreen", "LifecycleOwner class: ${lifecycleOwner::class.java}")
+        Log.d("MapScreen", "Lifecycle class: ${lifecycle::class.java}")
+
+        // MapView 상태 추적 변수
+        var mapViewState = "INITIALIZED"
+
         // Lifecycle 이벤트를 관찰하는 Observer를 생성
         val observer = LifecycleEventObserver { _, event ->
+            Log.d("MapScreen", "Lifecycle event: $event")
+
             when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                Lifecycle.Event.ON_CREATE -> {
+                    mapView.onCreate(null)
+                    mapViewState = "CREATED"
+                }
+
+                Lifecycle.Event.ON_START -> {
+                    mapView.onStart()
+                    mapViewState = "STARTED"
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    mapView.onResume()
+                    mapViewState = "RESUMED"
+                }
+
+                Lifecycle.Event.ON_PAUSE -> {
+                    mapView.onPause()
+                    mapViewState = "PAUSED"
+                }
+
+                Lifecycle.Event.ON_STOP -> {
+                    mapView.onStop()
+                    mapViewState = "STOPPED"
+                }
+
+                Lifecycle.Event.ON_DESTROY -> {
+                    mapView.onDestroy()
+                    mapViewState = "DESTROYED"
+                    Log.d("MapScreen", "ON_DESTROY 발생 mapView onDestroy 완료")
+                }
+
                 else -> {}
             }
+
+            // MapView 상태 로그 출력
+            Log.d("MapScreen", "MapView current state: $mapViewState")
         }
+
         // Lifecycle에 Observer를 추가하여 생명주기를 관찰
         lifecycle.addObserver(observer)
 
         // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
-            lifecycle.removeObserver(observer)
+            Log.d("MapScreen", "DisposableEffect disposed, cleaning up MapView")
+
+            //lifecycle.removeObserver(observer)
             clusterManagers.forEach { cluster ->
                 cluster.clear()
             }
             mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
+
+            mapViewState = "DISPOSED"
+            Log.d("MapScreen", "MapView final state: $mapViewState")
         }
     }
+
 
     Box(modifier = modifier.fillMaxSize()) {
         if (networkState.value == NetworkState.DISCONNECTED) {
