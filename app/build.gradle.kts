@@ -155,8 +155,8 @@ dependencies {
     implementation(libs.androidx.exifinterface)
 
     // tensorflow lite
-    implementation(libs.tensorflow.lite)
-    implementation(libs.tensorflow.lite.task.vision)
+    //implementation(libs.tensorflow.lite)
+    //implementation(libs.tensorflow.lite.task.vision)
 
     // gemini
     implementation(libs.firebase.vertexai)
