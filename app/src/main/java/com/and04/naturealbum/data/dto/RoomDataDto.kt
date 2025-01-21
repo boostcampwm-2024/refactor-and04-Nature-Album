@@ -13,7 +13,7 @@ data class SyncAlbumsDto(
     val labelBackgroundColor: String,
     val photoDetailUri: String,
     val fileName: String
-): Sync()
+): Sync
 
 data class SyncPhotoDetailsDto(
     val photoDetailUri: String,
@@ -23,6 +23,6 @@ data class SyncPhotoDetailsDto(
     val latitude: Double,
     val description: String,
     val datetime: String
-): Sync()
+): Sync
 
-sealed class Sync
+sealed interface Sync
