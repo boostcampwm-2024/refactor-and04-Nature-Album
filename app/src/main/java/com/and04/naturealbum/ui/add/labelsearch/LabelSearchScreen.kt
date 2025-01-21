@@ -170,7 +170,7 @@ private fun SearchContent(
 }
 
 @Composable
-fun LabelTextField(
+private fun LabelTextField(
     queryLabel: State<QueryLabel>,
     onChangeText: (String) -> Unit
 ) {
@@ -193,7 +193,7 @@ fun LabelTextField(
 }
 
 @Composable
-fun LabelChipList(
+private fun LabelChipList(
     labels: LabelSearchUiState.RegisteredLabels,
     onSelected: (Label) -> Unit,
     queryLabel: State<QueryLabel>
@@ -212,7 +212,7 @@ fun LabelChipList(
 }
 
 @Composable
-fun UnderLineSuggestionChip(
+private fun UnderLineSuggestionChip(
     label: Label,
     onSelected: (Label) -> Unit,
 ) {
@@ -237,7 +237,7 @@ fun UnderLineSuggestionChip(
 }
 
 @Composable
-fun CreateLabelContent(
+private fun CreateLabelContent(
     labels: LabelSearchUiState.RegisteredLabels,
     onSelected: (Label) -> Unit,
     queryLabel: State<QueryLabel>
@@ -279,7 +279,7 @@ fun CreateLabelContent(
 }
 
 @Composable
-fun GeminiLabelContent(
+private fun GeminiLabelContent(
     uiState: State<UiState<String>>,
     labelsState: State<List<Label>>,
     randomColor: MutableState<String>,
@@ -303,7 +303,7 @@ fun GeminiLabelContent(
 }
 
 @Composable
-fun GeminiLabelChip(
+private fun GeminiLabelChip(
     uiState: State<UiState<String>>,
     labelsState: State<List<Label>>,
     randomColor: MutableState<String>,
@@ -362,7 +362,7 @@ fun GeminiLabelChip(
 
 @Preview
 @Composable
-fun PreviewFunc() {
+private fun PreviewFunc() {
     val uiState = remember { mutableStateOf(UiState.Success("새")) }
     val dummy = remember { mutableStateOf("") }
     val listDummy = LabelSearchUiState.RegisteredLabels(
