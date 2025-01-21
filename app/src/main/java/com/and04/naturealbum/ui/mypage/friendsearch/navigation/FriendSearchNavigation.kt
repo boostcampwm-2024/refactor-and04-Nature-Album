@@ -1,4 +1,4 @@
-package com.and04.naturealbum.ui.friend.navigation
+package com.and04.naturealbum.ui.mypage.friendsearch.navigation
 
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
