@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -250,6 +252,7 @@ fun CreateLabelContent(
         Text(stringResource(R.string.label_search_create))
         Spacer(Modifier.size(4.dp))
         SuggestionChip(
+            modifier = Modifier.semantics { testTag = "chip" },
             onClick = {
                 if (queryLabel.value.text.isBlank()) {
                     Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
