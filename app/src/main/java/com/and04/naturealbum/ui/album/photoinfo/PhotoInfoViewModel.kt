@@ -7,7 +7,7 @@ import com.and04.naturealbum.data.model.AlbumData
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PhotoInfoViewModel @Inject constructor(
-    private val roomRepository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
     private val retrofitRepository: RetrofitRepository,
     private val localAlbumRepository: LocalAlbumRepository,
     private val labelRepository: LabelRepository,
@@ -33,7 +33,7 @@ class PhotoInfoViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.emit(UiState.Loading)
 
-            val photoDetail = roomRepository.getPhotoDetailById(id)
+            val photoDetail = photoDetailRepository.getPhotoDetailById(id)
             val label = labelRepository.getLabelById(photoDetail.labelId)
 
             convertCoordsToAddress(photoDetail = photoDetail)
@@ -50,7 +50,7 @@ class PhotoInfoViewModel @Inject constructor(
 
     private suspend fun convertCoordsToAddress(photoDetail: PhotoDetail) {
         val coords = "${photoDetail.latitude}, ${photoDetail.longitude}"
-        val cachedAddress = roomRepository.getAddressByPhotoDetailId(photoDetail.id)
+        val cachedAddress = photoDetailRepository.getAddressByPhotoDetailId(photoDetail.id)
         if (cachedAddress.isNotEmpty()) {
             _address.emit(cachedAddress)
             return
@@ -67,7 +67,7 @@ class PhotoInfoViewModel @Inject constructor(
         )
 
         if (newAddress.isNotEmpty()) {
-            roomRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
+            photoDetailRepository.updateAddressByPhotoDetailId(newAddress, photoDetail.id)
             _address.emit(newAddress)
         } else {
             _address.emit(coords)

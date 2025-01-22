@@ -7,7 +7,7 @@ import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumFolderData
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.local.LabelRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumFolderViewModel @Inject constructor(
-    private val roomRepository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
     private val syncDataStore: DataStoreManager,
     private val albumRepository: AlbumRepository,
     private val labelRepository: LabelRepository,
@@ -39,7 +39,7 @@ class AlbumFolderViewModel @Inject constructor(
             }
 
             val photoDetailsJob = async {
-                roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
+                photoDetailRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
             }
 
             val labelData = labelJob.await()
@@ -55,7 +55,7 @@ class AlbumFolderViewModel @Inject constructor(
             if (currentData != null) {
                 val updatedPhotoDetails = currentData.photoDetails.toMutableList()
                 photoDetails.forEach { photoDetail ->
-                    roomRepository.deleteImage(photoDetail) // Room에서 삭제
+                    photoDetailRepository.deleteImage(photoDetail) // Room에서 삭제
                     syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
                     launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
                     launch(Dispatchers.IO) {

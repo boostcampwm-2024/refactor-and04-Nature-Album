@@ -13,7 +13,7 @@ import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import com.google.firebase.Firebase
@@ -30,7 +30,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
     private val retrofitRepository: RetrofitRepository,
-    private val repository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
     private val localAlbumRepository: LocalAlbumRepository,
     private val labelRepository: LabelRepository,
 ) : ViewModel() {
@@ -87,7 +87,7 @@ class SavePhotoViewModel @Inject constructor(
                     }
                 }
                 val photoDetailId = async {
-                    repository.insertPhoto(
+                    photoDetailRepository.insertPhoto(
                         PhotoDetail(
                             labelId = labelId,
                             photoUri = uri,
@@ -103,7 +103,7 @@ class SavePhotoViewModel @Inject constructor(
                 }
 
                 launch {
-                    repository.updateAddressByPhotoDetailId(
+                    photoDetailRepository.updateAddressByPhotoDetailId(
                         address = address.await(),
                         photoDetailId = photoDetailId.await().toInt()
                     )

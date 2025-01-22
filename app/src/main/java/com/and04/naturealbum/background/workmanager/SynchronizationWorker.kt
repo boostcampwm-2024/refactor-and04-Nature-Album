@@ -29,7 +29,7 @@ import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
 import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.data.repository.local.SyncRepository
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.image.ImageConvert
@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
 class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val roomRepository: LocalDataRepository,
+    private val roomRepository: PhotoDetailRepository,
     private val albumRepository: AlbumRepository,
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
