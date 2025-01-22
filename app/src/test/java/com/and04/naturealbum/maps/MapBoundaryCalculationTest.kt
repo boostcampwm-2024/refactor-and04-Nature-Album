@@ -1,4 +1,4 @@
-package com.and04.naturealbum
+package com.and04.naturealbum.maps
 
 import com.and04.naturealbum.ui.maps.LabelItem
 import com.and04.naturealbum.ui.maps.PhotoItem
@@ -12,11 +12,11 @@ import kotlin.system.measureTimeMillis
 class MapBoundaryCalculationTest {
 
     private fun generateDummyPhotos(count: Int): List<PhotoItem> {
-        return List(count) {
+        return List(count) { index ->
             PhotoItem(
-                uri = "photo_$it",
-                position = LatLng(37.0 + it * 0.001, 127.0 + it * 0.001),
-                label = LabelItem("Label_${it % 5}", "#FF0000"), // 5개의 라벨로 그룹화
+                uri = "photo_$index",
+                position = LatLng(37.0 + index * 0.001, 127.0 + index * 0.001),
+                label = LabelItem("Label_${index % 5}", "#FF0000"),
                 time = LocalDateTime.now()
             )
         }
