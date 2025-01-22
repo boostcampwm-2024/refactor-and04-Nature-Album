@@ -7,6 +7,8 @@ import com.and04.naturealbum.data.localdata.room.AlbumDao
 import com.and04.naturealbum.data.localdata.room.AppDatabase
 import com.and04.naturealbum.data.localdata.room.LabelDao
 import com.and04.naturealbum.data.localdata.room.PhotoDetailDao
+import com.and04.naturealbum.data.repository.local.SyncRepository
+import com.and04.naturealbum.data.repository.local.SyncRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,4 +51,12 @@ object RoomModule {
         albumDao: AlbumDao,
         photoDetailDao: PhotoDetailDao
     ): LocalDataRepository = LocalDataRepositoryImpl(labelDao, albumDao, photoDetailDao)
+
+    @Singleton
+    @Provides
+    fun providerSyncRepo(
+        labelDao: LabelDao,
+        albumDao: AlbumDao,
+        photoDetailDao: PhotoDetailDao
+    ): SyncRepository = SyncRepositoryImpl(labelDao, albumDao, photoDetailDao)
 }

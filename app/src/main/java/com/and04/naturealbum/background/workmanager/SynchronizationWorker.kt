@@ -14,20 +14,21 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.dto.FirebaseLabel
 import com.and04.naturealbum.data.dto.FirebaseLabelResponse
 import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
-import com.and04.naturealbum.data.repository.RetrofitRepository
-import com.and04.naturealbum.data.repository.firebase.AlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.localdata.room.Album
 import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.SyncRepository
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.image.ImageConvert
 import com.and04.naturealbum.utils.time.toDateTimeString
@@ -60,6 +61,7 @@ class SynchronizationWorker @AssistedInject constructor(
     private val albumRepository: AlbumRepository,
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
+    private val syncRepository: SyncRepository,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -140,7 +142,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val label = async {
                 val labels = albumRepository.getLabelsToList(uid).getOrThrow()
-                val allLocalLabels = roomRepository.getSyncCheckAlbums()
+                val allLocalLabels = syncRepository.getSyncCheckAlbums()
 
                 val duplicationLabels = allLocalLabels.filter { label ->
                     labels.any { firebaseLabel ->
@@ -173,7 +175,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 }
 
                 unSynchronizedLabelsToLocal.forEach { label ->
-                    val labelId = roomRepository.getIdByName(label.labelName)
+                    val labelId = syncRepository.getIdByName(label.labelName)
                     if (labelId == null) {
                         launch {
                             fileNameToLabelUid[label.labelName] =
@@ -185,7 +187,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
             val photoDetail = async {
                 val allServerPhotos = albumRepository.getPhotosToList(uid).getOrThrow()
-                val allLocalPhotos = roomRepository.getSyncCheckPhotos()
+                val allLocalPhotos = syncRepository.getSyncCheckPhotos()
 
                 val unSynchronizedPhotoDetailsToServer = allLocalPhotos.filter { photo ->
                     allServerPhotos.none { firebasePhoto ->
@@ -274,7 +276,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
         val labelId = findAlbumData?.first
             ?: fileNameToLabelUid[photo.label]?.first
-            ?: roomRepository.getIdByName(photo.label)!!
+            ?: syncRepository.getIdByName(photo.label)!!
 
         val isDeletedImage = syncDataStore.getDeletedFileNames().contains(photo.fileName)
         if (isDeletedImage) {
@@ -288,7 +290,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun performHazardAnalysis(photo: SyncPhotoDetailsDto): HazardAnalyzeStatus {
-        val hazardAnalyzeStatus = roomRepository.getHazardCheckResultByFileName(photo.fileName)
+        val hazardAnalyzeStatus = syncRepository.getHazardCheckResultByFileName(photo.fileName)
         if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return HazardAnalyzeStatus.FAIL
 
         val imgEncoding = ImageConvert.getBase64FromUri(applicationContext, photo.photoDetailUri)
@@ -299,7 +301,7 @@ class SynchronizationWorker @AssistedInject constructor(
         } else {
             HazardAnalyzeStatus.PASS
         }
-        roomRepository.updateHazardCheckResultByFIleName(updatedStatus, photo.fileName)
+        syncRepository.updateHazardCheckResultByFIleName(updatedStatus, photo.fileName)
         return updatedStatus
     }
 
@@ -369,7 +371,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun deleteServerPhoto(photo: FirebasePhotoInfoResponse, labelId: Int) {
-        val hazardAnalyzeStatus = roomRepository.getHazardCheckResultByFileName(photo.fileName)
+        val hazardAnalyzeStatus = syncRepository.getHazardCheckResultByFileName(photo.fileName)
         if (hazardAnalyzeStatus == HazardAnalyzeStatus.FAIL) return
 
         val uid = UserManager.getUser()?.uid
