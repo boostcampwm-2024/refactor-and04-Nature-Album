@@ -27,6 +27,7 @@ import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.repository.local.SyncRepository
@@ -63,7 +64,8 @@ class SynchronizationWorker @AssistedInject constructor(
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
     private val syncRepository: SyncRepository,
-    private val localAlbumRepository: LocalAlbumRepository
+    private val localAlbumRepository: LocalAlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -263,7 +265,7 @@ class SynchronizationWorker @AssistedInject constructor(
                 name = label.labelName
             )
 
-            roomRepository.insertLabel(localLabelData).toInt()
+            labelRepository.insertLabel(localLabelData).toInt()
         }
 
     private suspend fun insertPhotoDetailAndAlbumToLocal(
@@ -378,7 +380,7 @@ class SynchronizationWorker @AssistedInject constructor(
 
         val uid = UserManager.getUser()?.uid
         if (!uid.isNullOrEmpty()) {
-            val label = roomRepository.getLabelById(labelId)
+            val label = labelRepository.getLabelById(labelId)
             val result = albumRepository.deleteImageFile(
                 uid = uid,
                 label = label,

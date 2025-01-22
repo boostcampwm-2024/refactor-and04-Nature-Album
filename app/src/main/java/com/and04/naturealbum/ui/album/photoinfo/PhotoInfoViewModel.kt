@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumData
 import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.utils.UiState
@@ -20,6 +21,7 @@ class PhotoInfoViewModel @Inject constructor(
     private val roomRepository: LocalDataRepository,
     private val retrofitRepository: RetrofitRepository,
     private val localAlbumRepository: LocalAlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumData>> = _uiState
@@ -32,7 +34,7 @@ class PhotoInfoViewModel @Inject constructor(
             _uiState.emit(UiState.Loading)
 
             val photoDetail = roomRepository.getPhotoDetailById(id)
-            val label = roomRepository.getLabelById(photoDetail.labelId)
+            val label = labelRepository.getLabelById(photoDetail.labelId)
 
             convertCoordsToAddress(photoDetail = photoDetail)
 

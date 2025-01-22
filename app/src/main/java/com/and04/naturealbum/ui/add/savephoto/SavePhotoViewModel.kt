@@ -11,6 +11,7 @@ import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
 import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.utils.UiState
@@ -31,6 +32,7 @@ class SavePhotoViewModel @Inject constructor(
     private val retrofitRepository: RetrofitRepository,
     private val repository: LocalDataRepository,
     private val localAlbumRepository: LocalAlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
@@ -70,7 +72,7 @@ class SavePhotoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val labelId =
-                    if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
+                    if (label.id == NEW_LABEL) labelRepository.insertLabel(label).toInt()
                     else label.id
 
                 val album = async { localAlbumRepository.getAlbumByLabelId(labelId) }

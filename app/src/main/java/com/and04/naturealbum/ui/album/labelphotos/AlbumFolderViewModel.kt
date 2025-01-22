@@ -3,10 +3,11 @@ package com.and04.naturealbum.ui.album.labelphotos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
-import com.and04.naturealbum.data.repository.firebase.AlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumFolderData
+import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
@@ -24,6 +25,7 @@ class AlbumFolderViewModel @Inject constructor(
     private val roomRepository: LocalDataRepository,
     private val syncDataStore: DataStoreManager,
     private val albumRepository: AlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumFolderData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumFolderData>> = _uiState
@@ -33,7 +35,7 @@ class AlbumFolderViewModel @Inject constructor(
             _uiState.emit(UiState.Loading)
 
             val labelJob = async {
-                roomRepository.getLabelById(id = labelId)
+                labelRepository.getLabelById(id = labelId)
             }
 
             val photoDetailsJob = async {
@@ -59,7 +61,7 @@ class AlbumFolderViewModel @Inject constructor(
                     launch(Dispatchers.IO) {
                         val uid = UserManager.getUser()?.uid
                         if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
-                            val label = roomRepository.getLabelById(photoDetail.labelId)
+                            val label = labelRepository.getLabelById(photoDetail.labelId)
                             albumRepository.deleteImageFile(
                                 uid = uid,
                                 label = label,
