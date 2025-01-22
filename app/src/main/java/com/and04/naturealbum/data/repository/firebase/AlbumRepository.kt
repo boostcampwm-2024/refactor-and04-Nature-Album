@@ -9,6 +9,7 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfo
 import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.localdata.room.Label
+import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -45,6 +46,7 @@ interface AlbumRepository {
 class AlbumRepositoryImpl @Inject constructor(
     private val firebaseDataSource: FirebaseDataSource,
     private val localRepository: LocalDataRepository,
+    private val localAlbumRepository: LocalAlbumRepository,
 ) : AlbumRepository {
     override suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>> {
         return firebaseDataSource
@@ -131,7 +133,7 @@ class AlbumRepositoryImpl @Inject constructor(
                                 async { firebaseDataSource.deleteImage(uid, label, fileName) }
 
                             val checkAlbumsJob = async {
-                                val albums = localRepository.getAlbumByLabelId(label.id)
+                                val albums = localAlbumRepository.getAlbumByLabelId(label.id)
                                 if (albums.isEmpty()) {
                                     firebaseDataSource.deleteUserLabel(uid, label)
                                 } else {

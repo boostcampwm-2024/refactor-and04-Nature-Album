@@ -2,10 +2,11 @@ package com.and04.naturealbum.ui.album.photoinfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.RetrofitRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumData
+import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class PhotoInfoViewModel @Inject constructor(
     private val roomRepository: LocalDataRepository,
     private val retrofitRepository: RetrofitRepository,
+    private val localAlbumRepository: LocalAlbumRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumData>> = _uiState
@@ -40,7 +42,7 @@ class PhotoInfoViewModel @Inject constructor(
 
     fun setAlbumThumbnail(photoDetailId: Int) {
         viewModelScope.launch {
-            roomRepository.updateAlbumPhotoDetailByAlbumId(photoDetailId)
+            localAlbumRepository.updateAlbumPhotoDetailByAlbumId(photoDetailId)
         }
     }
 

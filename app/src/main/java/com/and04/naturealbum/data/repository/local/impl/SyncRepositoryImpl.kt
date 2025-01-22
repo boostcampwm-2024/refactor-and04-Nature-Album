@@ -1,4 +1,4 @@
-package com.and04.naturealbum.data.repository.local
+package com.and04.naturealbum.data.repository.local.impl
 
 import com.and04.naturealbum.data.dto.SyncAlbumsDto
 import com.and04.naturealbum.data.dto.SyncPhotoDetailsDto
@@ -6,6 +6,7 @@ import com.and04.naturealbum.data.localdata.room.AlbumDao
 import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.localdata.room.LabelDao
 import com.and04.naturealbum.data.localdata.room.PhotoDetailDao
+import com.and04.naturealbum.data.repository.local.SyncRepository
 import javax.inject.Inject
 
 class SyncRepositoryImpl @Inject constructor(

@@ -27,6 +27,7 @@ import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.repository.RetrofitRepository
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
+import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.repository.local.SyncRepository
 import com.and04.naturealbum.ui.utils.UserManager
@@ -62,6 +63,7 @@ class SynchronizationWorker @AssistedInject constructor(
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
     private val syncRepository: SyncRepository,
+    private val localAlbumRepository: LocalAlbumRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -362,7 +364,7 @@ class SynchronizationWorker @AssistedInject constructor(
     }
 
     private suspend fun insertAlbum(labelId: Int, photoDetailId: Int) {
-        roomRepository.insertPhotoInAlbum(
+        localAlbumRepository.insertPhotoInAlbum(
             Album(
                 labelId = labelId,
                 photoDetailId = photoDetailId
