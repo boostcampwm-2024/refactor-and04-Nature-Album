@@ -48,8 +48,8 @@ class MapBoundaryCalculationTest {
 
     @Test
     fun testBoundaryCalculationPerformance() {
-        val photoCounts = listOf(1000, 10000, 50000)
-        val iterations = 3
+        val photoCounts = listOf(1000, 5000, 10000, 50000, 100000, 200000, 400000, 500000)
+        val iterations = 5
 
         photoCounts.forEach { count ->
 
