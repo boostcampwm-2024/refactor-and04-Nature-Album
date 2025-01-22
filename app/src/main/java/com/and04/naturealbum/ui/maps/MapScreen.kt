@@ -58,9 +58,9 @@ import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
 import com.and04.naturealbum.ui.utils.UserManager
+import com.and04.naturealbum.utils.color.toColor
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkViewModel
-import com.and04.naturealbum.utils.color.toColor
 import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
@@ -203,10 +203,8 @@ fun MapScreen(
         val totalPhotos = photosByUid.value.values.flatten()
         if (totalPhotos.isNotEmpty()) {
             val bound = LatLngBounds.Builder().apply {
-                photosByUid.value.values.forEach { photoItems ->
-                    photoItems.forEach { photoItem ->
-                        include(photoItem.position)
-                    }
+                totalPhotos.forEach { photoItem ->
+                    include(photoItem.position)
                 }
             }.build()
             mapView.getMapAsync { naverMap ->
