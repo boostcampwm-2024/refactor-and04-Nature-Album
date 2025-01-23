@@ -93,24 +93,9 @@ class FirebaseInsertService : Service() {
                         serverLabel.labelName == label.name
                     }
                 }
-                val storageUri =
-                    runCatching { storageUriDeferred.await() }.onFailure { throwable ->
-                        Log.e(
-                            "FirebaseInsertService-onStartCommand",
-                            "${throwable} : storageUri error"
-                        )
-                        stopService(intent)
-                        return@launch
-                    }.getOrThrow()
-                val serverNoLabel =
-                    runCatching { serverNoLabelDeferred.await() }.onFailure { throwable ->
-                        Log.e(
-                            "FirebaseInsertService-onStartCommand",
-                            "${throwable} : serverNoLabel error"
-                        )
-                        stopService(intent)
-                        return@launch
-                    }.getOrThrow()
+
+                val storageUri = storageUriDeferred.await()
+                val serverNoLabel = serverNoLabelDeferred.await()
 
                 val insertLabelJob = launch {
                     if (serverNoLabel) {

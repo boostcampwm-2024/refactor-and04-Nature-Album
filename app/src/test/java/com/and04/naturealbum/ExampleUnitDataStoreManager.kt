@@ -5,6 +5,6 @@ package com.and04.naturealbum
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class FirebaseDataSourceTest {
+class Fir {
 
 }

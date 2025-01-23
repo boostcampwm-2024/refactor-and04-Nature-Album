@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
@@ -115,75 +114,71 @@ class AlbumRepositoryImpl @Inject constructor(
         return firebaseDataSource.saveImage(uid, label, fileName, uri).getOrThrow()
     }
 
-    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String) =
+    override suspend fun deleteImageFile(uid: String, label: Label, fileName: String): Boolean =
         supervisorScope {
             val exceptionHandler = CoroutineExceptionHandler { _, _ ->
                 Log.e("AlbumRepository", "deleteImageFile Error")
             }
             FirebaseLock.deleteMutex.withLock {
-                return@supervisorScope when (isFileExist(uid, label.name, fileName)) {
-                    true -> {
-                        val deleteFileJob =
-                            async(exceptionHandler) {
-                                firebaseDataSource.deleteImage(
-                                    uid,
-                                    label,
-                                    fileName
-                                )
-                            }
-
-                        val checkAlbumsJob = async(exceptionHandler) {
-                            val albums = localRepository.getAlbumByLabelId(label.id)
-                            if (albums.isEmpty()) {
-                                firebaseDataSource.deleteUserLabel(uid, label)
-                            } else {
-                                val albumPresentFileName =
-                                    localRepository.getPhotoDetailById(albums[0].photoDetailId).fileName
-                                val document =
-                                    firebaseDataSource.getPhotoInfo(uid, albumPresentFileName)
-                                document.toObject(FirebasePhotoInfoResponse::class.java)
-                                    ?.let { photoInfo ->
-                                        firebaseDataSource.setUserLabel(
-                                            uid,
-                                            label.name,
-                                            FirebaseLabel(
-                                                backgroundColor = label.backgroundColor,
-                                                thumbnailUri = photoInfo.uri,
-                                                fileName = document.id,
-                                            )
-                                        )
-                                    }
-                            }
-                        }
-
-                        val deletePhotoJob =
-                            async(exceptionHandler) {
-                                firebaseDataSource.deleteUserPhoto(
-                                    uid,
-                                    fileName
-                                )
-                            }
-
-                        awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
-                        true
+                return@supervisorScope if (isFileExist(uid, label.name, fileName)) {
+                    val deleteFileJob = async(exceptionHandler) {
+                        firebaseDataSource.deleteImage(
+                            uid,
+                            label,
+                            fileName
+                        )
                     }
 
-                    false -> false
+                    val checkAlbumsJob = async(exceptionHandler) {
+                        val albums = localRepository.getAlbumByLabelId(label.id)
+                        if (albums.isEmpty()) {
+                            firebaseDataSource.deleteUserLabel(uid, label)
+                        } else {
+                            val albumPresentFileName =
+                                localRepository.getPhotoDetailById(albums[0].photoDetailId).fileName
+                            val document =
+                                firebaseDataSource.getPhotoInfo(uid, albumPresentFileName)
+                            document.toObject(FirebasePhotoInfoResponse::class.java)
+                                ?.let { photoInfo ->
+                                    firebaseDataSource.setUserLabel(
+                                        uid,
+                                        label.name,
+                                        FirebaseLabel(
+                                            backgroundColor = label.backgroundColor,
+                                            thumbnailUri = photoInfo.uri,
+                                            fileName = document.id,
+                                        )
+                                    )
+                                }
+                        }
+                    }
+
+                    val deletePhotoJob = async(exceptionHandler) {
+                        firebaseDataSource.deleteUserPhoto(
+                            uid,
+                            fileName
+                        )
+                    }
+
+                    awaitAll(deleteFileJob, checkAlbumsJob, deletePhotoJob)
+                    true
+                } else {
+                    false
                 }
             }
         }
 
-    private suspend fun isFileExist(uid: String, labelName: String, fileName: String): Boolean =
-        coroutineScope {
-            return@coroutineScope withTimeoutOrNull(2_000) {
-                while (true) {
-                    when (firebaseDataSource.checkFileExist(uid, labelName, fileName)) {
-                        true -> return@withTimeoutOrNull true
-                        false -> delay(500)
-                    }
+    private suspend fun isFileExist(uid: String, labelName: String, fileName: String): Boolean {
+        return withTimeoutOrNull(2_000) {
+            while (true) {
+                when (firebaseDataSource.checkFileExist(uid, labelName, fileName)) {
+                    true -> return@withTimeoutOrNull true
+                    false -> delay(500)
                 }
-            } == true
-        }
+            }
+        } as Boolean
+    }
+
 
     override suspend fun insertLabel(
         uid: String,
