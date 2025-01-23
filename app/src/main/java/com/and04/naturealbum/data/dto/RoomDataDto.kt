@@ -1,7 +1,5 @@
 package com.and04.naturealbum.data.dto
 
-import java.time.LocalDateTime
-
 data class AlbumDto(
     val labelId: Int,
     val labelName: String,

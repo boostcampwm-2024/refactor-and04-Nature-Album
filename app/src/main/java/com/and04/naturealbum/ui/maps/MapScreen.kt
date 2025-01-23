@@ -58,9 +58,9 @@ import com.and04.naturealbum.ui.component.NetworkDisconnectContent
 import com.and04.naturealbum.ui.component.PartialBottomSheet
 import com.and04.naturealbum.ui.component.PhotoContent
 import com.and04.naturealbum.ui.utils.UserManager
+import com.and04.naturealbum.utils.color.toColor
 import com.and04.naturealbum.utils.network.NetworkState
 import com.and04.naturealbum.utils.network.NetworkViewModel
-import com.and04.naturealbum.utils.color.toColor
 import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
@@ -217,32 +217,33 @@ fun MapScreen(
         }
     }
 
-    // MapView의 생명주기를 관리하기 위해 DisposableEffect를 사용
     DisposableEffect(lifecycleOwner) {
-        // 현재 LifecycleOwner의 Lifecycle을 가져오기
         val lifecycle = lifecycleOwner.lifecycle
-        // Lifecycle 이벤트를 관찰하는 Observer를 생성
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> {}
+
+        val observer = object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                when (event) {
+                    Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
+                    Lifecycle.Event.ON_START -> mapView.onStart()
+                    Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                    Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                    Lifecycle.Event.ON_STOP -> mapView.onStop()
+                    Lifecycle.Event.ON_DESTROY -> {
+                        clusterManagers.forEach { cluster ->
+                            cluster.clear()
+                        }
+                        mapView.onDestroy()
+                        lifecycle.removeObserver(this)
+                    }
+
+                    else -> {}
+                }
             }
         }
-        // Lifecycle에 Observer를 추가하여 생명주기를 관찰
+
         lifecycle.addObserver(observer)
 
-        // DisposableEffect가 해제될 때 Observer를 제거하고 MapView의 리소스를 해제
         onDispose {
-            lifecycle.removeObserver(observer)
-            clusterManagers.forEach { cluster ->
-                cluster.clear()
-            }
-            mapView.onDestroy() // MapView의 리소스를 해제하여 메모리 누수를 방지
         }
     }
 
