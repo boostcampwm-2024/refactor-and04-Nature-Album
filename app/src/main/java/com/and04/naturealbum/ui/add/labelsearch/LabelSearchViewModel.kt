@@ -2,7 +2,7 @@ package com.and04.naturealbum.ui.add.labelsearch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,13 +14,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LabelSearchViewModel @Inject constructor(
-    private val repository: LocalDataRepository
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _queryLabel = MutableStateFlow(QueryLabel.empty())
     val queryLabel = _queryLabel.asStateFlow()
 
     val uiState = flow {
-        emit(repository.getLabels())
+        emit(labelRepository.getLabels())
     }
         .map {
             it.toLabelSearchUiState()

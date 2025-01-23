@@ -5,13 +5,15 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.and04.naturealbum.data.repository.RetrofitRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import com.and04.naturealbum.data.localdata.room.Album
 import com.and04.naturealbum.data.localdata.room.HazardAnalyzeStatus
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.localdata.room.Label.Companion.NEW_LABEL
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
+import com.and04.naturealbum.data.repository.RetrofitRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
+import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.network.NetworkState
 import com.google.firebase.Firebase
@@ -28,7 +30,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SavePhotoViewModel @Inject constructor(
     private val retrofitRepository: RetrofitRepository,
-    private val repository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
+    private val localAlbumRepository: LocalAlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _photoSaveState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val photoSaveState: StateFlow<UiState<Unit>> = _photoSaveState
@@ -68,10 +72,10 @@ class SavePhotoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val labelId =
-                    if (label.id == NEW_LABEL) repository.insertLabel(label).toInt()
+                    if (label.id == NEW_LABEL) labelRepository.insertLabel(label).toInt()
                     else label.id
 
-                val album = async { repository.getAlbumByLabelId(labelId) }
+                val album = async { localAlbumRepository.getAlbumByLabelId(labelId) }
                 val address = async {
                     if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED) {
                         retrofitRepository.convertCoordsToAddress(
@@ -83,7 +87,7 @@ class SavePhotoViewModel @Inject constructor(
                     }
                 }
                 val photoDetailId = async {
-                    repository.insertPhoto(
+                    photoDetailRepository.insertPhoto(
                         PhotoDetail(
                             labelId = labelId,
                             photoUri = uri,
@@ -99,7 +103,7 @@ class SavePhotoViewModel @Inject constructor(
                 }
 
                 launch {
-                    repository.updateAddressByPhotoDetailId(
+                    photoDetailRepository.updateAddressByPhotoDetailId(
                         address = address.await(),
                         photoDetailId = photoDetailId.await().toInt()
                     )
@@ -107,14 +111,14 @@ class SavePhotoViewModel @Inject constructor(
 
                 album.await().run {
                     if (isEmpty()) {
-                        repository.insertPhotoInAlbum(
+                        localAlbumRepository.insertPhotoInAlbum(
                             Album(
                                 labelId = labelId,
                                 photoDetailId = photoDetailId.await().toInt()
                             )
                         )
                     } else if (isRepresented) {
-                        repository.updateAlbum(
+                        localAlbumRepository.updateAlbum(
                             first().copy(
                                 photoDetailId = photoDetailId.await().toInt()
                             )
