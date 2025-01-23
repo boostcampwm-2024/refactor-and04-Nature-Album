@@ -2,6 +2,7 @@ package com.and04.naturealbum.ui.add.labelsearch
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,15 +30,17 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -48,8 +51,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.and04.naturealbum.R
 import com.and04.naturealbum.data.localdata.room.Label
-import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.add.savephoto.SavePhotoViewModel
+import com.and04.naturealbum.ui.component.ProgressIndicator
+import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.utils.color.toColor
 
 @Composable
@@ -59,17 +63,15 @@ fun LabelSearchScreen(
     savePhotoViewModel: SavePhotoViewModel,
 ) {
     val uiState = savePhotoViewModel.uiState.collectAsStateWithLifecycle()
-    val labelsState = viewModel.labels.collectAsStateWithLifecycle()
-
-    val query = rememberSaveable { mutableStateOf("") }
-    val randomColor = rememberSaveable { mutableStateOf("") }
+    val labelsState by viewModel.uiState.collectAsStateWithLifecycle()
+    val queryLabel = viewModel.queryLabel.collectAsStateWithLifecycle()
 
     LabelSearchScreen(
         uiState = uiState,
-        query = query,
         labelsState = labelsState,
-        randomColor = randomColor,
         onSelected = onSelected,
+        queryLabel = queryLabel,
+        onChangeText = viewModel::updateQuery,
     )
 }
 
@@ -77,10 +79,10 @@ fun LabelSearchScreen(
 @Composable
 fun LabelSearchScreen(
     uiState: State<UiState<String>>,
-    query: MutableState<String>,
-    labelsState: State<List<Label>>,
-    randomColor: MutableState<String>,
+    labelsState: LabelSearchUiState,
     onSelected: (Label) -> Unit,
+    queryLabel: State<QueryLabel>,
+    onChangeText: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -97,14 +99,24 @@ fun LabelSearchScreen(
             )
         }
     ) { innerPadding ->
-        SearchContent(
-            innerPadding = innerPadding,
-            uiState = uiState,
-            query = query,
-            labelsState = labelsState,
-            randomColor = randomColor,
-            onSelected = onSelected,
-        )
+        when (labelsState) {
+            is LabelSearchUiState.Loading -> {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    ProgressIndicator(true)
+                }
+            }
+
+            is LabelSearchUiState.RegisteredLabels -> {
+                SearchContent(
+                    innerPadding = innerPadding,
+                    uiState = uiState,
+                    labels = labelsState,
+                    onSelected = onSelected,
+                    queryLabel = queryLabel,
+                    onChangeText = onChangeText,
+                )
+            }
+        }
     }
 }
 
@@ -113,17 +125,17 @@ fun LabelSearchScreen(
 private fun SearchContent(
     innerPadding: PaddingValues,
     uiState: State<UiState<String>>,
-    query: MutableState<String>,
-    labelsState: State<List<Label>>,
-    randomColor: MutableState<String>,
+    labels: LabelSearchUiState.RegisteredLabels,
     onSelected: (Label) -> Unit,
+    queryLabel: State<QueryLabel>,
+    onChangeText: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
     ) {
-        LabelTextField(query = query)
+        LabelTextField(queryLabel = queryLabel, onChangeText = onChangeText)
 
         Text(
             modifier = Modifier.padding(12.dp),
@@ -132,20 +144,17 @@ private fun SearchContent(
         )
 
         LabelChipList(
-            query = query,
-            labelsState = labelsState,
+            labels = labels,
             onSelected = onSelected,
+            queryLabel = queryLabel,
         )
 
-        if (query.value.isNotEmpty()) {
+        if (queryLabel.value.text.isNotEmpty()) {
             CreateLabelContent(
-                query = query,
-                labelsState = labelsState,
-                randomColor = randomColor,
+                labels = labels,
                 onSelected = onSelected,
+                queryLabel = queryLabel
             )
-        } else {
-            randomColor.value = getRandomColor()
         }
 
 //        TODO 추후 시연할 때 주석 해제
@@ -161,15 +170,16 @@ private fun SearchContent(
 }
 
 @Composable
-fun LabelTextField(
-    query: MutableState<String>,
+private fun LabelTextField(
+    queryLabel: State<QueryLabel>,
+    onChangeText: (String) -> Unit
 ) {
     TextField(
         modifier = Modifier.fillMaxWidth(),
-        value = query.value,
+        value = queryLabel.value.text,
         onValueChange = { changeQuery ->
             if (changeQuery.length > 100) return@TextField
-            else query.value = changeQuery
+            else onChangeText(changeQuery)
         },
         placeholder = { Text(stringResource(R.string.label_search_label_search)) },
         colors = TextFieldDefaults.colors(
@@ -183,7 +193,26 @@ fun LabelTextField(
 }
 
 @Composable
-fun UnderLineSuggestionChip(
+private fun LabelChipList(
+    labels: LabelSearchUiState.RegisteredLabels,
+    onSelected: (Label) -> Unit,
+    queryLabel: State<QueryLabel>
+) {
+    LazyColumn {
+        val queryLabelList =
+            labels.labels.filter { label -> label.name.contains(queryLabel.value.text) }
+
+        items(
+            items = queryLabelList,
+            key = { label -> label.id }
+        ) { label ->
+            UnderLineSuggestionChip(label, onSelected)
+        }
+    }
+}
+
+@Composable
+private fun UnderLineSuggestionChip(
     label: Label,
     onSelected: (Label) -> Unit,
 ) {
@@ -208,30 +237,10 @@ fun UnderLineSuggestionChip(
 }
 
 @Composable
-fun LabelChipList(
-    query: State<String>,
-    labelsState: State<List<Label>>,
+private fun CreateLabelContent(
+    labels: LabelSearchUiState.RegisteredLabels,
     onSelected: (Label) -> Unit,
-) {
-    LazyColumn {
-        val queryLabelList =
-            labelsState.value.filter { label -> label.name.contains(query.value) }
-
-        items(
-            items = queryLabelList,
-            key = { label -> label.id }
-        ) { label ->
-            UnderLineSuggestionChip(label, onSelected)
-        }
-    }
-}
-
-@Composable
-fun CreateLabelContent(
-    query: MutableState<String>,
-    labelsState: State<List<Label>>,
-    randomColor: MutableState<String>,
-    onSelected: (Label) -> Unit,
+    queryLabel: State<QueryLabel>
 ) {
     val context = LocalContext.current
     Row(
@@ -243,33 +252,34 @@ fun CreateLabelContent(
         Text(stringResource(R.string.label_search_create))
         Spacer(Modifier.size(4.dp))
         SuggestionChip(
+            modifier = Modifier.semantics { testTag = "chip" },
             onClick = {
-                if (query.value.isBlank()) {
+                if (queryLabel.value.text.isBlank()) {
                     Toast.makeText(context, blankToastText, Toast.LENGTH_LONG).show()
                     return@SuggestionChip
-                } else if (labelsState.value.any { label -> label.name == query.value }) {
+                } else if (labels.labels.any { label -> label.name == queryLabel.value.text }) {
                     Toast.makeText(context, nestToastText, Toast.LENGTH_LONG).show()
                     return@SuggestionChip
                 }
 
                 onSelected(
                     Label(
-                        backgroundColor = randomColor.value,
-                        name = query.value
+                        backgroundColor = queryLabel.value.color,
+                        name = queryLabel.value.text
                     )
                 )
             },
-            label = { Text(query.value) },
+            label = { Text(queryLabel.value.text) },
             colors = SuggestionChipDefaults.suggestionChipColors(
-                containerColor = randomColor.value.toColor(),
-                labelColor = if (Color(randomColor.value.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
+                containerColor = queryLabel.value.color.toColor(),
+                labelColor = if (Color(queryLabel.value.color.toLong(16)).luminance() > 0.5f) Color.Black else Color.White
             )
         )
     }
 }
 
 @Composable
-fun GeminiLabelContent(
+private fun GeminiLabelContent(
     uiState: State<UiState<String>>,
     labelsState: State<List<Label>>,
     randomColor: MutableState<String>,
@@ -293,7 +303,7 @@ fun GeminiLabelContent(
 }
 
 @Composable
-fun GeminiLabelChip(
+private fun GeminiLabelChip(
     uiState: State<UiState<String>>,
     labelsState: State<List<Label>>,
     randomColor: MutableState<String>,
@@ -352,16 +362,24 @@ fun GeminiLabelChip(
 
 @Preview
 @Composable
-fun PreviewFunc() {
+private fun PreviewFunc() {
     val uiState = remember { mutableStateOf(UiState.Success("새")) }
     val dummy = remember { mutableStateOf("") }
-    val listDummy = remember { mutableStateOf<List<Label>>(listOf()) }
-
-    LabelSearchScreen(
-        uiState = uiState,
-        query = dummy,
-        labelsState = listDummy,
-        randomColor = dummy,
-        onSelected = {},
+    val listDummy = LabelSearchUiState.RegisteredLabels(
+        labels = listOf(
+            Label(
+                id = 0,
+                backgroundColor = "#FFFFFF",
+                name = "테스트"
+            )
+        )
     )
+
+//    LabelSearchScreen(
+//        uiState = uiState,
+//        query = dummy,
+//        labelsState = listDummy,
+//        randomColor = dummy,
+//        onSelected = {},
+//    )
 }
