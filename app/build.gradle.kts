@@ -170,11 +170,6 @@ dependencies {
 
     //Preferences Datastore
     implementation(libs.androidx.datastore.preferences)
-
-    //test
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 kapt {
