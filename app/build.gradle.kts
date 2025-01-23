@@ -167,6 +167,8 @@ dependencies {
 
     //WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+    androidTestImplementation(libs.androidx.work.testing)
+    androidTestImplementation(libs.truth)
 
     //Preferences Datastore
     implementation(libs.androidx.datastore.preferences)
