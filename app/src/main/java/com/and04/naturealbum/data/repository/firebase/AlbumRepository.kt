@@ -10,6 +10,8 @@ import com.and04.naturealbum.data.dto.FirebasePhotoInfoResponse
 import com.and04.naturealbum.data.localdata.room.Label
 import com.and04.naturealbum.data.repository.local.LocalDataRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
+import com.and04.naturealbum.data.repository.local.LocalAlbumRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -45,7 +47,8 @@ interface AlbumRepository {
 
 class AlbumRepositoryImpl @Inject constructor(
     private val firebaseDataSource: FirebaseDataSource,
-    private val localRepository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
+    private val localAlbumRepository: LocalAlbumRepository,
 ) : AlbumRepository {
     override suspend fun getLabelsToList(uid: String): Result<List<FirebaseLabelResponse>> {
         return firebaseDataSource
@@ -130,12 +133,12 @@ class AlbumRepositoryImpl @Inject constructor(
                     }
 
                     val checkAlbumsJob = async(exceptionHandler) {
-                        val albums = localRepository.getAlbumByLabelId(label.id)
+                        val albums = localAlbumRepository.getAlbumByLabelId(label.id)
                         if (albums.isEmpty()) {
                             firebaseDataSource.deleteUserLabel(uid, label)
                         } else {
                             val albumPresentFileName =
-                                localRepository.getPhotoDetailById(albums[0].photoDetailId).fileName
+                                photoDetailRepository.getPhotoDetailById(albums[0].photoDetailId).fileName
                             val document =
                                 firebaseDataSource.getPhotoInfo(uid, albumPresentFileName)
                             document.toObject(FirebasePhotoInfoResponse::class.java)

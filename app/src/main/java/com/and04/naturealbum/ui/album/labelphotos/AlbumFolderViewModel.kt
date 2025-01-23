@@ -6,7 +6,8 @@ import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.localdata.room.PhotoDetail
 import com.and04.naturealbum.data.model.AlbumFolderData
 import com.and04.naturealbum.data.repository.firebase.AlbumRepository
-import com.and04.naturealbum.data.repository.local.LocalDataRepository
+import com.and04.naturealbum.data.repository.local.LabelRepository
+import com.and04.naturealbum.data.repository.local.PhotoDetailRepository
 import com.and04.naturealbum.ui.utils.UiState
 import com.and04.naturealbum.ui.utils.UserManager
 import com.and04.naturealbum.utils.network.NetworkState
@@ -22,9 +23,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumFolderViewModel @Inject constructor(
-    private val roomRepository: LocalDataRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
     private val syncDataStore: DataStoreManager,
     private val albumRepository: AlbumRepository,
+    private val labelRepository: LabelRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState<AlbumFolderData>>(UiState.Idle)
     val uiState: StateFlow<UiState<AlbumFolderData>> = _uiState
@@ -34,11 +36,11 @@ class AlbumFolderViewModel @Inject constructor(
             _uiState.emit(UiState.Loading)
 
             val labelJob = async {
-                roomRepository.getLabelById(id = labelId)
+                labelRepository.getLabelById(id = labelId)
             }
 
             val photoDetailsJob = async {
-                roomRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
+                photoDetailRepository.getPhotoDetailsUriByLabelId(labelId = labelId).reversed()
             }
 
             val labelData = labelJob.await()
@@ -52,33 +54,27 @@ class AlbumFolderViewModel @Inject constructor(
         viewModelScope.launch {
             val currentData = (_uiState.value as? UiState.Success)?.data ?: return@launch
             val updatedPhotoDetails = currentData.photoDetails.toMutableList()
-
             photoDetails.forEach { photoDetail ->
-                roomRepository.deleteImage(photoDetail) // Room에서 삭제
+                photoDetailRepository.deleteImage(photoDetail) // Room에서 삭제
+                syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
                 launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
-                deleteFileFromFirebase(photoDetail)
+                launch(Dispatchers.IO) {
+                    val uid = UserManager.getUser()?.uid
+                    if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
+                        val label = labelRepository.getLabelById(photoDetail.labelId)
+                        albumRepository.deleteImageFile(
+                            uid = uid,
+                            label = label,
+                            fileName = photoDetail.fileName,
+                        )
+                    }
+                }
                 updatedPhotoDetails.remove(photoDetail)
             }
-
             if (updatedPhotoDetails.isEmpty()) {
                 _uiState.emit(UiState.Error("empty"))
             } else {
                 _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
-            }
-        }
-    }
-
-    private suspend fun deleteFileFromFirebase(photoDetail: PhotoDetail) = coroutineScope {
-        launch(Dispatchers.IO) {
-            val uid = UserManager.getUser()?.uid
-            if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
-                albumRepository.deleteImageFile(
-                    uid = uid,
-                    label = roomRepository.getLabelById(photoDetail.labelId),
-                    fileName = photoDetail.fileName,
-                )
-                syncDataStore.setDeletedFileName(photoDetail.fileName) // 파이어 베이스 삭제 정보를 DataStore에 저장
-
             }
         }
     }
