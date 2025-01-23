@@ -203,10 +203,8 @@ fun MapScreen(
         val totalPhotos = photosByUid.value.values.flatten()
         if (totalPhotos.isNotEmpty()) {
             val bound = LatLngBounds.Builder().apply {
-                photosByUid.value.values.forEach { photoItems ->
-                    photoItems.forEach { photoItem ->
-                        include(photoItem.position)
-                    }
+                totalPhotos.forEach { photoItem ->
+                    include(photoItem.position)
                 }
             }.build()
             mapView.getMapAsync { naverMap ->
