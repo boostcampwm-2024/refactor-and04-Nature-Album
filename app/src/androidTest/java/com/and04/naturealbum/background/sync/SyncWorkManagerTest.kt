@@ -1,23 +1,21 @@
 package com.and04.naturealbum.background.sync
 
 import android.content.Context
-import android.util.Log
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import androidx.work.Configuration
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
-import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
-import androidx.work.testing.WorkManagerTestInitHelper
 import com.and04.naturealbum.background.workmanager.SynchronizationWorker
 import com.and04.naturealbum.data.localdata.datastore.DataStoreManager
 import com.and04.naturealbum.data.repository.TestAiRepoImpl
 import com.and04.naturealbum.data.repository.firebase.TestAlbumRepoImpl
-import com.and04.naturealbum.data.repository.local.TestLocalDataRepoImpl
+import com.and04.naturealbum.data.repository.local.testimpl.TestLabelRepoImpl
+import com.and04.naturealbum.data.repository.local.testimpl.TestLocalAlbumRepoImpl
+import com.and04.naturealbum.data.repository.local.testimpl.TestPhotoDetailRepoImpl
+import com.and04.naturealbum.data.repository.local.testimpl.TestSyncRepoImpl
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
-import org.junit.Before
 import org.junit.Test
 
 class SyncWorkManagerTest {
@@ -45,10 +43,13 @@ class TestWorkerFactory(private val context: Context) : WorkerFactory() {
         return SynchronizationWorker(
             appContext,
             workerParameters,
-            TestLocalDataRepoImpl(),
-            TestAlbumRepoImpl(),
-            DataStoreManager(context),
-            TestAiRepoImpl()
+            photoDetailRepository = TestPhotoDetailRepoImpl(),
+            albumRepository = TestAlbumRepoImpl(),
+            syncDataStore = DataStoreManager(context),
+            retrofitRepository = TestAiRepoImpl(),
+            syncRepository = TestSyncRepoImpl(),
+            localAlbumRepository = TestLocalAlbumRepoImpl(),
+            labelRepository = TestLabelRepoImpl(),
         )
     }
 }

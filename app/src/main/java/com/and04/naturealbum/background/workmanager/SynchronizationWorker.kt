@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
 class SynchronizationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val roomRepository: PhotoDetailRepository,
+    private val photoDetailRepository: PhotoDetailRepository,
     private val albumRepository: AlbumRepository,
     private val syncDataStore: DataStoreManager,
     private val retrofitRepository: RetrofitRepository,
@@ -336,7 +336,7 @@ class SynchronizationWorker @AssistedInject constructor(
     ): Int {
         val latitude = photo.latitude ?: 0.0
         val longitude = photo.longitude ?: 0.0
-        return roomRepository.insertPhoto(
+        return photoDetailRepository.insertPhoto(
             PhotoDetail(
                 labelId = labelId,
                 photoUri = uri,
