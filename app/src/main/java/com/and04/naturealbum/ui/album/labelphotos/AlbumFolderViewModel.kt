@@ -14,6 +14,7 @@ import com.and04.naturealbum.utils.network.NetworkState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -51,31 +52,29 @@ class AlbumFolderViewModel @Inject constructor(
 
     fun deletePhotos(photoDetails: Set<PhotoDetail>) {
         viewModelScope.launch {
-            val currentData = (_uiState.value as? UiState.Success)?.data
-            if (currentData != null) {
-                val updatedPhotoDetails = currentData.photoDetails.toMutableList()
-                photoDetails.forEach { photoDetail ->
-                    photoDetailRepository.deleteImage(photoDetail) // Room에서 삭제
-                    syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
-                    launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
-                    launch(Dispatchers.IO) {
-                        val uid = UserManager.getUser()?.uid
-                        if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
-                            val label = labelRepository.getLabelById(photoDetail.labelId)
-                            albumRepository.deleteImageFile(
-                                uid = uid,
-                                label = label,
-                                fileName = photoDetail.fileName,
-                            )
-                        }
+            val currentData = (_uiState.value as? UiState.Success)?.data ?: return@launch
+            val updatedPhotoDetails = currentData.photoDetails.toMutableList()
+            photoDetails.forEach { photoDetail ->
+                photoDetailRepository.deleteImage(photoDetail) // Room에서 삭제
+                syncDataStore.setDeletedFileName(photoDetail.fileName) // 삭제 정보를 DataStore에 저장
+                launch(Dispatchers.IO) { deleteFile(photoDetail.fileName) } //file에서 이미지 삭제
+                launch(Dispatchers.IO) {
+                    val uid = UserManager.getUser()?.uid
+                    if (NetworkState.getNetWorkCode() != NetworkState.DISCONNECTED && !uid.isNullOrEmpty()) {
+                        val label = labelRepository.getLabelById(photoDetail.labelId)
+                        albumRepository.deleteImageFile(
+                            uid = uid,
+                            label = label,
+                            fileName = photoDetail.fileName,
+                        )
                     }
-                    updatedPhotoDetails.remove(photoDetail)
                 }
-                if (updatedPhotoDetails.isEmpty()) {
-                    _uiState.emit(UiState.Error("empty"))
-                } else {
-                    _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
-                }
+                updatedPhotoDetails.remove(photoDetail)
+            }
+            if (updatedPhotoDetails.isEmpty()) {
+                _uiState.emit(UiState.Error("empty"))
+            } else {
+                _uiState.emit(UiState.Success(currentData.copy(photoDetails = updatedPhotoDetails)))
             }
         }
     }
